@@ -1,0 +1,5 @@
+{
+  "name": "IGCSE CIE Chemistry",
+  "description": "A Duolingo-styled chemistry revision app for IGCSE CIE students covering units 1-12 with quizzes, revision notes, and vocabulary.",
+  "requestFramePermissions": []
+}
