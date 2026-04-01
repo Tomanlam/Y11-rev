@@ -43,7 +43,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { units, Unit, Question, Vocab } from './data';
 
-type AppMode = 'splash' | 'dashboard' | 'quiz' | 'quiz-select' | 'revision' | 'vocab' | 'result' | 'user-stats' | 'about' | 'playground';
+type AppMode = 'splash' | 'dashboard' | 'quiz' | 'quiz-select' | 'revision' | 'vocab' | 'result' | 'user-stats' | 'about' | 'playground' | 'facts';
 type QuizSubMode = 'quick' | 'time-attack' | 'marathon';
 
 interface SessionStats {
@@ -328,6 +328,338 @@ export default function App() {
             </motion.div>
           ))}
         </AnimatePresence>
+      </motion.div>
+    );
+  };
+
+  const QuickFacts = () => {
+    const [hoveredRule, setHoveredRule] = useState<string | null>(null);
+    const [hoveredMoleEq, setHoveredMoleEq] = useState<number | null>(null);
+
+    const ParticleBox = ({ state }: { state: 'solid' | 'liquid' | 'gas' }) => {
+      if (state === 'solid') {
+        return (
+          <div className="grid grid-cols-4 gap-1 p-2">
+            {[...Array(16)].map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ x: [0, 1, -1, 0], y: [0, -1, 1, 0] }}
+                transition={{ duration: 0.1, repeat: Infinity }}
+                className="w-3 h-3 bg-gray-400 rounded-full"
+              />
+            ))}
+          </div>
+        );
+      }
+      if (state === 'liquid') {
+        return (
+          <div className="relative w-full h-full">
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ 
+                  x: [Math.random() * 40, Math.random() * 40], 
+                  y: [Math.random() * 40, Math.random() * 40] 
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatType: "reverse" }}
+                className="absolute w-3 h-3 bg-sky-400 rounded-full"
+                style={{ left: `${(i % 4) * 20 + 10}%`, top: `${Math.floor(i / 4) * 20 + 10}%` }}
+              />
+            ))}
+          </div>
+        );
+      }
+      return (
+        <div className="relative w-full h-full">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              animate={{ 
+                x: [Math.random() * 60 - 30, Math.random() * 60 - 30], 
+                y: [Math.random() * 60 - 30, Math.random() * 60 - 30] 
+              }}
+              transition={{ duration: 0.5, repeat: Infinity, ease: "linear", repeatType: "reverse" }}
+              className="absolute w-2 h-2 bg-orange-400 rounded-full"
+              style={{ left: `${Math.random() * 60 + 20}%`, top: `${Math.random() * 60 + 20}%` }}
+            />
+          ))}
+        </div>
+      );
+    };
+
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="min-h-screen bg-gray-50 pb-32"
+      >
+        <header className="bg-white border-b-2 border-gray-200 p-6 sticky top-0 z-10">
+          <div className="max-w-2xl mx-auto flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter">Quick Facts</h1>
+              <p className="text-emerald-500 font-bold text-xs uppercase tracking-widest">Essential Chemistry Knowledge</p>
+            </div>
+            <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl">
+              <BookOpen size={28} />
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-2xl mx-auto p-6 space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)] overflow-hidden"
+          >
+            <div className="flex items-center gap-4 mb-12">
+              <div className="bg-sky-100 p-3 rounded-2xl text-sky-600">
+                <Thermometer size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">State Change</h2>
+            </div>
+
+            <div className="relative w-full max-w-2xl mx-auto mb-8 h-[300px]">
+              <div className="absolute inset-0 flex items-center justify-between px-4">
+                {/* SVG for arrows */}
+                <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none" viewBox="0 0 600 300">
+                  <defs>
+                    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                      <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+                    </marker>
+                    <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444" />
+                    </marker>
+                  </defs>
+                  
+                  {/* Solid to Liquid (Melting) */}
+                  <path d="M 140 130 Q 200 110 260 130" fill="none" stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrowhead-blue)" />
+                  {/* Liquid to Solid (Freezing) */}
+                  <path d="M 260 170 Q 200 190 140 170" fill="none" stroke="#ef4444" strokeWidth="3" markerEnd="url(#arrowhead-red)" />
+                  
+                  {/* Liquid to Gas (Boiling) */}
+                  <path d="M 340 130 Q 400 110 460 130" fill="none" stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrowhead-blue)" />
+                  {/* Gas to Liquid (Condensing) */}
+                  <path d="M 460 170 Q 400 190 340 170" fill="none" stroke="#ef4444" strokeWidth="3" markerEnd="url(#arrowhead-red)" />
+                  
+                  {/* Solid to Gas (Sublimating) */}
+                  <path d="M 100 100 Q 300 20 500 100" fill="none" stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrowhead-blue)" />
+                  {/* Gas to Solid (Depositing) */}
+                  <path d="M 500 200 Q 300 280 100 200" fill="none" stroke="#ef4444" strokeWidth="3" markerEnd="url(#arrowhead-red)" />
+                </svg>
+
+                {/* Labels for transitions */}
+                <div className="absolute top-[95px] left-[180px] text-[10px] font-black text-blue-500 uppercase">Melting</div>
+                <div className="absolute top-[185px] left-[180px] text-[10px] font-black text-red-500 uppercase">Freezing</div>
+                
+                <div className="absolute top-[95px] right-[180px] text-[10px] font-black text-blue-500 uppercase">Boiling</div>
+                <div className="absolute top-[185px] right-[180px] text-[10px] font-black text-red-500 uppercase">Condensing</div>
+                
+                <div className="absolute top-[35px] left-1/2 -translate-x-1/2 text-[10px] font-black text-blue-500 uppercase">Sublimating</div>
+                <div className="absolute bottom-[35px] left-1/2 -translate-x-1/2 text-[10px] font-black text-red-500 uppercase">Depositing</div>
+
+                {/* States */}
+                {/* Solid (Left) */}
+                <div className="flex flex-col items-center z-10">
+                  <div className="w-24 h-24 bg-gray-50 rounded-2xl border-2 border-gray-100 flex items-center justify-center overflow-hidden relative">
+                    <ParticleBox state="solid" />
+                  </div>
+                  <span className="mt-2 font-black text-gray-800 uppercase tracking-widest text-sm">Solid</span>
+                </div>
+
+                {/* Liquid (Middle) */}
+                <div className="flex flex-col items-center z-10">
+                  <div className="w-24 h-24 bg-sky-50 rounded-2xl border-2 border-sky-100 flex items-center justify-center overflow-hidden relative">
+                    <ParticleBox state="liquid" />
+                  </div>
+                  <span className="mt-2 font-black text-gray-800 uppercase tracking-widest text-sm">Liquid</span>
+                </div>
+
+                {/* Gas (Right) */}
+                <div className="flex flex-col items-center z-10">
+                  <div className="w-24 h-24 bg-orange-50 rounded-2xl border-2 border-orange-100 flex items-center justify-center overflow-hidden relative">
+                    <ParticleBox state="gas" />
+                  </div>
+                  <span className="mt-2 font-black text-gray-800 uppercase tracking-widest text-sm">Gas</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-12 grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100">
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Endothermic</p>
+                <p className="text-xs font-bold text-gray-600">Energy is absorbed (Melting, Boiling, Sublimating).</p>
+              </div>
+              <div className="bg-red-50 p-4 rounded-2xl border-2 border-red-100">
+                <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-1">Exothermic</p>
+                <p className="text-xs font-bold text-gray-600">Energy is released (Freezing, Condensing, Depositing).</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)] overflow-hidden"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
+                <Droplets size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Solubility Rules</h2>
+            </div>
+
+            <div className="relative w-full aspect-square max-w-md mx-auto flex items-center justify-center">
+              {/* Tooltip/Overlay for hovered rule */}
+              <AnimatePresence>
+                {hoveredRule && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                    className="absolute top-0 left-0 right-0 z-50 bg-gray-800 text-white p-4 rounded-2xl text-center shadow-xl border-2 border-gray-700"
+                  >
+                    <p className="font-bold text-sm leading-tight">{hoveredRule}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Central Circle */}
+              <motion.div 
+                onMouseEnter={() => setHoveredRule("All Potassium (K⁺), Sodium (Na⁺), Ammonium (NH₄⁺), and Nitrate (NO₃⁻) salts are soluble.")}
+                onMouseLeave={() => setHoveredRule(null)}
+                whileHover={{ scale: 1.05 }}
+                className="relative z-20 w-48 h-48 bg-emerald-500 rounded-full flex flex-col items-center justify-center p-6 text-center border-4 border-white shadow-xl cursor-help transition-colors hover:bg-emerald-600"
+              >
+                <div className="text-white font-black text-lg flex flex-wrap justify-center gap-x-2 leading-none">
+                  <span>K<sup>+</sup></span>
+                  <span>Na<sup>+</sup></span>
+                  <span>NH<sub>4</sub><sup>+</sup></span>
+                  <span>NO<sub>3</sub><sup>-</sup></span>
+                </div>
+                <p className="text-white/80 font-bold text-[10px] uppercase mt-2 tracking-widest">Always Soluble</p>
+              </motion.div>
+
+              {/* Top Circle (Sulfates) */}
+              <motion.div 
+                onMouseEnter={() => setHoveredRule("Most sulfates are soluble except Barium Sulfate (BaSO₄) and Lead(II) Sulfate (PbSO₄).")}
+                onMouseLeave={() => setHoveredRule(null)}
+                whileHover={{ scale: 1.1, zIndex: 30 }}
+                className="absolute top-4 z-10 w-36 h-36 bg-sky-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-sky-200 cursor-help transition-all hover:bg-sky-200"
+              >
+                <p className="text-sky-800 font-black text-xl">SO<sub>4</sub><sup>2-</sup></p>
+              </motion.div>
+
+              {/* Bottom Circle (Halides) */}
+              <motion.div 
+                onMouseEnter={() => setHoveredRule("Most halides (Cl⁻, Br⁻, I⁻) are soluble except Silver Halides (AgX) and Lead(II) Halides (PbX₂).")}
+                onMouseLeave={() => setHoveredRule(null)}
+                whileHover={{ scale: 1.1, zIndex: 30 }}
+                className="absolute bottom-4 z-10 w-36 h-36 bg-sky-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-sky-200 cursor-help transition-all hover:bg-sky-200"
+              >
+                <p className="text-sky-800 font-black text-xl">X<sup>-</sup></p>
+              </motion.div>
+
+              {/* Left Circle (Hydroxides) */}
+              <motion.div 
+                onMouseEnter={() => setHoveredRule("Most hydroxides are insoluble except those of K⁺, Na⁺, and NH₄⁺.")}
+                onMouseLeave={() => setHoveredRule(null)}
+                whileHover={{ scale: 1.1, zIndex: 30 }}
+                className="absolute left-[-10px] z-10 w-36 h-36 bg-rose-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-rose-200 cursor-help transition-all hover:bg-rose-200"
+              >
+                <p className="text-rose-800 font-black text-xl">OH<sup>-</sup></p>
+              </motion.div>
+
+              {/* Right Circle (Carbonates) */}
+              <motion.div 
+                onMouseEnter={() => setHoveredRule("Most carbonates are insoluble except those of K⁺, Na⁺, and NH₄⁺.")}
+                onMouseLeave={() => setHoveredRule(null)}
+                whileHover={{ scale: 1.1, zIndex: 30 }}
+                className="absolute right-[-10px] z-10 w-36 h-36 bg-rose-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-rose-200 cursor-help transition-all hover:bg-rose-200"
+              >
+                <p className="text-rose-800 font-black text-xl">CO<sub>3</sub><sup>2-</sup></p>
+              </motion.div>
+            </div>
+            
+            <p className="text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-4">Hover over ions to see full rules</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
+                <Calculator size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Mole Calculation</h2>
+            </div>
+
+            <div className="space-y-6">
+              {[
+                { 
+                  id: 1, 
+                  eq: "n = m / Mᵣ", 
+                  info: "m = mass (g) and Mᵣ = Molar mass (g/mol)",
+                  desc: "Calculating moles from mass"
+                },
+                { 
+                  id: 2, 
+                  eq: "n = C × V", 
+                  info: "C = concentration (mol/dm³) and V = volume (dm³)",
+                  desc: "Calculating moles from concentration"
+                },
+                { 
+                  id: 3, 
+                  eq: "n = V of gas / 24", 
+                  info: "V = volume of gas (dm³)",
+                  desc: "Calculating moles from gas volume"
+                }
+              ].map((item) => (
+                <motion.div
+                  key={item.id}
+                  onMouseEnter={() => setHoveredMoleEq(item.id)}
+                  onMouseLeave={() => setHoveredMoleEq(null)}
+                  className="relative bg-gray-50 border-2 border-gray-100 rounded-3xl p-6 cursor-help transition-all hover:border-orange-200 hover:bg-orange-50 group"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 group-hover:text-orange-400">{item.desc}</p>
+                      <h3 className="text-2xl font-black text-gray-800 group-hover:text-orange-600">
+                        {item.eq.split(' ').map((part, i) => (
+                          <span key={i} className={part === '/' || part === '×' ? 'text-orange-400 mx-2' : ''}>
+                            {part === 'Mᵣ' ? <span>M<sub>r</sub></span> : part}
+                          </span>
+                        ))}
+                      </h3>
+                    </div>
+                    <div className="bg-white p-2 rounded-xl shadow-sm text-gray-400 group-hover:text-orange-500">
+                      <Info size={20} />
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {hoveredMoleEq === item.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-4 pt-4 border-t-2 border-orange-100 overflow-hidden"
+                      >
+                        <p className="text-sm font-bold text-orange-600 leading-relaxed">
+                          {item.info}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </main>
       </motion.div>
     );
   };
@@ -1098,8 +1430,209 @@ export default function App() {
   );
 };
 
+    const SolubilityPlayground = () => {
+      const salts = [
+        { name: 'Potassium Nitrate', formula: 'KNO₃', soluble: true, rule: 'All K⁺ and NO₃⁻ salts are soluble.' },
+        { name: 'Sodium Chloride', formula: 'NaCl', soluble: true, rule: 'All Na⁺ salts are soluble.' },
+        { name: 'Ammonium Sulfate', formula: ' (NH₄)₂SO₄', soluble: true, rule: 'All NH₄⁺ salts are soluble.' },
+        { name: 'Barium Sulfate', formula: 'BaSO₄', soluble: false, rule: 'Most sulfates are soluble except BaSO₄ and PbSO₄.' },
+        { name: 'Silver Chloride', formula: 'AgCl', soluble: false, rule: 'Most halides are soluble except AgX and PbX₂.' },
+        { name: 'Lead(II) Iodide', formula: 'PbI₂', soluble: false, rule: 'Most halides are soluble except AgX and PbX₂.' },
+        { name: 'Calcium Carbonate', formula: 'CaCO₃', soluble: false, rule: 'Most carbonates are insoluble except those of K⁺/Na⁺/NH₄⁺.' },
+        { name: 'Copper(II) Hydroxide', formula: 'Cu(OH)₂', soluble: false, rule: 'Most hydroxides are insoluble except those of K⁺/Na⁺/NH₄⁺.' },
+        { name: 'Magnesium Sulfate', formula: 'MgSO₄', soluble: true, rule: 'Most sulfates are soluble.' },
+        { name: 'Iron(II) Chloride', formula: 'FeCl₂', soluble: true, rule: 'Most halides are soluble.' },
+        { name: 'Sodium Carbonate', formula: 'Na₂CO₃', soluble: true, rule: 'Carbonates of Na⁺ are soluble.' },
+        { name: 'Potassium Hydroxide', formula: 'KOH', soluble: true, rule: 'Hydroxides of K⁺ are soluble.' },
+      ];
+
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [score, setScore] = useState(0);
+      const [showResult, setShowResult] = useState(false);
+      const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+
+      const currentSalt = salts[currentIndex];
+
+      const handleAnswer = (answer: boolean) => {
+        if (answer === currentSalt.soluble) {
+          setScore(score + 1);
+          setFeedback('correct');
+        } else {
+          setFeedback('wrong');
+        }
+
+        setTimeout(() => {
+          setFeedback(null);
+          if (currentIndex < salts.length - 1) {
+            setCurrentIndex(currentIndex + 1);
+          } else {
+            setShowResult(true);
+          }
+        }, 1500);
+      };
+
+      const reset = () => {
+        setCurrentIndex(0);
+        setScore(0);
+        setShowResult(false);
+        setFeedback(null);
+      };
+
+      if (showResult) {
+        return (
+          <main className="max-w-2xl mx-auto p-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-12 text-center shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+            >
+              <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trophy size={48} />
+              </div>
+              <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tight mb-2">Revision Complete!</h2>
+              <p className="text-gray-500 font-bold mb-8">You identified {score} out of {salts.length} salts correctly.</p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100">
+                  <p className="text-2xl font-black text-emerald-500">{Math.round((score / salts.length) * 100)}%</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Accuracy</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100">
+                  <p className="text-2xl font-black text-blue-500">{score}</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Correct</p>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={reset}
+                className="w-full bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-[0_4px_0_0_#059669] uppercase tracking-widest"
+              >
+                Try Again
+              </motion.button>
+            </motion.div>
+          </main>
+        );
+      }
+
+      return (
+        <main className="max-w-2xl mx-auto p-6">
+          <div className="mb-8 flex justify-between items-end">
+            <div>
+              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Question {currentIndex + 1} of {salts.length}</p>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Is it Soluble?</h2>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Score</p>
+              <p className="text-xl font-black text-emerald-500">{score}</p>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-12 text-center shadow-[0_8px_0_0_rgba(0,0,0,0.05)] relative overflow-hidden"
+            >
+              <div className="mb-8">
+                <h3 className="text-4xl font-black text-gray-800 mb-2">{currentSalt.formula}</h3>
+                <p className="text-lg font-bold text-gray-400 uppercase tracking-widest">{currentSalt.name}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={feedback !== null}
+                  onClick={() => handleAnswer(true)}
+                  className="bg-emerald-50 border-2 border-emerald-200 p-8 rounded-3xl group hover:bg-emerald-500 transition-colors"
+                >
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-500 group-hover:text-emerald-600">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <span className="font-black text-emerald-600 uppercase tracking-widest group-hover:text-white">Soluble</span>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={feedback !== null}
+                  onClick={() => handleAnswer(false)}
+                  className="bg-rose-50 border-2 border-rose-200 p-8 rounded-3xl group hover:bg-rose-500 transition-colors"
+                >
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-rose-500 group-hover:text-rose-600">
+                    <XCircle size={32} />
+                  </div>
+                  <span className="font-black text-rose-600 uppercase tracking-widest group-hover:text-white">Insoluble</span>
+                </motion.button>
+              </div>
+
+              <AnimatePresence>
+                {feedback && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className={`absolute inset-0 flex items-center justify-center p-8 z-30 ${
+                      feedback === 'correct' ? 'bg-emerald-500' : 'bg-rose-500'
+                    }`}
+                  >
+                    <div className="text-white text-center">
+                      <div className="mb-4 flex justify-center">
+                        {feedback === 'correct' ? <CheckCircle2 size={64} /> : <XCircle size={64} />}
+                      </div>
+                      <h4 className="text-2xl font-black uppercase tracking-tight mb-2">
+                        {feedback === 'correct' ? 'Correct!' : 'Incorrect'}
+                      </h4>
+                      <p className="font-bold text-white/90">{currentSalt.rule}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="mt-12 bg-white border-2 border-gray-200 rounded-3xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Info className="text-blue-500" size={20} />
+              <h4 className="font-black text-gray-800 uppercase tracking-tight">Solubility Rules Reminder</h4>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                <p className="text-sm font-bold text-gray-600">
+                  All <span className="text-emerald-600">K<sup>+</sup></span>, <span className="text-emerald-600">Na<sup>+</sup></span>, <span className="text-emerald-600">NH<sub>4</sub><sup>+</sup></span>, and <span className="text-emerald-600">NO<sub>3</sub><sup>-</sup></span> salts are <span className="text-emerald-600">SOLUBLE</span>.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+                <p className="text-sm font-bold text-gray-600">
+                  Most <span className="text-sky-600">Sulfates (SO<sub>4</sub><sup>2-</sup>)</span> are soluble except <span className="text-rose-500">BaSO<sub>4</sub></span> and <span className="text-rose-500">PbSO<sub>4</sub></span>.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+                <p className="text-sm font-bold text-gray-600">
+                  Most <span className="text-sky-600">Halides (Cl<sup>-</sup>, Br<sup>-</sup>, I<sup>-</sup>)</span> are soluble except <span className="text-rose-500">AgX</span> and <span className="text-rose-500">PbX<sub>2</sub></span>.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                <p className="text-sm font-bold text-gray-600">
+                  Most <span className="text-rose-600">Hydroxides (OH<sup>-</sup>)</span> and <span className="text-rose-600">Carbonates (CO<sub>3</sub><sup>2-</sup>)</span> are <span className="text-rose-600">INSOLUBLE</span> except those of K<sup>+</sup>, Na<sup>+</sup>, and NH<sub>4</sub><sup>+</sup>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+      );
+    };
+
   const PlaygroundView = () => {
-    const [subMode, setSubMode] = useState<'select' | 'equations' | 'chemicals' | 'graphs' | 'simulations'>('select');
+    const [subMode, setSubMode] = useState<'select' | 'equations' | 'chemicals' | 'graphs' | 'simulations' | 'solubility' | 'mole'>('select');
     const [selectedEquation, setSelectedEquation] = useState<any>(null);
     const [equationSubject, setEquationSubject] = useState<string>('');
     const [isPracticeMode, setIsPracticeMode] = useState(false);
@@ -1110,6 +1643,497 @@ export default function App() {
     const [selectedGraph, setSelectedGraph] = useState<string | null>(null);
     const [graphSpeed1, setGraphSpeed1] = useState(5);
     const [graphSpeed2, setGraphSpeed2] = useState(10);
+
+    const MolePlayground = () => {
+      const moleQuestions = [
+        {
+          equation: "N₂ + 3H₂ → 2NH₃",
+          parts: [
+            { formula: "N₂", ratio: 1, mr: 28 },
+            { formula: "H₂", ratio: 3, mr: 2 },
+            { formula: "NH₃", ratio: 2, mr: 17 }
+          ],
+          known: { index: 0, type: 'mass', value: 28, unit: 'g' },
+          unknown: { index: 2, type: 'mass', label: 'mass', unit: 'g' },
+          steps: [
+            { text: "28 g / 28 g/mol = 1 mol", val: 1 },
+            { text: "1 mol × 2 = 2 mol", val: 2 },
+            { text: "2 mol × 17 g/mol = 34 g", val: 34 }
+          ]
+        },
+        {
+          equation: "2Mg + O₂ → 2MgO",
+          parts: [
+            { formula: "Mg", ratio: 2, mr: 24 },
+            { formula: "O₂", ratio: 1, mr: 32 },
+            { formula: "MgO", ratio: 2, mr: 40 }
+          ],
+          known: { index: 0, type: 'mass', value: 4.8, unit: 'g' },
+          unknown: { index: 2, type: 'mass', label: 'mass', unit: 'g' },
+          steps: [
+            { text: "4.8 g / 24 g/mol = 0.2 mol", val: 0.2 },
+            { text: "0.2 mol × (2/2) = 0.2 mol", val: 0.2 },
+            { text: "0.2 mol × 40 g/mol = 8 g", val: 8 }
+          ]
+        },
+        {
+          equation: "CH₄ + 2O₂ → CO₂ + 2H₂O",
+          parts: [
+            { formula: "CH₄", ratio: 1, mr: 16 },
+            { formula: "O₂", ratio: 2, mr: 32 },
+            { formula: "CO₂", ratio: 1, mr: 44 },
+            { formula: "H₂O", ratio: 2, mr: 18 }
+          ],
+          known: { index: 0, type: 'mass', value: 1.6, unit: 'g' },
+          unknown: { index: 2, type: 'mass', label: 'mass', unit: 'g' },
+          steps: [
+            { text: "1.6 g / 16 g/mol = 0.1 mol", val: 0.1 },
+            { text: "0.1 mol × 1 = 0.1 mol", val: 0.1 },
+            { text: "0.1 mol × 44 g/mol = 4.4 g", val: 4.4 }
+          ]
+        },
+        {
+          equation: "CaCO₃ → CaO + CO₂",
+          parts: [
+            { formula: "CaCO₃", ratio: 1, mr: 100 },
+            { formula: "CaO", ratio: 1, mr: 56 },
+            { formula: "CO₂", ratio: 1, mr: 44 }
+          ],
+          known: { index: 0, type: 'mass', value: 20, unit: 'g' },
+          unknown: { index: 2, type: 'volume', label: 'volume', unit: 'dm³' },
+          steps: [
+            { text: "20 g / 100 g/mol = 0.2 mol", val: 0.2 },
+            { text: "0.2 mol × 1 = 0.2 mol", val: 0.2 },
+            { text: "0.2 mol × 24 dm³/mol = 4.8 dm³", val: 4.8 }
+          ]
+        },
+        {
+          equation: "2Na + Cl₂ → 2NaCl",
+          parts: [
+            { formula: "Na", ratio: 2, mr: 23 },
+            { formula: "Cl₂", ratio: 1, mr: 71 },
+            { formula: "NaCl", ratio: 2, mr: 58.5 }
+          ],
+          known: { index: 1, type: 'volume', value: 12, unit: 'dm³' },
+          unknown: { index: 2, type: 'mass', label: 'mass', unit: 'g' },
+          steps: [
+            { text: "12 dm³ / 24 dm³/mol = 0.5 mol", val: 0.5 },
+            { text: "0.5 mol × 2 = 1 mol", val: 1 },
+            { text: "1 mol × 58.5 g/mol = 58.5 g", val: 58.5 }
+          ]
+        },
+        {
+          equation: "Mg + 2HCl → MgCl₂ + H₂",
+          parts: [
+            { formula: "Mg", ratio: 1, mr: 24 },
+            { formula: "HCl", ratio: 2, mr: 36.5 },
+            { formula: "MgCl₂", ratio: 1, mr: 95 },
+            { formula: "H₂", ratio: 1, mr: 2 }
+          ],
+          known: { index: 0, type: 'mass', value: 1.2, unit: 'g' },
+          unknown: { index: 3, type: 'volume', label: 'volume', unit: 'dm³' },
+          steps: [
+            { text: "1.2 g / 24 g/mol = 0.05 mol", val: 0.05 },
+            { text: "0.05 mol × 1 = 0.05 mol", val: 0.05 },
+            { text: "0.05 mol × 24 dm³/mol = 1.2 dm³", val: 1.2 }
+          ]
+        },
+        {
+          equation: "2H₂ + O₂ → 2H₂O",
+          parts: [
+            { formula: "H₂", ratio: 2, mr: 2 },
+            { formula: "O₂", ratio: 1, mr: 32 },
+            { formula: "H₂O", ratio: 2, mr: 18 }
+          ],
+          known: { index: 0, type: 'mass', value: 4, unit: 'g' },
+          unknown: { index: 2, type: 'mass', label: 'mass', unit: 'g' },
+          steps: [
+            { text: "4 g / 2 g/mol = 2 mol", val: 2 },
+            { text: "2 mol × (2/2) = 2 mol", val: 2 },
+            { text: "2 mol × 18 g/mol = 36 g", val: 36 }
+          ]
+        },
+        {
+          equation: "S + O₂ → SO₂",
+          parts: [
+            { formula: "S", ratio: 1, mr: 32 },
+            { formula: "O₂", ratio: 1, mr: 32 },
+            { formula: "SO₂", ratio: 1, mr: 64 }
+          ],
+          known: { index: 0, type: 'mass', value: 3.2, unit: 'g' },
+          unknown: { index: 2, type: 'volume', label: 'volume', unit: 'dm³' },
+          steps: [
+            { text: "3.2 g / 32 g/mol = 0.1 mol", val: 0.1 },
+            { text: "0.1 mol × 1 = 0.1 mol", val: 0.1 },
+            { text: "0.1 mol × 24 dm³/mol = 2.4 dm³", val: 2.4 }
+          ]
+        }
+      ];
+
+      const [qIndex, setQIndex] = useState(0);
+      const [step, setStep] = useState(0); // 0: known, 1: known mole, 2: unknown mole, 3: unknown quantity
+      const [mode, setMode] = useState<'example' | 'practice'>('example');
+      const [practiceInput, setPracticeInput] = useState("");
+      const [practiceFeedback, setPracticeFeedback] = useState<'none' | 'correct' | 'wrong'>('none');
+      const [showCalculator, setShowCalculator] = useState(false);
+      const [calcDisplay, setCalcDisplay] = useState("0");
+
+      const currentQ = moleQuestions[qIndex];
+
+      const nextQ = () => {
+        setQIndex((qIndex + 1) % moleQuestions.length);
+        setStep(0);
+        setPracticeInput("");
+        setPracticeFeedback('none');
+      };
+
+      const handleStepClick = (clickedStep: number) => {
+        if (mode === 'example' && step === clickedStep) {
+          setStep(step + 1);
+        }
+      };
+
+      const checkPracticeAnswer = () => {
+        const expected = currentQ.steps[step - 1].val;
+        const userVal = parseFloat(practiceInput);
+        
+        if (Math.abs(userVal - expected) < 0.01) {
+          setPracticeFeedback('correct');
+          setTimeout(() => {
+            setStep(step + 1);
+            setPracticeInput("");
+            setPracticeFeedback('none');
+          }, 1000);
+        } else {
+          setPracticeFeedback('wrong');
+          setTimeout(() => setPracticeFeedback('none'), 1500);
+        }
+      };
+
+      const VirtualCalculator = () => {
+        const buttons = [
+          '7', '8', '9', '/',
+          '4', '5', '6', '*',
+          '1', '2', '3', '-',
+          '0', '.', '=', '+',
+          'C'
+        ];
+
+        const handleCalc = (btn: string) => {
+          if (btn === 'C') setCalcDisplay("0");
+          else if (btn === '=') {
+            try {
+              // Using Function constructor as a simple math evaluator for this educational context
+              // In a real app, a proper math parser library would be safer
+              const result = new Function(`return ${calcDisplay}`)();
+              setCalcDisplay(String(Number(result).toFixed(3).replace(/\.?0+$/, "")));
+            } catch {
+              setCalcDisplay("Error");
+            }
+          } else {
+            setCalcDisplay(prev => prev === "0" || prev === "Error" ? btn : prev + btn);
+          }
+        };
+
+        return (
+          <motion.div 
+            drag
+            dragMomentum={false}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="fixed bottom-8 right-8 w-64 bg-gray-900 rounded-3xl p-4 shadow-2xl z-50 cursor-move"
+          >
+            <div className="flex justify-between items-center mb-4 px-2">
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Calculator</span>
+              <button onClick={() => setShowCalculator(false)} className="text-gray-500 hover:text-white">
+                <XCircle size={16} />
+              </button>
+            </div>
+            <div className="bg-gray-800 rounded-xl p-4 mb-4 text-right">
+              <p className="text-white font-mono text-2xl truncate">{calcDisplay}</p>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {buttons.map(btn => (
+                <button
+                  key={btn}
+                  onClick={() => handleCalc(btn)}
+                  className={`h-12 rounded-xl font-black transition-all active:scale-95 ${
+                    btn === '=' ? 'bg-orange-500 text-white col-span-1' : 
+                    btn === 'C' ? 'bg-rose-500 text-white' :
+                    ['/', '*', '-', '+'].includes(btn) ? 'bg-gray-700 text-orange-400' : 'bg-gray-700 text-white'
+                  }`}
+                >
+                  {btn}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        );
+      };
+
+      return (
+        <div className="space-y-8">
+          <div className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Mole Playground</p>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Interactive Stoichiometry</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                {/* Mode Toggle */}
+                <div className="flex bg-gray-100 p-1 rounded-2xl border-2 border-gray-200">
+                  <button
+                    onClick={() => { setMode('example'); setStep(0); }}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'example' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-400'}`}
+                  >
+                    Example
+                  </button>
+                  <button
+                    onClick={() => { setMode('practice'); setStep(0); }}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'practice' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400'}`}
+                  >
+                    Practice
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setShowCalculator(!showCalculator)}
+                  className={`p-3 rounded-2xl border-2 transition-all ${showCalculator ? 'bg-gray-800 border-gray-900 text-white' : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300'}`}
+                >
+                  <Calculator size={20} />
+                </button>
+
+                <button
+                  onClick={nextQ}
+                  className="bg-orange-500 text-white font-black px-6 py-2 rounded-2xl shadow-[0_4px_0_0_#c2410c] active:shadow-none active:translate-y-1 transition-all uppercase tracking-widest text-xs"
+                >
+                  Next Example
+                </button>
+              </div>
+            </div>
+
+            <div className="relative min-h-[550px] flex flex-col items-center">
+              {/* Equation Header */}
+              <div className="flex items-center justify-center gap-8 mb-16 bg-gray-50 px-12 py-6 rounded-[2rem] border-2 border-gray-100">
+                {currentQ.equation.split(' ').map((part, i) => {
+                  const formulaOnly = part.replace(/^\d+/, '');
+                  const coefficient = part.slice(0, part.length - formulaOnly.length);
+                  const partIndex = currentQ.parts.findIndex(p => p.formula === formulaOnly);
+                  const isKnown = partIndex === currentQ.known.index;
+                  const isUnknown = partIndex === currentQ.unknown.index;
+
+                  return (
+                    <div key={i} className="relative flex flex-col items-center">
+                      <span className={`text-3xl font-black ${part === '→' || part === '+' ? 'text-orange-300' : 'text-gray-800'}`}>
+                        {part === '→' || part === '+' ? (
+                          part
+                        ) : (
+                          <>
+                            {coefficient && <span className="text-orange-500">{coefficient}</span>}
+                            {formulaOnly.split('').map((char, j) => (
+                              <span key={j}>{char.match(/\d/) ? <sub>{char}</sub> : char}</span>
+                            ))}
+                          </>
+                        )}
+                      </span>
+                      
+                      {/* Column for this chemical */}
+                      <div className="absolute top-12 w-48 flex flex-col items-center pt-4">
+                        {/* Row 1: Known Box or Final Box */}
+                        <div className="h-28 w-full flex items-center justify-center">
+                          {isKnown && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              onClick={() => handleStepClick(0)}
+                              className={`w-full p-4 rounded-2xl border-2 text-center cursor-pointer transition-all shadow-sm
+                                ${step >= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gray-50 border-gray-100 text-gray-400'}
+                                ${step === 0 ? 'ring-4 ring-emerald-100 scale-105' : 'hover:scale-102'}
+                              `}
+                            >
+                              <p className="text-[10px] font-black uppercase tracking-widest mb-1">Known Quantity</p>
+                              <p className="text-xl font-black">{currentQ.known.value} {currentQ.known.unit}</p>
+                            </motion.div>
+                          )}
+                          {isUnknown && step >= 3 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="w-full p-4 bg-rose-500 text-white rounded-2xl text-center shadow-lg border-2 border-rose-400"
+                            >
+                              <p className="text-[10px] font-black text-rose-100 uppercase tracking-widest mb-1">Final {currentQ.unknown.label}</p>
+                              {mode === 'example' || step > 3 ? (
+                                <>
+                                  <p className="text-sm font-bold mb-1">{currentQ.steps[2].text}</p>
+                                  <p className="text-xl font-black">{currentQ.steps[2].val} {currentQ.unknown.unit}</p>
+                                </>
+                              ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                  <input 
+                                    type="number" 
+                                    value={practiceInput}
+                                    onChange={(e) => setPracticeInput(e.target.value)}
+                                    placeholder={`Enter ${currentQ.unknown.unit}`}
+                                    className="w-full text-center text-sm font-bold bg-rose-400 border-2 border-rose-300 rounded-xl p-1 focus:outline-none placeholder:text-rose-200"
+                                  />
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+
+                        {/* Row 2: Vertical Link */}
+                        <div className="h-10 w-full flex items-center justify-center">
+                          {isKnown && step >= 1 && (
+                            <motion.div 
+                              initial={{ height: 0 }} 
+                              animate={{ height: 40 }} 
+                              className="w-0.5 bg-emerald-200 relative"
+                            >
+                              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-emerald-200 rounded-full" />
+                            </motion.div>
+                          )}
+                          {isUnknown && step >= 3 && (
+                            <motion.div 
+                              initial={{ height: 0 }} 
+                              animate={{ height: 40 }} 
+                              className="w-0.5 bg-rose-200 relative"
+                            >
+                              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-rose-200 rounded-full" />
+                            </motion.div>
+                          )}
+                        </div>
+
+                        {/* Row 3: Mole Box */}
+                        <div className="h-24 w-full flex items-center justify-center">
+                          {isKnown && step >= 1 && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              onClick={() => handleStepClick(1)}
+                              className={`w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl text-center shadow-sm cursor-pointer hover:scale-102 transition-all
+                                ${step === 1 ? 'ring-4 ring-emerald-50' : ''}
+                              `}
+                            >
+                              <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Moles of {formulaOnly}</p>
+                              {mode === 'example' || step > 1 ? (
+                                <p className="text-sm font-bold text-emerald-600">{currentQ.steps[0].text}</p>
+                              ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                  <input 
+                                    type="number" 
+                                    value={practiceInput}
+                                    onChange={(e) => setPracticeInput(e.target.value)}
+                                    placeholder="Enter mol"
+                                    className="w-full text-center text-sm font-bold bg-emerald-50 border-2 border-emerald-200 rounded-xl p-1 focus:outline-none focus:ring-2 ring-emerald-300"
+                                  />
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                          {isUnknown && step >= 2 && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              onClick={() => handleStepClick(2)}
+                              className={`w-full p-4 rounded-2xl border-2 text-center cursor-pointer transition-all shadow-sm
+                                ${step >= 2 ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-gray-50 border-gray-100 text-gray-400'}
+                                ${step === 2 ? 'ring-4 ring-rose-100 scale-105' : 'hover:scale-102'}
+                              `}
+                            >
+                              <p className="text-[10px] font-black uppercase tracking-widest mb-1">Moles of {formulaOnly}</p>
+                              {mode === 'example' || step > 2 ? (
+                                <p className="text-sm font-bold">{currentQ.steps[1].text}</p>
+                              ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                  <input 
+                                    type="number" 
+                                    value={practiceInput}
+                                    onChange={(e) => setPracticeInput(e.target.value)}
+                                    placeholder="Enter mol"
+                                    className="w-full text-center text-sm font-bold bg-rose-100 border-2 border-rose-200 rounded-xl p-1 focus:outline-none focus:ring-2 ring-rose-300"
+                                  />
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Horizontal Link between Moles */}
+              {step >= 2 && (
+                <motion.div 
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: '40%', opacity: 1 }}
+                  className="absolute top-[264px] left-1/2 -translate-x-1/2 h-0.5 bg-orange-200 flex items-center justify-center z-0"
+                >
+                  <div className="bg-white px-3 py-1 border-2 border-orange-100 rounded-full text-[10px] font-black text-orange-400 uppercase tracking-widest shadow-sm">
+                    Mole Ratio
+                  </div>
+                  <div className="absolute right-0 w-2 h-2 bg-orange-200 rounded-full" />
+                  <div className="absolute left-0 w-2 h-2 bg-orange-200 rounded-full" />
+                </motion.div>
+              )}
+
+              {/* Instructions & Next Step Button */}
+              <div className="mt-auto text-center flex flex-col items-center gap-4">
+                <div className="inline-flex items-center gap-3 bg-orange-50 px-6 py-3 rounded-2xl border-2 border-orange-100 text-orange-700 font-bold">
+                  <Info size={18} />
+                  {step === 0 && "Click the known quantity to calculate its moles"}
+                  {step === 1 && "Moles calculated! Now find the ratio to the unknown"}
+                  {step === 2 && "Click the unknown moles to find the final quantity"}
+                  {step === 3 && "Calculation complete! Click Next for another example"}
+                  {step > 3 && "Great job! Try another one."}
+                </div>
+
+                {step < 3 && (
+                  <button
+                    onClick={mode === 'practice' && step > 0 ? checkPracticeAnswer : () => setStep(step + 1)}
+                    className={`group flex items-center gap-2 font-black px-8 py-4 rounded-2xl transition-all uppercase tracking-widest shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:shadow-none active:translate-y-[4px]
+                      ${mode === 'practice' && step > 0 ? 'bg-emerald-500 text-white shadow-[#059669]' : 'bg-emerald-500 text-white shadow-[#059669]'}
+                    `}
+                  >
+                    {mode === 'practice' && step > 0 ? 'Check Answer' : 'Next Step'}
+                    <motion.div
+                      animate={practiceFeedback === 'correct' ? { scale: [1, 1.2, 1] } : practiceFeedback === 'wrong' ? { x: [-5, 5, -5, 5, 0] } : { x: [0, 5, 0] }}
+                      transition={{ repeat: practiceFeedback === 'none' ? Infinity : 0, duration: 0.5 }}
+                    >
+                      {practiceFeedback === 'correct' ? <CheckCircle2 size={20} /> : 
+                       practiceFeedback === 'wrong' ? <XCircle size={20} /> : 
+                       <RefreshCw size={20} className="rotate-90" />}
+                    </motion.div>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {showCalculator && <VirtualCalculator />}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info size={16} className="text-blue-500" />
+                  <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Atomic Masses</p>
+                </div>
+                <p className="text-xs font-bold text-gray-600">H=1, C=12, N=14, O=16, Na=23, Mg=24, Cl=35.5, Ca=40</p>
+              </div>
+              <div className="bg-emerald-50 border-2 border-emerald-100 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Wind size={16} className="text-emerald-500" />
+                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Gas Volume</p>
+                </div>
+                <p className="text-xs font-bold text-gray-600">1 mole of any gas occupies 24 dm³ at RTP.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
 
     const equations = [
       {
@@ -1393,6 +2417,10 @@ export default function App() {
       const [blueRight, setBlueRight] = useState(20);
       const [isPartitionRemoved, setIsPartitionRemoved] = useState(false);
       const [particles, setParticles] = useState<any[]>([]);
+      const [diffusionTemp, setDiffusionTemp] = useState(25);
+      const [diffusionPractice, setDiffusionPractice] = useState<any>(null);
+      const [diffusionAnswer, setDiffusionAnswer] = useState<string | null>(null);
+      const [diffusionFeedback, setDiffusionFeedback] = useState<string | null>(null);
       
       // AXZ State
       const [axzProtons, setAxzProtons] = useState(6);
@@ -1409,6 +2437,77 @@ export default function App() {
       const [shellPractice, setShellPractice] = useState<any>(null);
       const [shellAnswer, setShellAnswer] = useState('');
       const [shellFeedback, setShellFeedback] = useState<string | null>(null);
+
+      // Balancing Equations State
+      const [balancingIndex, setBalancingIndex] = useState(0);
+      const [coefficients, setCoefficients] = useState<number[]>([]);
+      const [isBalanced, setIsBalanced] = useState(false);
+
+      const equations = [
+        { reactants: [{ s: 'H2', atoms: { H: 2 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'N2', atoms: { N: 2 } }, { s: 'H2', atoms: { H: 2 } }], products: [{ s: 'NH3', atoms: { N: 1, H: 3 } }] },
+        { reactants: [{ s: 'CH4', atoms: { C: 1, H: 4 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'CO2', atoms: { C: 1, O: 2 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'Mg', atoms: { Mg: 1 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'MgO', atoms: { Mg: 1, O: 1 } }] },
+        { reactants: [{ s: 'Al', atoms: { Al: 1 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'Al2O3', atoms: { Al: 2, O: 3 } }] },
+        { reactants: [{ s: 'Na', atoms: { Na: 1 } }, { s: 'Cl2', atoms: { Cl: 2 } }], products: [{ s: 'NaCl', atoms: { Na: 1, Cl: 1 } }] },
+        { reactants: [{ s: 'Fe', atoms: { Fe: 1 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'Fe2O3', atoms: { Fe: 2, O: 3 } }] },
+        { reactants: [{ s: 'H2', atoms: { H: 2 } }, { s: 'Cl2', atoms: { Cl: 2 } }], products: [{ s: 'HCl', atoms: { H: 1, Cl: 1 } }] },
+        { reactants: [{ s: 'P', atoms: { P: 1 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'P4O10', atoms: { P: 4, O: 10 } }] },
+        { reactants: [{ s: 'KClO3', atoms: { K: 1, Cl: 1, O: 3 } }], products: [{ s: 'KCl', atoms: { K: 1, Cl: 1 } }, { s: 'O2', atoms: { O: 2 } }] },
+        { reactants: [{ s: 'C3H8', atoms: { C: 3, H: 8 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'CO2', atoms: { C: 1, O: 2 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'C2H6', atoms: { C: 2, H: 6 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'CO2', atoms: { C: 1, O: 2 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'Cu', atoms: { Cu: 1 } }, { s: 'AgNO3', atoms: { Ag: 1, N: 1, O: 3 } }], products: [{ s: 'Cu(NO3)2', atoms: { Cu: 1, N: 2, O: 6 } }, { s: 'Ag', atoms: { Ag: 1 } }] },
+        { reactants: [{ s: 'Zn', atoms: { Zn: 1 } }, { s: 'HCl', atoms: { H: 1, Cl: 1 } }], products: [{ s: 'ZnCl2', atoms: { Zn: 1, Cl: 2 } }, { s: 'H2', atoms: { H: 2 } }] },
+        { reactants: [{ s: 'NaOH', atoms: { Na: 1, O: 1, H: 1 } }, { s: 'H2SO4', atoms: { H: 2, S: 1, O: 4 } }], products: [{ s: 'Na2SO4', atoms: { Na: 2, S: 1, O: 4 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'CaCO3', atoms: { Ca: 1, C: 1, O: 3 } }, { s: 'HCl', atoms: { H: 1, Cl: 1 } }], products: [{ s: 'CaCl2', atoms: { Ca: 1, Cl: 2 } }, { s: 'CO2', atoms: { C: 1, O: 2 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'Pb(NO3)2', atoms: { Pb: 1, N: 2, O: 6 } }, { s: 'KI', atoms: { K: 1, I: 1 } }], products: [{ s: 'PbI2', atoms: { Pb: 1, I: 2 } }, { s: 'KNO3', atoms: { K: 1, N: 1, O: 3 } }] },
+        { reactants: [{ s: 'Al', atoms: { Al: 1 } }, { s: 'HCl', atoms: { H: 1, Cl: 1 } }], products: [{ s: 'AlCl3', atoms: { Al: 1, Cl: 3 } }, { s: 'H2', atoms: { H: 2 } }] },
+        { reactants: [{ s: 'C2H4', atoms: { C: 2, H: 4 } }, { s: 'O2', atoms: { O: 2 } }], products: [{ s: 'CO2', atoms: { C: 1, O: 2 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }] },
+        { reactants: [{ s: 'Fe', atoms: { Fe: 1 } }, { s: 'H2O', atoms: { H: 2, O: 1 } }], products: [{ s: 'Fe3O4', atoms: { Fe: 3, O: 4 } }, { s: 'H2', atoms: { H: 2 } }] },
+      ];
+
+      useEffect(() => {
+        if (selectedSim === 'balancing') {
+          const eq = equations[balancingIndex];
+          setCoefficients(new Array(eq.reactants.length + eq.products.length).fill(1));
+        }
+      }, [selectedSim, balancingIndex]);
+
+      const getAtomCounts = () => {
+        if (!selectedSim || selectedSim !== 'balancing' || !coefficients.length) return { reactantAtoms: {}, productAtoms: {} };
+        const eq = equations[balancingIndex];
+        const reactantAtoms: any = {};
+        const productAtoms: any = {};
+
+        eq.reactants.forEach((r, i) => {
+          const coeff = coefficients[i] || 1;
+          Object.entries(r.atoms).forEach(([atom, count]) => {
+            reactantAtoms[atom] = (reactantAtoms[atom] || 0) + (count as number) * coeff;
+          });
+        });
+
+        eq.products.forEach((p, i) => {
+          const coeff = coefficients[eq.reactants.length + i] || 1;
+          Object.entries(p.atoms).forEach(([atom, count]) => {
+            productAtoms[atom] = (productAtoms[atom] || 0) + (count as number) * coeff;
+          });
+        });
+
+        return { reactantAtoms, productAtoms };
+      };
+
+      const checkBalancing = () => {
+        const { reactantAtoms, productAtoms } = getAtomCounts();
+        const atoms = Array.from(new Set([...Object.keys(reactantAtoms), ...Object.keys(productAtoms)]));
+        const balanced = atoms.length > 0 && atoms.every(atom => reactantAtoms[atom] === productAtoms[atom]);
+        setIsBalanced(balanced);
+      };
+
+      useEffect(() => {
+        if (selectedSim === 'balancing') {
+          checkBalancing();
+        }
+      }, [coefficients]);
 
       // States of Matter State
       const [matterTemp, setMatterTemp] = useState(25);
@@ -1524,6 +2623,50 @@ export default function App() {
         }
       };
 
+      const generateDiffusionPractice = () => {
+        const types = ['red', 'blue'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const l = Math.floor(Math.random() * 40) + 5;
+        const r = Math.floor(Math.random() * 40) + 5;
+        
+        let correctAnswer = '';
+        if (l > r + 5) correctAnswer = 'Left to Right';
+        else if (r > l + 5) correctAnswer = 'Right to Left';
+        else correctAnswer = 'No Net Movement';
+
+        setDiffusionPractice({
+          type,
+          l,
+          r,
+          correctAnswer,
+          options: ['Left to Right', 'Right to Left', 'No Net Movement']
+        });
+        setDiffusionAnswer(null);
+        setDiffusionFeedback(null);
+        
+        // Set the simulation to match the practice question
+        if (type === 'red') {
+          setRedLeft(l);
+          setRedRight(r);
+          setBlueLeft(10);
+          setBlueRight(10);
+        } else {
+          setBlueLeft(l);
+          setBlueRight(r);
+          setRedLeft(10);
+          setRedRight(10);
+        }
+        setIsPartitionRemoved(false);
+      };
+
+      const checkDiffusionPractice = () => {
+        if (diffusionAnswer === diffusionPractice.correctAnswer) {
+          setDiffusionFeedback('correct');
+        } else {
+          setDiffusionFeedback('incorrect');
+        }
+      };
+
       const initParticles = () => {
         const newParticles = [];
         // Left side
@@ -1543,9 +2686,10 @@ export default function App() {
         if (!isPartitionRemoved || selectedSim !== 'diffusion') return;
 
         const interval = setInterval(() => {
+          const speedFactor = (diffusionTemp + 273) / 298; // Simple speed scaling based on Kelvin
           setParticles(prev => prev.map(p => {
-            let nx = p.x + p.vx;
-            let ny = p.y + p.vy;
+            let nx = p.x + p.vx * speedFactor;
+            let ny = p.y + p.vy * speedFactor;
             let nvx = p.vx;
             let nvy = p.vy;
 
@@ -1632,6 +2776,36 @@ export default function App() {
                 </div>
               </motion.button>
 
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedSim('diffusion')}
+                className="bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-orange-400 transition-all group"
+              >
+                <div className="bg-orange-100 text-orange-600 p-5 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                  <ArrowRightLeft size={40} />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Diffusion Chamber</h3>
+                  <p className="text-gray-500 font-medium">Visualize net movement of particles across a gradient.</p>
+                </div>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedSim('balancing')}
+                className="bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-violet-400 transition-all group"
+              >
+                <div className="bg-violet-100 text-violet-600 p-5 rounded-2xl group-hover:bg-violet-500 group-hover:text-white transition-colors">
+                  <Calculator size={40} />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Balancing Equations</h3>
+                  <p className="text-gray-500 font-medium">Master the law of conservation of mass through balancing.</p>
+                </div>
+              </motion.button>
+
 
             </div>
           ) : (
@@ -1641,73 +2815,100 @@ export default function App() {
                   <div className="flex justify-between items-center mb-8">
                     <div>
                       <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">AXZ Notation</h3>
-                      <p className="text-blue-500 font-black text-xl uppercase tracking-widest text-xs">Atomic Structure</p>
+                      <p className="text-blue-500 font-black text-xl uppercase tracking-widest text-xs">Atomic Structure & Isotopes</p>
                     </div>
                     <div className="bg-blue-100 text-blue-600 p-4 rounded-2xl">
                       <Atom size={32} />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-red-500 uppercase">Protons (Z): {axzProtons}</label>
-                        <input type="range" min="1" max="20" value={axzProtons} onChange={e => setAxzProtons(parseInt(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-gray-500 uppercase">Neutrons: {axzNeutrons}</label>
-                        <input type="range" min="0" max="25" value={axzNeutrons} onChange={e => setAxzNeutrons(parseInt(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-blue-500 uppercase">Electrons: {axzElectrons}</label>
-                        <input type="range" min="0" max="20" value={axzElectrons} onChange={e => setAxzElectrons(parseInt(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                      </div>
-
-                      <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-100 flex items-center justify-center">
-                        <div className="relative text-6xl font-black text-gray-800 flex items-center">
-                          <div className="flex flex-col text-2xl mr-2">
-                            <span>{axzProtons + axzNeutrons}</span>
-                            <span>{axzProtons}</span>
+                  <div className="space-y-8 mb-8">
+                    <div className="flex flex-col items-center gap-8">
+                      <div className="bg-gray-50 p-10 rounded-3xl border-2 border-gray-100 flex items-center justify-center w-full">
+                        <div className="relative text-8xl font-black text-gray-800 flex items-center">
+                          <div className="flex flex-col text-4xl mr-3 text-right">
+                            <span className="leading-none text-gray-400">{axzProtons + axzNeutrons}</span>
+                            <span className="leading-none text-blue-500">{axzProtons}</span>
                           </div>
-                          <span>{getElementByZ(axzProtons).symbol}</span>
+                          <span className="leading-none">{getElementByZ(axzProtons).symbol}</span>
                           {axzProtons !== axzElectrons && (
-                            <span className="text-2xl align-top ml-1">
-                              {Math.abs(axzProtons - axzElectrons)}{axzProtons > axzElectrons ? '+' : '-'}
+                            <span className="text-4xl align-top ml-2 leading-none text-orange-500 font-black">
+                              {Math.abs(axzProtons - axzElectrons) === 1 ? '' : Math.abs(axzProtons - axzElectrons)}{axzProtons > axzElectrons ? '+' : '-'}
                             </span>
                           )}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-6">
-                      <div className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100">
-                        <h4 className="text-sm font-black text-blue-600 uppercase tracking-widest mb-4">Practice Mode</h4>
-                        {!axzPractice ? (
-                          <button onClick={generateAxzPractice} className="w-full bg-blue-500 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#1d4ed8]">
-                            Start Practice
-                          </button>
-                        ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                        <div className="bg-red-50 p-4 rounded-2xl border-2 border-red-100 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="text-xs font-black text-red-600 uppercase tracking-widest">Protons (Z)</label>
+                            <span className="text-xl font-black text-red-600">{axzProtons}</span>
+                          </div>
+                          <input type="range" min="1" max="20" value={axzProtons} onChange={e => setAxzProtons(parseInt(e.target.value))} className="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="text-xs font-black text-gray-600 uppercase tracking-widest">Neutrons</label>
+                            <span className="text-xl font-black text-gray-600">{axzNeutrons}</span>
+                          </div>
+                          <input type="range" min="0" max="25" value={axzNeutrons} onChange={e => setAxzNeutrons(parseInt(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500" />
+                        </div>
+                        <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="text-xs font-black text-blue-600 uppercase tracking-widest">Electrons</label>
+                            <span className="text-xl font-black text-blue-600">{axzElectrons}</span>
+                          </div>
+                          <input type="range" min="0" max="20" value={axzElectrons} onChange={e => setAxzElectrons(parseInt(e.target.value))} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 pt-8 border-t-2 border-gray-100">
+                    <div className="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-black text-blue-600 uppercase tracking-widest">Practice Mode</h4>
+                        {axzPractice && (
+                          <button onClick={() => setAxzPractice(null)} className="text-blue-400 hover:text-blue-600 font-bold text-xs uppercase">Close</button>
+                        )}
+                      </div>
+                      {!axzPractice ? (
+                        <button onClick={generateAxzPractice} className="w-full bg-blue-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#1d4ed8] hover:shadow-none hover:translate-y-1 transition-all">
+                          Start Practice Challenge
+                        </button>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                          <div className="text-center p-6 bg-white rounded-2xl border-2 border-blue-200">
+                            <div className="relative text-5xl font-black text-gray-800 inline-flex items-center">
+                              <div className="flex flex-col text-2xl mr-1 text-right">
+                                <span className="leading-none">{axzPractice.mass}</span>
+                                <span className="leading-none">{axzPractice.z}</span>
+                              </div>
+                              <span className="leading-none">{axzPractice.symbol}</span>
+                              {axzPractice.charge !== 0 && (
+                                <span className="text-2xl align-top ml-1 leading-none">
+                                  {Math.abs(axzPractice.charge) === 1 ? '' : Math.abs(axzPractice.charge)}{axzPractice.charge > 0 ? '+' : '-'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                           <div className="space-y-4">
-                            <div className="text-center p-4 bg-white rounded-xl border-2 border-blue-200">
-                              <div className="relative text-4xl font-black text-gray-800 inline-flex items-center">
-                                <div className="flex flex-col text-xl mr-1">
-                                  <span>{axzPractice.mass}</span>
-                                  <span>{axzPractice.z}</span>
-                                </div>
-                                <span>{axzPractice.symbol}</span>
-                                {axzPractice.charge !== 0 && (
-                                  <span className="text-xl align-top ml-1">
-                                    {Math.abs(axzPractice.charge) === 1 ? '' : Math.abs(axzPractice.charge)}{axzPractice.charge > 0 ? '+' : '-'}
-                                  </span>
-                                )}
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase text-center">Protons</label>
+                                <input type="number" placeholder="P" value={axzAnswer.p} onChange={e => setAxzAnswer({...axzAnswer, p: e.target.value})} className="w-full p-3 border-2 border-gray-200 rounded-xl text-center font-black text-xl focus:border-blue-500 outline-none transition-colors" />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase text-center">Neutrons</label>
+                                <input type="number" placeholder="N" value={axzAnswer.n} onChange={e => setAxzAnswer({...axzAnswer, n: e.target.value})} className="w-full p-3 border-2 border-gray-200 rounded-xl text-center font-black text-xl focus:border-blue-500 outline-none transition-colors" />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase text-center">Electrons</label>
+                                <input type="number" placeholder="E" value={axzAnswer.e} onChange={e => setAxzAnswer({...axzAnswer, e: e.target.value})} className="w-full p-3 border-2 border-gray-200 rounded-xl text-center font-black text-xl focus:border-blue-500 outline-none transition-colors" />
                               </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              <input type="number" placeholder="P" value={axzAnswer.p} onChange={e => setAxzAnswer({...axzAnswer, p: e.target.value})} className="w-full p-2 border-2 border-gray-200 rounded-lg text-center font-bold" />
-                              <input type="number" placeholder="N" value={axzAnswer.n} onChange={e => setAxzAnswer({...axzAnswer, n: e.target.value})} className="w-full p-2 border-2 border-gray-200 rounded-lg text-center font-bold" />
-                              <input type="number" placeholder="E" value={axzAnswer.e} onChange={e => setAxzAnswer({...axzAnswer, e: e.target.value})} className="w-full p-2 border-2 border-gray-200 rounded-lg text-center font-bold" />
-                            </div>
-                            <button onClick={checkAxzPractice} className="w-full bg-blue-500 text-white py-3 rounded-xl font-black uppercase tracking-widest">
+                            <button onClick={checkAxzPractice} className="w-full bg-blue-500 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#1d4ed8] active:shadow-none active:translate-y-1 transition-all">
                               Check Answer
                             </button>
                             {axzFeedback && (
@@ -1715,10 +2916,10 @@ export default function App() {
                                 {axzFeedback === 'correct' ? 'Correct! Well done.' : 'Try again! Check your math.'}
                               </div>
                             )}
-                            <button onClick={generateAxzPractice} className="w-full text-blue-500 font-bold uppercase text-xs">Next Question</button>
+                            <button onClick={generateAxzPractice} className="w-full text-blue-500 font-bold uppercase text-xs hover:underline">Next Question</button>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1733,258 +2934,543 @@ export default function App() {
                   <div className="flex justify-between items-center mb-8">
                     <div>
                       <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Electron Shells</h3>
-                      <p className="text-emerald-500 font-black text-xl uppercase tracking-widest text-xs">Electronic Arrangement</p>
+                      <p className="text-emerald-500 font-black text-xl uppercase tracking-widest text-xs">Atomic Structure & Periodic Trends</p>
                     </div>
                     <div className="bg-emerald-100 text-emerald-600 p-4 rounded-2xl">
                       <Zap size={32} />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-emerald-500 uppercase">Atomic Number (Z): {shellZ}</label>
-                        <input type="range" min="1" max="20" value={shellZ} onChange={e => setShellZ(parseInt(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
-                      </div>
-
-                      <div className="text-center">
-                        <h4 className="text-2xl font-black text-gray-800 uppercase tracking-tight">{getElementByZ(shellZ).name}</h4>
-                        <p className="text-emerald-500 font-black text-xl">{getElementByZ(shellZ).shells.join(', ')}</p>
-                      </div>
-
-                      <div className="relative h-80 bg-gray-900 rounded-2xl flex items-center justify-center overflow-hidden border-4 border-gray-200">
-                        {/* Nucleus */}
-                        <div className="w-8 h-8 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)] z-10 flex items-center justify-center text-[10px] text-white font-bold">
-                          {shellZ}+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Left Panel: Controls & Periodic Table */}
+                    <div className="lg:col-span-5 space-y-6">
+                      <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-100 shadow-inner">
+                        <div className="flex justify-between items-end mb-6">
+                          <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Current Element</p>
+                            <h4 className="text-3xl font-black text-gray-800 uppercase tracking-tight">
+                              {getElementByZ(shellZ).name}
+                            </h4>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Arrangement</p>
+                            <p className="text-xl font-black text-emerald-600 tracking-widest">
+                              {getElementByZ(shellZ).shells.join(', ')}
+                            </p>
+                          </div>
                         </div>
-                        
-                        {/* Shells */}
-                        {getElementByZ(shellZ).shells.map((count, shellIdx) => {
-                          const radius = 40 + shellIdx * 30;
-                          return (
-                            <React.Fragment key={shellIdx}>
-                              <div 
-                                className="absolute border border-white/20 rounded-full"
-                                style={{ width: radius * 2, height: radius * 2 }}
-                              />
-                              {[...Array(count)].map((_, eIdx) => (
-                                <motion.div
-                                  key={`${shellIdx}-${eIdx}`}
-                                  className="absolute w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(96,165,250,0.8)]"
-                                  animate={{
-                                    rotate: 360
-                                  }}
-                                  transition={{
-                                    duration: 3 + shellIdx * 2,
-                                    repeat: Infinity,
-                                    ease: "linear"
-                                  }}
-                                  style={{
-                                    originX: "50%",
-                                    originY: "50%",
-                                    x: radius * Math.cos((eIdx * 2 * Math.PI) / count),
-                                    y: radius * Math.sin((eIdx * 2 * Math.PI) / count),
-                                    marginTop: -6,
-                                    marginLeft: -6
-                                  }}
-                                />
-                              ))}
-                            </React.Fragment>
-                          );
-                        })}
-                      </div>
-                    </div>
 
-                    <div className="space-y-6">
-                      <div className="bg-emerald-50 p-6 rounded-2xl border-2 border-emerald-100">
-                        <h4 className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-4">Practice Mode</h4>
+                        <div className="space-y-4">
+                          <div className="bg-white p-5 rounded-2xl border-2 border-gray-200">
+                            <div className="flex justify-between items-center mb-3">
+                              <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Atomic Number (Z)</label>
+                              <span className="text-3xl font-black text-emerald-600">{shellZ}</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="1" 
+                              max="20" 
+                              value={shellZ} 
+                              onChange={e => setShellZ(parseInt(e.target.value))} 
+                              className="w-full h-3 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-500" 
+                            />
+                          </div>
+
+                          {/* Mini Periodic Table */}
+                          <div className="bg-white p-4 rounded-2xl border-2 border-gray-200">
+                            <div className="grid grid-cols-8 gap-1">
+                              {(() => {
+                                const pt = [
+                                  [ { z: 1, s: 'H' }, null, null, null, null, null, null, { z: 2, s: 'He' } ],
+                                  [ { z: 3, s: 'Li' }, { z: 4, s: 'Be' }, { z: 5, s: 'B' }, { z: 6, s: 'C' }, { z: 7, s: 'N' }, { z: 8, s: 'O' }, { z: 9, s: 'F' }, { z: 10, s: 'Ne' } ],
+                                  [ { z: 11, s: 'Na' }, { z: 12, s: 'Mg' }, { z: 13, s: 'Al' }, { z: 14, s: 'Si' }, { z: 15, s: 'P' }, { z: 16, s: 'S' }, { z: 17, s: 'Cl' }, { z: 18, s: 'Ar' } ],
+                                  [ { z: 19, s: 'K' }, { z: 20, s: 'Ca' }, null, null, null, null, null, null ]
+                                ];
+                                return pt.map((row, rIdx) => (
+                                  row.map((el, cIdx) => (
+                                    <div 
+                                      key={`${rIdx}-${cIdx}`}
+                                      className={`aspect-square flex flex-col items-center justify-center rounded-md text-[9px] font-black transition-all border ${
+                                        !el ? 'opacity-0' : 
+                                        el.z === shellZ ? 'bg-emerald-500 text-white border-emerald-600 scale-105 z-10 shadow-md' : 
+                                        'bg-gray-50 text-gray-400 border-gray-200'
+                                      }`}
+                                    >
+                                      {el && (
+                                        <>
+                                          <span className="text-[7px] opacity-60 leading-none">{el.z}</span>
+                                          <span className="leading-none">{el.s}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))
+                                ));
+                              })()}
+                            </div>
+                            <div className="mt-3 flex justify-center gap-4 text-[9px] font-black uppercase tracking-widest">
+                              <span className="text-emerald-600">Period: {Math.ceil(shellZ <= 2 ? 1 : shellZ <= 10 ? 2 : shellZ <= 18 ? 3 : 4)}</span>
+                              <span className="text-blue-600">Group: {(() => {
+                                if (shellZ === 1) return 'I';
+                                if (shellZ === 2) return 'VIII';
+                                const mod = (shellZ - 2) % 8;
+                                const groups = ['VIII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+                                if (shellZ > 2 && shellZ <= 10) return groups[mod];
+                                if (shellZ > 10 && shellZ <= 18) return groups[(shellZ - 10) % 8];
+                                if (shellZ === 19) return 'I';
+                                if (shellZ === 20) return 'II';
+                                return '-';
+                              })()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-emerald-50 p-6 rounded-3xl border-2 border-emerald-100">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-sm font-black text-emerald-600 uppercase tracking-tight">Practice Challenge</h4>
+                          {shellPractice && (
+                            <button onClick={() => setShellPractice(null)} className="text-emerald-400 hover:text-emerald-600 font-bold text-[10px] uppercase">Exit</button>
+                          )}
+                        </div>
                         {!shellPractice ? (
-                          <button onClick={generateShellPractice} className="w-full bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#059669]">
+                          <button onClick={generateShellPractice} className="w-full bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#059669] hover:shadow-none hover:translate-y-1 transition-all">
                             Start Practice
                           </button>
                         ) : (
                           <div className="space-y-4">
-                            <div className="text-center p-4 bg-white rounded-xl border-2 border-emerald-200">
-                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">What is the electronic arrangement of</p>
-                              <h5 className="text-3xl font-black text-gray-800 uppercase tracking-tight">{shellPractice.name}?</h5>
+                            <div className="text-center">
+                              <p className="text-[10px] font-black text-emerald-400 uppercase mb-1">Electronic Arrangement for:</p>
+                              <p className="text-xl font-black text-gray-800">{shellPractice.name} (Z={shellPractice.z})</p>
                             </div>
-                            <input 
-                              type="text" 
-                              placeholder="e.g. 2,8,3" 
-                              value={shellAnswer} 
-                              onChange={e => setShellAnswer(e.target.value)}
-                              className="w-full p-3 border-2 border-gray-200 rounded-xl text-center font-black text-xl"
-                            />
-                            <button onClick={checkShellPractice} className="w-full bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest">
-                              Check Answer
-                            </button>
+                            <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                placeholder="e.g. 2,8,3" 
+                                value={shellAnswer} 
+                                onChange={e => setShellAnswer(e.target.value)}
+                                className="flex-1 p-3 border-2 border-emerald-200 rounded-xl text-center font-black text-lg focus:border-emerald-500 outline-none transition-all"
+                              />
+                              <button onClick={checkShellPractice} className="bg-emerald-500 text-white px-6 rounded-xl font-black uppercase shadow-[0_4px_0_0_#059669] active:shadow-none active:translate-y-1 transition-all">
+                                Check
+                              </button>
+                            </div>
                             {shellFeedback && (
-                              <div className={`p-3 rounded-xl text-center font-bold ${shellFeedback === 'correct' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                                {shellFeedback === 'correct' ? 'Correct! Perfect arrangement.' : 'Try again! Remember the 2,8,8 rule.'}
+                              <div className={`p-3 rounded-xl text-center font-bold text-xs ${shellFeedback === 'correct' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                {shellFeedback === 'correct' ? 'Correct! Well done.' : 'Try again! Remember shell limits (2, 8, 8).'}
                               </div>
                             )}
-                            <button onClick={generateShellPractice} className="w-full text-emerald-500 font-bold uppercase text-xs">Next Question</button>
+                            <button onClick={generateShellPractice} className="w-full text-emerald-500 font-bold uppercase text-[10px] hover:underline">Next Element</button>
                           </div>
                         )}
                       </div>
                     </div>
+
+                    {/* Right Panel: 2D Atom Diagram */}
+                    <div className="lg:col-span-7 bg-gray-900 rounded-[2.5rem] flex items-center justify-center overflow-hidden border-8 border-gray-200 shadow-2xl min-h-[500px] relative">
+                      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/20 to-transparent" />
+                      
+                      {/* Nucleus */}
+                      <div className="w-24 h-24 bg-red-500 rounded-full shadow-[0_0_40px_rgba(239,68,68,0.6)] z-10 flex flex-col items-center justify-center text-white font-black border-4 border-red-400">
+                        <span className="text-3xl leading-none">{shellZ}</span>
+                        <span className="text-[10px] uppercase tracking-widest opacity-80">Protons</span>
+                      </div>
+                      
+                      {/* Shells */}
+                      {getElementByZ(shellZ).shells.map((count, shellIdx) => {
+                        const radius = 80 + shellIdx * 55;
+                        return (
+                          <div key={shellIdx} className="absolute flex items-center justify-center">
+                            {/* Shell Circle */}
+                            <div 
+                              className="absolute border-2 border-white/20 rounded-full"
+                              style={{ width: radius * 2, height: radius * 2 }}
+                            />
+                            {/* Electrons */}
+                            {[...Array(count)].map((_, eIdx) => {
+                              const angle = (eIdx * 2 * Math.PI) / count - Math.PI / 2;
+                              const x = radius * Math.cos(angle);
+                              const y = radius * Math.sin(angle);
+                              return (
+                                <div
+                                  key={eIdx}
+                                  className="absolute w-7 h-7 bg-blue-400 rounded-full shadow-[0_0_15px_rgba(96,165,250,0.8)] border-2 border-blue-200 flex items-center justify-center z-20"
+                                  style={{ 
+                                    transform: `translate(${x}px, ${y}px)`,
+                                  }}
+                                >
+                                  <span className="text-[10px] font-black text-blue-900">e⁻</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                      
+                      <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
+                        <span>Shell 1: max 2</span>
+                        <span>Shell 2: max 8</span>
+                        <span>Shell 3: max 8</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <button onClick={() => setSelectedSim(null)} className="w-full bg-gray-200 text-gray-500 py-4 rounded-2xl font-black text-xl uppercase tracking-widest hover:bg-gray-300 transition-all">
+                  <button onClick={() => setSelectedSim(null)} className="w-full mt-8 bg-gray-100 text-gray-400 py-4 rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-gray-200 transition-all">
                     Back to Selection
                   </button>
                 </div>
               )}
 
+              {selectedSim === 'balancing' && (
+                <div className="bg-white border-2 border-gray-200 p-8 rounded-3xl shadow-[0_6px_0_0_#e5e7eb]">
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Balancing Equations</h3>
+                      <p className="text-violet-500 font-black text-xl uppercase tracking-widest text-xs">Conservation of Mass</p>
+                    </div>
+                    <div className="bg-violet-100 text-violet-600 p-4 rounded-2xl">
+                      <Calculator size={32} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-12">
+                    {/* Equation Display */}
+                    <div className="bg-gray-50 p-10 rounded-[3rem] border-2 border-gray-100 shadow-inner flex flex-wrap items-center justify-center gap-4 text-4xl font-black text-gray-800">
+                      {equations[balancingIndex].reactants.map((r, i) => (
+                        <React.Fragment key={`r-${i}`}>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="number" 
+                              min="1" 
+                              max="10" 
+                              value={coefficients[i] || 1} 
+                              onChange={e => {
+                                const newCoeffs = [...coefficients];
+                                newCoeffs[i] = parseInt(e.target.value) || 1;
+                                setCoefficients(newCoeffs);
+                              }}
+                              className="w-16 h-16 bg-white border-4 border-violet-200 rounded-2xl text-center text-2xl text-violet-600 outline-none focus:border-violet-500 transition-all"
+                            />
+                            <span dangerouslySetInnerHTML={{ __html: r.s.replace(/(\d+)/g, '<sub>$1</sub>') }} />
+                          </div>
+                          {i < equations[balancingIndex].reactants.length - 1 && <span className="text-gray-300">+</span>}
+                        </React.Fragment>
+                      ))}
+                      
+                      <ArrowRight className="text-violet-400 mx-4" size={48} />
+
+                      {equations[balancingIndex].products.map((p, i) => (
+                        <React.Fragment key={`p-${i}`}>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="number" 
+                              min="1" 
+                              max="10" 
+                              value={coefficients[equations[balancingIndex].reactants.length + i] || 1} 
+                              onChange={e => {
+                                const newCoeffs = [...coefficients];
+                                newCoeffs[equations[balancingIndex].reactants.length + i] = parseInt(e.target.value) || 1;
+                                setCoefficients(newCoeffs);
+                              }}
+                              className="w-16 h-16 bg-white border-4 border-violet-200 rounded-2xl text-center text-2xl text-violet-600 outline-none focus:border-violet-500 transition-all"
+                            />
+                            <span dangerouslySetInnerHTML={{ __html: p.s.replace(/(\d+)/g, '<sub>$1</sub>') }} />
+                          </div>
+                          {i < equations[balancingIndex].products.length - 1 && <span className="text-gray-300">+</span>}
+                        </React.Fragment>
+                      ))}
+                    </div>
+
+                    {/* Atom Counts Comparison */}
+                    {(() => {
+                      const { reactantAtoms, productAtoms } = getAtomCounts();
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="bg-blue-50 p-8 rounded-3xl border-2 border-blue-100">
+                            <h4 className="text-sm font-black text-blue-600 uppercase tracking-widest mb-6 text-center">Reactant Atoms</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              {Object.entries(reactantAtoms).map(([atom, count]: [string, any]) => (
+                                <div key={atom} className="bg-white p-4 rounded-2xl border-2 border-blue-200 flex justify-between items-center">
+                                  <span className="font-black text-gray-700">{atom}</span>
+                                  <span className="text-2xl font-black text-blue-600">{count}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="bg-emerald-50 p-8 rounded-3xl border-2 border-emerald-100">
+                            <h4 className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-6 text-center">Product Atoms</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              {Object.entries(productAtoms).map(([atom, count]: [string, any]) => (
+                                <div key={atom} className="bg-white p-4 rounded-2xl border-2 border-emerald-200 flex justify-between items-center">
+                                  <span className="font-black text-gray-700">{atom}</span>
+                                  <span className="text-2xl font-black text-emerald-600">{count}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Feedback & Navigation */}
+                    <div className="flex flex-col items-center gap-6">
+                      <AnimatePresence>
+                        {isBalanced && (
+                          <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-xl uppercase tracking-widest flex items-center gap-3 shadow-lg"
+                          >
+                            <CheckCircle2 size={32} />
+                            Equation Balanced!
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="flex gap-4 w-full">
+                        <button 
+                          onClick={() => {
+                            setBalancingIndex(prev => (prev - 1 + equations.length) % equations.length);
+                            setIsBalanced(false);
+                          }}
+                          className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                        >
+                          Previous
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setBalancingIndex(prev => (prev + 1) % equations.length);
+                            setIsBalanced(false);
+                          }}
+                          className="flex-1 bg-violet-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#7c3aed] hover:shadow-none hover:translate-y-1 transition-all"
+                        >
+                          Next Equation
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button onClick={() => setSelectedSim(null)} className="w-full mt-12 bg-gray-100 text-gray-400 py-4 rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-gray-200 transition-all">
+                    Back to Selection
+                  </button>
+                </div>
+              )}
               {selectedSim === 'matter' && (
                 <div className="bg-white border-2 border-gray-200 p-8 rounded-3xl shadow-[0_6px_0_0_#e5e7eb]">
                   <div className="flex justify-between items-center mb-8">
                     <div>
                       <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">States of Matter</h3>
-                      <p className="text-sky-500 font-black text-xl uppercase tracking-widest text-xs">Particle Theory</p>
+                      <p className="text-sky-500 font-black text-xl uppercase tracking-widest text-xs">Particle Arrangement & Kinetic Theory</p>
                     </div>
                     <div className="bg-sky-100 text-sky-600 p-4 rounded-2xl">
                       <Thermometer size={32} />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-gray-500 uppercase">Substance</label>
-                          <select 
-                            value={selectedMatter} 
-                            onChange={e => setSelectedMatter(e.target.value)}
-                            className="w-full p-3 border-2 border-gray-200 rounded-xl font-bold bg-white"
-                          >
-                            {chemicals.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-sky-500 uppercase">Temperature: {matterTemp}°C</label>
-                          <input 
-                            type="range" 
-                            min="-273" 
-                            max="3000" 
-                            value={matterTemp} 
-                            onChange={e => setMatterTemp(parseInt(e.target.value))} 
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-sky-500" 
-                          />
+                  <div className="space-y-8 mb-8">
+                    <div className="flex flex-col gap-8">
+                      {/* Top Controls: Chemical Selection */}
+                      <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-100">
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">Select Substance</p>
+                        <div className="flex flex-wrap justify-center gap-3">
+                          {chemicals.map(c => (
+                            <button
+                              key={c.name}
+                              onClick={() => setSelectedMatter(c.name)}
+                              className={`px-6 py-3 rounded-2xl font-black text-sm transition-all border-2 ${selectedMatter === c.name ? 'bg-sky-500 text-white border-sky-600 shadow-[0_4px_0_0_#0369a1]' : 'bg-white text-gray-600 border-gray-200 hover:border-sky-300 shadow-[0_2px_0_0_#e5e7eb]'}`}
+                            >
+                              {c.name}
+                            </button>
+                          ))}
                         </div>
                       </div>
 
-                      {(() => {
-                        const chem = chemicals.find(c => c.name === selectedMatter)!;
-                        const state = getMatterState(matterTemp, chem);
-                        return (
-                          <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border-2 border-gray-100">
-                              <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Current State</p>
-                                <h4 className={`text-3xl font-black uppercase tracking-tight ${state === 'Solid' ? 'text-blue-600' : state === 'Liquid' ? 'text-sky-500' : 'text-orange-500'}`}>
-                                  {state}
-                                </h4>
+                      {/* Main Simulation Area */}
+                      <div className="space-y-6">
+                        {(() => {
+                          const chem = chemicals.find(c => c.name === selectedMatter)!;
+                          const state = getMatterState(matterTemp, chem);
+                          
+                          const stateData = {
+                            Solid: {
+                              movement: "Vibrating about fixed positions",
+                              arrangement: "Regular lattice / Closely packed",
+                              volume: "Fixed",
+                              shape: "Fixed"
+                            },
+                            Liquid: {
+                              movement: "Able to slide past each other",
+                              arrangement: "Irregular / Closely packed",
+                              volume: "Fixed",
+                              shape: "Variable (takes shape of container)"
+                            },
+                            Gas: {
+                              movement: "Rapid random motion in all directions",
+                              arrangement: "Irregular / Far apart",
+                              volume: "Variable (expands to fill container)",
+                              shape: "Variable (takes shape of container)"
+                            }
+                          }[state as 'Solid' | 'Liquid' | 'Gas'];
+
+                          return (
+                            <div className="space-y-8">
+                              <div className="relative h-96 bg-gray-900 rounded-[2.5rem] overflow-hidden border-4 border-gray-200 shadow-2xl group">
+                                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-500/10 to-transparent" />
+                                
+                                {/* State Badge */}
+                                <div className="absolute top-6 left-6 z-20">
+                                  <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-xl">
+                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1">Current State</p>
+                                    <h4 className={`text-3xl font-black uppercase tracking-tight ${state === 'Solid' ? 'text-blue-400' : state === 'Liquid' ? 'text-sky-400' : 'text-orange-400'}`}>
+                                      {state}
+                                    </h4>
+                                  </div>
+                                </div>
+
+                                {/* Temp Badge */}
+                                <div className="absolute top-6 right-6 z-20">
+                                  <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-xl text-right">
+                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1">Temperature</p>
+                                    <h4 className="text-3xl font-black text-white tracking-tight">{matterTemp}°C</h4>
+                                  </div>
+                                </div>
+
+                                {/* Particles */}
+                                {[...Array(48)].map((_, i) => {
+                                  const row = Math.floor(i / 8);
+                                  const col = i % 8;
+                                  const solidX = 30 + col * 6;
+                                  const solidY = 40 + row * 6;
+                                  const liquidX = 20 + Math.random() * 60;
+                                  const liquidY = 65 + Math.random() * 25;
+                                  const gasX = Math.random() * 90;
+                                  const gasY = Math.random() * 90;
+
+                                  return (
+                                    <motion.div
+                                      key={`${selectedMatter}-${state}-${i}`}
+                                      className={`absolute w-6 h-6 rounded-full ${chem.bg} shadow-lg border border-white/20`}
+                                      initial={state === 'Solid' ? { left: `${solidX}%`, top: `${solidY}%` } : 
+                                               state === 'Liquid' ? { left: `${liquidX}%`, top: `${liquidY}%` } : 
+                                               { left: `${gasX}%`, top: `${gasY}%` }}
+                                      animate={state === 'Solid' ? {
+                                        x: [0, 1, -1, 0],
+                                        y: [0, -1, 1, 0],
+                                      } : state === 'Liquid' ? {
+                                        x: [0, Math.random() * 20 - 10, Math.random() * 20 - 10, 0],
+                                        y: [0, Math.random() * 10 - 5, Math.random() * 10 - 5, 0],
+                                        left: [`${liquidX}%`, `${(liquidX + 5) % 100}%`, `${liquidX}%`]
+                                      } : {
+                                        left: [`${gasX}%`, `${Math.random() * 90}%`, `${Math.random() * 90}%`, `${gasX}%`],
+                                        top: [`${gasY}%`, `${Math.random() * 90}%`, `${Math.random() * 90}%`, `${gasY}%`],
+                                      }}
+                                      transition={{
+                                        duration: state === 'Solid' ? 0.15 : state === 'Liquid' ? 2.5 : 4,
+                                        repeat: Infinity,
+                                        ease: "linear"
+                                      }}
+                                    />
+                                  );
+                                })}
+                                
+                                {/* Bottom Info Bar */}
+                                <div className="absolute bottom-0 inset-x-0 bg-black/40 backdrop-blur-md p-4 border-t border-white/10 flex justify-around">
+                                  <div className="text-center">
+                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Melting Point</p>
+                                    <p className="text-white font-bold">{chem.mp}°C</p>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Boiling Point</p>
+                                    <p className="text-white font-bold">{chem.bp}°C</p>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Melting: {chem.mp}°C</p>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Boiling: {chem.bp}°C</p>
+
+                              {/* Temperature Slider */}
+                              <div className="bg-white p-8 rounded-3xl border-2 border-gray-100 shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="bg-sky-100 text-sky-600 p-2 rounded-xl">
+                                      <Thermometer size={20} />
+                                    </div>
+                                    <h5 className="font-black text-gray-800 uppercase tracking-tight">Adjust Temperature</h5>
+                                  </div>
+                                  <span className="text-2xl font-black text-sky-600">{matterTemp}°C</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="-273" 
+                                  max="3000" 
+                                  value={matterTemp} 
+                                  onChange={e => setMatterTemp(parseInt(e.target.value))} 
+                                  className="w-full h-4 bg-gray-200 rounded-xl appearance-none cursor-pointer accent-sky-500" 
+                                />
+                                <div className="flex justify-between mt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                  <span>Absolute Zero (-273°C)</span>
+                                  <span>Extreme Heat (3000°C)</span>
+                                </div>
+                              </div>
+
+                              {/* State Properties Grid */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm">
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Arrangement</p>
+                                  <p className="text-sm font-bold text-gray-800 leading-tight">{stateData.arrangement}</p>
+                                </div>
+                                <div className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm">
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Movement</p>
+                                  <p className="text-sm font-bold text-gray-800 leading-tight">{stateData.movement}</p>
+                                </div>
+                                <div className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm">
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Volume</p>
+                                  <p className="text-sm font-bold text-gray-800 leading-tight">{stateData.volume}</p>
+                                </div>
+                                <div className="bg-white p-5 rounded-2xl border-2 border-gray-100 shadow-sm">
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Shape</p>
+                                  <p className="text-sm font-bold text-gray-800 leading-tight">{stateData.shape}</p>
+                                </div>
                               </div>
                             </div>
-
-                            <div className="relative h-64 bg-gray-900 rounded-2xl overflow-hidden border-4 border-gray-200">
-                              {[...Array(36)].map((_, i) => {
-                                const row = Math.floor(i / 6);
-                                const col = i % 6;
-                                
-                                // Base positions for Solid (centered grid)
-                                const solidX = 30 + col * 8;
-                                const solidY = 30 + row * 8;
-                                
-                                // Base positions for Liquid (bottom cluster)
-                                const liquidX = 20 + Math.random() * 60;
-                                const liquidY = 60 + Math.random() * 30;
-                                
-                                // Base positions for Gas (anywhere)
-                                const gasX = Math.random() * 90;
-                                const gasY = Math.random() * 90;
-
-                                return (
-                                  <motion.div
-                                    key={`${selectedMatter}-${state}-${i}`}
-                                    className={`absolute w-4 h-4 rounded-full ${chem.bg} shadow-lg`}
-                                    initial={state === 'Solid' ? { left: `${solidX}%`, top: `${solidY}%` } : 
-                                             state === 'Liquid' ? { left: `${liquidX}%`, top: `${liquidY}%` } : 
-                                             { left: `${gasX}%`, top: `${gasY}%` }}
-                                    animate={state === 'Solid' ? {
-                                      x: [0, 1, -1, 0],
-                                      y: [0, -1, 1, 0],
-                                    } : state === 'Liquid' ? {
-                                      x: [0, Math.random() * 20 - 10, Math.random() * 20 - 10, 0],
-                                      y: [0, Math.random() * 10 - 5, Math.random() * 10 - 5, 0],
-                                      left: [`${liquidX}%`, `${(liquidX + 5) % 100}%`, `${liquidX}%`]
-                                    } : {
-                                      left: [`${gasX}%`, `${Math.random() * 90}%`, `${Math.random() * 90}%`, `${gasX}%`],
-                                      top: [`${gasY}%`, `${Math.random() * 90}%`, `${Math.random() * 90}%`, `${gasY}%`],
-                                    }}
-                                    transition={{
-                                      duration: state === 'Solid' ? 0.2 : state === 'Liquid' ? 3 : 5,
-                                      repeat: Infinity,
-                                      ease: "linear"
-                                    }}
-                                  />
-                                );
-                              })}
-                              {state === 'Gas' && (
-                                <div className="absolute inset-0 pointer-events-none bg-white/5" />
-                              )}
-                            </div>
-
-                            <div className="p-4 bg-sky-50 rounded-2xl border-2 border-sky-100 italic text-sm text-sky-800">
-                              {state === 'Solid' && "Particles are closely packed in a regular arrangement, vibrating about fixed positions."}
-                              {state === 'Liquid' && "Particles are closely packed but in an irregular arrangement, able to slide past each other."}
-                              {state === 'Gas' && "Particles are far apart and move rapidly in random directions."}
-                            </div>
-                          </div>
-                        );
-                      })()}
+                          );
+                        })()}
+                      </div>
                     </div>
+                  </div>
 
-                    <div className="space-y-6">
-                      <div className="bg-sky-50 p-6 rounded-2xl border-2 border-sky-100">
-                        <h4 className="text-sm font-black text-sky-600 uppercase tracking-widest mb-4">Practice Mode</h4>
-                        {!matterPractice ? (
-                          <button onClick={generateMatterPractice} className="w-full bg-sky-500 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#0369a1]">
-                            Start Practice
-                          </button>
-                        ) : (
+                  <div className="mt-8 pt-8 border-t-2 border-gray-100">
+                    <div className="bg-sky-50 p-6 rounded-3xl border-2 border-sky-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-black text-sky-600 uppercase tracking-widest">Practice Mode</h4>
+                        {matterPractice && (
+                          <button onClick={() => setMatterPractice(null)} className="text-sky-400 hover:text-sky-600 font-bold text-xs uppercase">Close</button>
+                        )}
+                      </div>
+                      {!matterPractice ? (
+                        <button onClick={generateMatterPractice} className="w-full bg-sky-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#0369a1] hover:shadow-none hover:translate-y-1 transition-all">
+                          Start State Challenge
+                        </button>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                          <div className="text-center p-6 bg-white rounded-2xl border-2 border-sky-200">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">What is the state of</p>
+                            <h5 className="text-3xl font-black text-gray-800 uppercase tracking-tight">{matterPractice.chem.name}</h5>
+                            <p className="text-sky-500 font-black text-2xl">at {matterPractice.temp}°C?</p>
+                          </div>
                           <div className="space-y-4">
-                            <div className="text-center p-4 bg-white rounded-xl border-2 border-sky-200">
-                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">What is the state of</p>
-                              <h5 className="text-2xl font-black text-gray-800 uppercase tracking-tight">{matterPractice.chem.name}</h5>
-                              <p className="text-sky-500 font-black text-xl">at {matterPractice.temp}°C?</p>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-3">
                               {['Solid', 'Liquid', 'Gas'].map(s => (
                                 <button
                                   key={s}
                                   onClick={() => setMatterAnswer(s)}
-                                  className={`py-3 rounded-xl font-black uppercase tracking-widest border-2 transition-all ${matterAnswer === s ? 'bg-sky-500 text-white border-sky-600' : 'bg-white text-gray-500 border-gray-200 hover:border-sky-300'}`}
+                                  className={`py-4 rounded-2xl font-black uppercase tracking-widest border-2 transition-all ${matterAnswer === s ? 'bg-sky-500 text-white border-sky-600 shadow-[0_4px_0_0_#0369a1]' : 'bg-white text-gray-500 border-gray-200 hover:border-sky-300'}`}
                                 >
                                   {s}
                                 </button>
                               ))}
                             </div>
-                            <button 
-                              onClick={() => {
-                                if (matterAnswer === matterPractice.targetState) {
-                                  setMatterFeedback('correct');
-                                } else {
-                                  setMatterFeedback('incorrect');
-                                }
-                              }} 
-                              className="w-full bg-sky-500 text-white py-3 rounded-xl font-black uppercase tracking-widest"
-                            >
+                            <button onClick={() => {
+                              if (matterAnswer === matterPractice.targetState) setMatterFeedback('correct');
+                              else setMatterFeedback('incorrect');
+                            }} className="w-full bg-sky-500 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#0369a1] active:shadow-none active:translate-y-1 transition-all">
                               Check Answer
                             </button>
                             {matterFeedback && (
@@ -1992,10 +3478,10 @@ export default function App() {
                                 {matterFeedback === 'correct' ? 'Correct! You understand state changes.' : `Incorrect. At ${matterPractice.temp}°C, ${matterPractice.chem.name} is a ${matterPractice.targetState}.`}
                               </div>
                             )}
-                            <button onClick={generateMatterPractice} className="w-full text-sky-500 font-bold uppercase text-xs">Next Question</button>
+                            <button onClick={generateMatterPractice} className="w-full text-sky-500 font-bold uppercase text-xs hover:underline">Next Question</button>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2010,70 +3496,149 @@ export default function App() {
                   <div className="flex justify-between items-center mb-8">
                     <div>
                       <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Diffusion Chamber</h3>
-                      <p className="text-orange-500 font-black text-xl uppercase tracking-widest text-xs">Concentration Gradient</p>
+                      <p className="text-orange-500 font-black text-xl uppercase tracking-widest text-xs">Concentration Gradient & Kinetic Theory</p>
                     </div>
                     <div className="bg-orange-100 text-orange-600 p-4 rounded-2xl">
                       <ArrowRightLeft size={32} />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-8 mb-8">
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">Left Side Setup</h4>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-red-500 uppercase">Red Particles: {redLeft}</label>
-                        <input type="range" min="0" max="50" value={redLeft} onChange={e => setRedLeft(parseInt(e.target.value))} disabled={isPartitionRemoved} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-blue-500 uppercase">Blue Particles: {blueLeft}</label>
-                        <input type="range" min="0" max="50" value={blueLeft} onChange={e => setBlueLeft(parseInt(e.target.value))} disabled={isPartitionRemoved} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">Right Side Setup</h4>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-red-500 uppercase">Red Particles: {redRight}</label>
-                        <input type="range" min="0" max="50" value={redRight} onChange={e => setRedRight(parseInt(e.target.value))} disabled={isPartitionRemoved} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-blue-500 uppercase">Blue Particles: {blueRight}</label>
-                        <input type="range" min="0" max="50" value={blueRight} onChange={e => setBlueRight(parseInt(e.target.value))} disabled={isPartitionRemoved} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                      </div>
-                    </div>
-                  </div>
+                  <div className="space-y-8 mb-8">
+                    <div className="flex flex-col gap-8">
+                      {/* Main Simulation Area */}
+                      <div className="relative h-[500px] bg-gray-900 rounded-[2.5rem] overflow-hidden border-4 border-gray-200 shadow-2xl" ref={simRef}>
+                        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-orange-500/20 to-transparent" />
+                        
+                        {/* Partition */}
+                        {!isPartitionRemoved && (
+                          <div className="absolute top-0 bottom-0 left-1/2 w-2 bg-gray-400/50 backdrop-blur-sm z-10 shadow-[0_0_20px_rgba(255,255,255,0.2)]" />
+                        )}
 
-                  <div className="relative h-64 bg-gray-900 rounded-2xl overflow-hidden border-4 border-gray-200 mb-8" ref={simRef}>
-                    {particles.map(p => (
-                      <motion.div
-                        key={p.id}
-                        className={`absolute w-3 h-3 rounded-full ${p.type === 'red' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'}`}
-                        style={{ left: `${p.x}%`, top: `${p.y}%` }}
-                      />
-                    ))}
-                    {!isPartitionRemoved && (
-                      <div className="absolute inset-y-0 left-1/2 w-1 bg-white/30 backdrop-blur-sm -translate-x-1/2 z-10" />
-                    )}
-                  </div>
+                        {/* Particles */}
+                        {particles.map(p => (
+                          <motion.div
+                            key={p.id}
+                            className={`absolute w-4 h-4 rounded-full shadow-lg border border-white/20 ${p.type === 'red' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
+                            style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                            animate={{
+                              x: [0, Math.random() * 10 - 5, Math.random() * 10 - 5, 0],
+                              y: [0, Math.random() * 10 - 5, Math.random() * 10 - 5, 0],
+                            }}
+                            transition={{
+                              duration: 0.5 / (diffusionTemp / 50 + 0.1),
+                              repeat: Infinity,
+                              ease: "linear"
+                            }}
+                          />
+                        ))}
 
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-100 text-center">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Left Side</p>
-                      <div className="flex justify-center gap-4">
-                        <span className="text-red-500 font-black">R: {counts.leftRed}</span>
-                        <span className="text-blue-500 font-black">B: {counts.leftBlue}</span>
+                        {/* Labels */}
+                        {!isPartitionRemoved && (
+                          <>
+                            <div className="absolute top-1/2 left-1/4 -translate-y-1/2 text-center z-20">
+                              <p className="text-4xl font-black text-red-400/20 uppercase tracking-widest">High Concentration</p>
+                            </div>
+                            <div className="absolute top-1/2 right-1/4 -translate-y-1/2 text-center z-20">
+                              <p className="text-4xl font-black text-blue-400/20 uppercase tracking-widest">Low Concentration</p>
+                            </div>
+                          </>
+                        )}
+
+                        {/* Particle Counts Overlay */}
+                        <div className="absolute bottom-6 inset-x-6 flex justify-between gap-6 pointer-events-none">
+                          <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex gap-8">
+                            <div className="text-center">
+                              <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Left Red</p>
+                              <p className="text-2xl font-black text-white">{counts.leftRed}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Left Blue</p>
+                              <p className="text-2xl font-black text-white">{counts.leftBlue}</p>
+                            </div>
+                          </div>
+                          <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex gap-8">
+                            <div className="text-center">
+                              <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Right Red</p>
+                              <p className="text-2xl font-black text-white">{counts.rightRed}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Right Blue</p>
+                              <p className="text-2xl font-black text-white">{counts.rightBlue}</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-100 text-center">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Right Side</p>
-                      <div className="flex justify-center gap-4">
-                        <span className="text-red-500 font-black">R: {counts.rightRed}</span>
-                        <span className="text-blue-500 font-black">B: {counts.rightBlue}</span>
+
+                      {/* Controls Area */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-8 rounded-3xl border-2 border-gray-100 shadow-sm space-y-6">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-orange-100 text-orange-600 p-2 rounded-xl">
+                              <RefreshCw size={20} />
+                            </div>
+                            <h5 className="font-black text-gray-800 uppercase tracking-tight">Initial Setup</h5>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-black text-red-500 uppercase tracking-widest">Left Red: {redLeft}</label>
+                                <input type="range" min="0" max="50" value={redLeft} onChange={e => setRedLeft(parseInt(e.target.value))} disabled={isPartitionRemoved} className="w-full h-2 bg-red-100 rounded-lg appearance-none cursor-pointer accent-red-500" />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Left Blue: {blueLeft}</label>
+                                <input type="range" min="0" max="50" value={blueLeft} onChange={e => setBlueLeft(parseInt(e.target.value))} disabled={isPartitionRemoved} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <button 
+                                onClick={() => {
+                                  setIsPartitionRemoved(false);
+                                  initParticles();
+                                }} 
+                                className="px-6 py-4 bg-gray-100 text-gray-600 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all border-2 border-transparent active:scale-95"
+                              >
+                                Reset
+                              </button>
+                              <button 
+                                onClick={() => setIsPartitionRemoved(true)} 
+                                disabled={isPartitionRemoved}
+                                className="px-6 py-4 bg-orange-600 text-white rounded-2xl font-black text-sm hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 disabled:opacity-50 active:scale-95"
+                              >
+                                Open Partition
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-8 rounded-3xl border-2 border-gray-100 shadow-sm space-y-6">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <div className="bg-orange-100 text-orange-600 p-2 rounded-xl">
+                                <Thermometer size={20} />
+                              </div>
+                              <h5 className="font-black text-gray-800 uppercase tracking-tight">Temperature</h5>
+                            </div>
+                            <span className="text-2xl font-black text-orange-600">{diffusionTemp}°C</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={diffusionTemp} 
+                            onChange={e => setDiffusionTemp(parseInt(e.target.value))} 
+                            className="w-full h-4 bg-gray-200 rounded-xl appearance-none cursor-pointer accent-orange-500" 
+                          />
+                          <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <span>Cold (0°C)</span>
+                            <span>Hot (100°C)</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {isPartitionRemoved && (
-                    <div className={`p-4 rounded-xl mb-8 text-center font-black uppercase tracking-tight ${netDiffusion === 'equilibrium' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
+                    <div className={`p-4 rounded-2xl mb-8 text-center font-black uppercase tracking-tight ${netDiffusion === 'equilibrium' ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-200' : 'bg-orange-100 text-orange-700 border-2 border-orange-200'}`}>
                       {netDiffusion === 'equilibrium' ? (
                         <div className="flex items-center justify-center gap-2">
                           <CheckCircle2 size={20} />
@@ -2088,25 +3653,93 @@ export default function App() {
                     </div>
                   )}
 
-                  <div className="flex gap-4">
-                    {!isPartitionRemoved ? (
-                      <button
-                        onClick={() => setIsPartitionRemoved(true)}
-                        className="flex-1 bg-orange-500 text-white py-4 rounded-2xl font-black text-xl uppercase tracking-widest shadow-[0_6px_0_0_#c2410c] active:shadow-none active:translate-y-1 transition-all"
-                      >
-                        Remove Partition
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setIsPartitionRemoved(false);
-                          initParticles();
-                        }}
-                        className="flex-1 bg-gray-200 text-gray-500 py-4 rounded-2xl font-black text-xl uppercase tracking-widest hover:bg-gray-300 transition-all"
-                      >
-                        Reset Simulation
-                      </button>
-                    )}
+                  {/* Practice Mode Section */}
+                  <div className="mt-12 pt-8 border-t-2 border-gray-100">
+                    <div className="bg-orange-50/50 rounded-3xl p-8 border-2 border-orange-100">
+                      <div className="flex justify-between items-center mb-6">
+                        <h4 className="text-sm font-black text-orange-600 uppercase tracking-widest">Practice Mode</h4>
+                        {diffusionPractice && (
+                          <button onClick={() => setDiffusionPractice(null)} className="text-orange-400 hover:text-orange-600 font-bold text-xs uppercase">Close</button>
+                        )}
+                      </div>
+
+                      {!diffusionPractice ? (
+                        <div className="text-center py-8">
+                          <p className="text-gray-500 mb-6 font-medium">Test your understanding of concentration gradients and net movement.</p>
+                          <button onClick={generateDiffusionPractice} className="bg-orange-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#c2410c] hover:shadow-none hover:translate-y-1 transition-all">
+                            Start Practice Challenge
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-8">
+                          <div className="bg-white p-6 rounded-2xl border-2 border-orange-100 shadow-sm">
+                            <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-2">Question</p>
+                            <h5 className="text-xl font-black text-gray-800 uppercase tracking-tight">
+                              Predict the net movement of <span className={diffusionPractice.type === 'red' ? 'text-red-500' : 'text-blue-500'}>{diffusionPractice.type.toUpperCase()}</span> particles when the partition is removed.
+                            </h5>
+                            <div className="mt-4 flex gap-4">
+                              <div className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase block">Left Chamber</span>
+                                <span className="font-black text-gray-700">{diffusionPractice.l} particles</span>
+                              </div>
+                              <div className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase block">Right Chamber</span>
+                                <span className="font-black text-gray-700">{diffusionPractice.r} particles</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {diffusionPractice.options.map((option: string) => (
+                              <button
+                                key={option}
+                                onClick={() => setDiffusionAnswer(option)}
+                                disabled={diffusionFeedback !== null}
+                                className={`p-4 rounded-xl font-black uppercase tracking-widest border-2 transition-all ${
+                                  diffusionAnswer === option
+                                    ? 'bg-orange-500 text-white border-orange-600 shadow-[0_4px_0_0_#c2410c]'
+                                    : 'bg-white text-gray-600 border-gray-100 hover:border-orange-200'
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+
+                          {diffusionAnswer && !diffusionFeedback && (
+                            <button onClick={checkDiffusionPractice} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#c2410c] active:shadow-none active:translate-y-1 transition-all">
+                              Check Answer
+                            </button>
+                          )}
+
+                          {diffusionFeedback && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className={`p-6 rounded-2xl text-center ${
+                                diffusionFeedback === 'correct' ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-200' : 'bg-red-100 text-red-700 border-2 border-red-200'
+                              }`}
+                            >
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                {diffusionFeedback === 'correct' ? <CheckCircle2 size={24} /> : <ArrowRightLeft size={24} />}
+                                <p className="text-xl font-black uppercase tracking-tight">
+                                  {diffusionFeedback === 'correct' ? 'Correct!' : 'Try Again!'}
+                                </p>
+                              </div>
+                              <p className="font-bold">
+                                {diffusionFeedback === 'correct' 
+                                  ? `Particles move from high concentration (${Math.max(diffusionPractice.l, diffusionPractice.r)}) to low concentration (${Math.min(diffusionPractice.l, diffusionPractice.r)}).` 
+                                  : `Remember: Net movement is always from high concentration to low concentration.`}
+                              </p>
+                              <div className="mt-4 flex gap-4">
+                                <button onClick={generateDiffusionPractice} className="flex-1 bg-white/50 hover:bg-white/80 py-2 rounded-xl font-bold uppercase text-xs transition-all">Next Question</button>
+                                <button onClick={() => { setIsPartitionRemoved(true); setDiffusionFeedback(null); }} className="flex-1 bg-white/50 hover:bg-white/80 py-2 rounded-xl font-bold uppercase text-xs transition-all">Watch Simulation</button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -2529,7 +4162,77 @@ export default function App() {
                 <p className="text-gray-500 font-medium">Interactive simulations for complex scientific concepts.</p>
               </div>
             </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSubMode('solubility')}
+              className="w-full bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-emerald-400 hover:shadow-[0_6px_0_0_#34d399] transition-all group"
+            >
+              <div className="bg-emerald-100 text-emerald-600 p-5 rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                <Droplets size={40} />
+              </div>
+              <div className="text-left">
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Solubility Playground</h2>
+                <p className="text-gray-500 font-medium">Test your knowledge of salt solubility rules.</p>
+              </div>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSubMode('mole')}
+              className="w-full bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-orange-400 hover:shadow-[0_6px_0_0_#fb923c] transition-all group"
+            >
+              <div className="bg-orange-100 text-orange-600 p-5 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                <Calculator size={40} />
+              </div>
+              <div className="text-left">
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Mole Playground</h2>
+                <p className="text-gray-500 font-medium">Practice stoichiometry and mole calculations.</p>
+              </div>
+            </motion.button>
           </main>
+        </div>
+      );
+    }
+
+    if (subMode === 'mole') {
+      return (
+        <div className="min-h-screen bg-gray-50 pb-24">
+          <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
+            <div className="max-w-2xl mx-auto flex items-center gap-4">
+              <button onClick={() => setSubMode('select')} className="text-gray-400 hover:text-gray-600">
+                <ChevronLeft size={32} />
+              </button>
+              <div>
+                <h1 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none">Mole Playground</h1>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Stoichiometry Practice</p>
+              </div>
+            </div>
+          </header>
+          <main className="max-w-2xl mx-auto p-6">
+            <MolePlayground />
+          </main>
+        </div>
+      );
+    }
+
+    if (subMode === 'solubility') {
+      return (
+        <div className="min-h-screen bg-gray-50 pb-24">
+          <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
+            <div className="max-w-2xl mx-auto flex items-center gap-4">
+              <button onClick={() => setSubMode('select')} className="text-gray-400 hover:text-gray-600">
+                <ChevronLeft size={32} />
+              </button>
+              <div>
+                <h1 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none">Solubility Playground</h1>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Salt Solubility Revision</p>
+              </div>
+            </div>
+          </header>
+          <SolubilityPlayground />
         </div>
       );
     }
@@ -3080,6 +4783,7 @@ export default function App() {
       <AnimatePresence mode="wait">
         {mode === 'splash' && <SplashScreen key="splash" />}
         {mode === 'dashboard' && <Dashboard key="dashboard" />}
+        {mode === 'facts' && <QuickFacts key="facts" />}
         {mode === 'quiz-select' && <QuizSelectView key="quiz-select" />}
         {mode === 'quiz' && <QuizView key="quiz" />}
         {mode === 'result' && <ResultView key="result" />}
@@ -3091,7 +4795,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Bottom Nav for Dashboard, User Stats, and About */}
-      {['dashboard', 'playground', 'user-stats', 'about'].includes(mode) && (
+      {['dashboard', 'facts', 'playground', 'user-stats', 'about'].includes(mode) && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 z-20">
           <div className="max-w-2xl mx-auto flex justify-around items-center">
             <button 
@@ -3100,6 +4804,13 @@ export default function App() {
             >
               <Home size={28} fill={mode === 'dashboard' ? "currentColor" : "none"} />
               <span className="text-[10px] font-black uppercase">Home</span>
+            </button>
+            <button 
+              onClick={() => setMode('facts')}
+              className={`flex flex-col items-center gap-1 transition-colors ${mode === 'facts' ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-400'}`}
+            >
+              <BookOpen size={28} fill={mode === 'facts' ? "currentColor" : "none"} />
+              <span className="text-[10px] font-black uppercase">Quick Facts</span>
             </button>
             <button 
               onClick={() => setMode('playground')}
