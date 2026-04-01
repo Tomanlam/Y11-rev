@@ -17,6 +17,7 @@ import {
   Trophy,
   ArrowRight,
   ArrowRightLeft,
+  ArrowDown,
   Home,
   RefreshCw,
   Thermometer,
@@ -334,7 +335,86 @@ export default function App() {
 
   const QuickFacts = () => {
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
+    const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
     const [hoveredMoleEq, setHoveredMoleEq] = useState<number | null>(null);
+    const [hoveredPhRegion, setHoveredPhRegion] = useState<'acid' | 'base' | null>(null);
+    const [hoveredReactivity, setHoveredReactivity] = useState<number | null>(null);
+    const [selectedSaltPrep, setSelectedSaltPrep] = useState<string | null>(null);
+    const [ionicStep, setIonicStep] = useState(0); // 0: Molecular, 1: Complete Ionic, 2: Net Ionic
+    const [ionicExampleIndex, setIonicExampleIndex] = useState(0);
+
+    const saltPrepData = {
+      'NaCl': { soluble: true, group1: true, method: 'Titration' },
+      'CuSO4': { soluble: true, group1: false, method: 'Excess Solid' },
+      'AgCl': { soluble: false, group1: false, method: 'Precipitation' }
+    };
+
+    const apparatusData = [
+      { 
+        id: 'burette', 
+        name: 'Burette', 
+        accuracy: 'Accurate', 
+        volume: 'Variable',
+        use: 'Accurate + Variable volume',
+        svg: (
+          <svg viewBox="0 0 40 100" className="w-full h-32 text-sky-500">
+            <rect x="18" y="5" width="4" height="80" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            {[...Array(15)].map((_, i) => (
+              <line key={i} x1="18" y1={10 + i * 5} x2={i % 5 === 0 ? "22" : "20"} y2={10 + i * 5} stroke="currentColor" strokeWidth="0.5" />
+            ))}
+            <circle cx="20" cy="88" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="20" y1="91" x2="20" y2="100" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        )
+      },
+      { 
+        id: 'pipette', 
+        name: 'Pipette', 
+        accuracy: 'Accurate', 
+        volume: 'Fixed',
+        use: 'Accurate + Fixed volume',
+        svg: (
+          <svg viewBox="0 0 40 100" className="w-full h-32 text-emerald-500">
+            <rect x="19" y="5" width="2" height="35" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <ellipse cx="20" cy="55" rx="8" ry="15" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <rect x="19" y="75" width="2" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="18" y1="20" x2="22" y2="20" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        )
+      },
+      { 
+        id: 'cylinder', 
+        name: 'Measuring Cylinder', 
+        accuracy: 'Rough', 
+        volume: 'Variable',
+        use: 'Rough + Variable volume',
+        svg: (
+          <svg viewBox="0 0 40 100" className="w-full h-32 text-amber-500">
+            <path d="M 12 10 L 12 90 Q 12 95 20 95 Q 28 95 28 90 L 28 10" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <rect x="8" y="95" width="24" height="3" rx="1.5" fill="currentColor" />
+            {[...Array(8)].map((_, i) => (
+              <line key={i} x1="12" y1={20 + i * 10} x2="18" y2={20 + i * 10} stroke="currentColor" strokeWidth="0.8" />
+            ))}
+          </svg>
+        )
+      }
+    ];
+
+    const reactivityElements = [
+      { symbol: 'K', name: 'Potassium' },
+      { symbol: 'Na', name: 'Sodium' },
+      { symbol: 'Ca', name: 'Calcium' },
+      { symbol: 'Mg', name: 'Magnesium' },
+      { symbol: 'Al', name: 'Aluminium' },
+      { symbol: 'C', name: 'Carbon', color: 'text-emerald-500' },
+      { symbol: 'Zn', name: 'Zinc' },
+      { symbol: 'Fe', name: 'Iron' },
+      { symbol: 'Pb', name: 'Lead' },
+      { symbol: 'H', name: 'Hydrogen', color: 'text-rose-500' },
+      { symbol: 'Cu', name: 'Copper' },
+      { symbol: 'Ag', name: 'Silver' },
+      { symbol: 'Au', name: 'Gold' },
+    ];
 
     const ParticleBox = ({ state }: { state: 'solid' | 'liquid' | 'gas' }) => {
       if (state === 'solid') {
@@ -592,6 +672,658 @@ export default function App() {
             className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
           >
             <div className="flex items-center gap-4 mb-8">
+              <div className="bg-amber-100 p-3 rounded-2xl text-amber-600">
+                <Zap size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Reactivity Series</h2>
+            </div>
+
+            <div className="relative">
+              <div className="flex items-end justify-between gap-1 pb-12 overflow-x-auto no-scrollbar">
+                {reactivityElements.map((el, i) => (
+                  <div key={el.symbol} className="flex flex-col items-center flex-1 min-w-[40px] relative">
+                    {/* Vertical Dotted Lines */}
+                    {(el.symbol === 'C' || el.symbol === 'H') && (
+                      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0 border-l-2 border-dashed border-gray-300 h-32 -z-0" />
+                    )}
+                    
+                    <motion.div
+                      onMouseEnter={() => setHoveredReactivity(i)}
+                      onMouseLeave={() => setHoveredReactivity(null)}
+                      whileHover={{ y: -5, scale: 1.1 }}
+                      className={`z-10 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-sm border-2 transition-all cursor-help
+                        ${el.symbol === 'C' ? 'bg-emerald-50 border-emerald-200' : 
+                          el.symbol === 'H' ? 'bg-rose-50 border-rose-200' : 
+                          'bg-white border-gray-100 text-gray-700'}
+                        ${el.color || ''}
+                      `}
+                    >
+                      {el.symbol}
+                    </motion.div>
+                    <span className="mt-2 text-[8px] font-bold text-gray-400 uppercase text-center leading-tight h-4">
+                      {el.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Hover Information Overlay */}
+              <div className="mt-4 min-h-[80px] bg-gray-50 rounded-3xl border-2 border-gray-100 p-4 flex flex-col justify-center gap-2">
+                <AnimatePresence mode="wait">
+                  {hoveredReactivity !== null ? (
+                    <motion.div
+                      key={hoveredReactivity}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="space-y-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${hoveredReactivity < 5 ? 'bg-blue-500' : hoveredReactivity > 5 ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                        <p className="text-xs font-bold text-gray-700">
+                          {hoveredReactivity < 5 && "Extraction by electrolysis"}
+                          {hoveredReactivity > 5 && "Extraction by reacting the metal oxide with carbon (coke)"}
+                          {hoveredReactivity === 5 && "Reference element for extraction"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${hoveredReactivity < 9 ? 'bg-emerald-500' : hoveredReactivity > 9 ? 'bg-rose-500' : 'bg-gray-300'}`} />
+                        <p className="text-xs font-bold text-gray-700">
+                          {hoveredReactivity < 9 && "Reaction with acids"}
+                          {hoveredReactivity > 9 && "DO NOT react with acids"}
+                          {hoveredReactivity === 9 && "Reference element for acid reactions"}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest"
+                    >
+                      Hover over an element to see its properties
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="mt-6 flex justify-between items-center px-2">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={14} className="text-emerald-500" />
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Most Reactive</span>
+                </div>
+                <div className="flex-1 mx-4 h-0.5 bg-gradient-to-r from-emerald-200 via-gray-200 to-rose-200 rounded-full" />
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Least Reactive</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-indigo-100 p-3 rounded-2xl text-indigo-600">
+                <FlaskConical size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Salt Preparation</h2>
+            </div>
+
+            <div className="flex flex-col items-center space-y-4">
+              {/* Question 1 */}
+              <div className={`w-full max-w-sm p-4 rounded-2xl border-2 transition-all text-center
+                ${selectedSaltPrep ? 'opacity-40' : 'opacity-100'}
+                ${selectedSaltPrep && (selectedSaltPrep === 'AgCl' || selectedSaltPrep === 'NaCl' || selectedSaltPrep === 'CuSO4') ? 'opacity-100 border-indigo-400 bg-indigo-50' : 'border-gray-100 bg-gray-50'}
+              `}>
+                <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-1">Question 1</p>
+                <p className="font-bold text-gray-700">Is the salt soluble?</p>
+              </div>
+
+              <div className="flex w-full max-w-md justify-between px-4">
+                {/* No Path */}
+                <div className="flex flex-col items-center flex-1">
+                  <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'AgCl' ? 'bg-rose-500' : 'bg-gray-200'}`} />
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all
+                    ${selectedSaltPrep === 'AgCl' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-400'}
+                  `}>No</div>
+                  <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'AgCl' ? 'bg-rose-500' : 'bg-gray-200'}`} />
+                  <div className={`p-4 rounded-2xl border-2 transition-all text-center w-full
+                    ${selectedSaltPrep === 'AgCl' ? 'border-rose-500 bg-rose-50 text-rose-700 scale-105 shadow-md' : 'border-gray-100 bg-gray-50 text-gray-400 opacity-40'}
+                  `}>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-1">Method</p>
+                    <p className="font-bold">Precipitation</p>
+                  </div>
+                </div>
+
+                <div className="w-12" />
+
+                {/* Yes Path */}
+                <div className="flex flex-col items-center flex-1">
+                  <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'NaCl' || selectedSaltPrep === 'CuSO4' ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all
+                    ${selectedSaltPrep === 'NaCl' || selectedSaltPrep === 'CuSO4' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}
+                  `}>Yes</div>
+                  <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'NaCl' || selectedSaltPrep === 'CuSO4' ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+                  
+                  {/* Question 2 */}
+                  <div className={`p-4 rounded-2xl border-2 transition-all text-center w-full
+                    ${selectedSaltPrep === 'NaCl' || selectedSaltPrep === 'CuSO4' ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-gray-100 bg-gray-50 text-gray-400 opacity-40'}
+                  `}>
+                    <p className="text-xs font-black uppercase tracking-widest mb-1">Question 2</p>
+                    <p className="font-bold">Contains K⁺, Na⁺, or NH₄⁺?</p>
+                  </div>
+
+                  <div className="flex w-full justify-between mt-4">
+                    {/* Yes Path Q2 */}
+                    <div className="flex flex-col items-center flex-1">
+                      <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'NaCl' ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+                      <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all
+                        ${selectedSaltPrep === 'NaCl' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}
+                      `}>Yes</div>
+                      <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'NaCl' ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+                      <div className={`p-4 rounded-2xl border-2 transition-all text-center w-full
+                        ${selectedSaltPrep === 'NaCl' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 scale-105 shadow-md' : 'border-gray-100 bg-gray-50 text-gray-400 opacity-40'}
+                      `}>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-1">Method</p>
+                        <p className="font-bold">Titration</p>
+                      </div>
+                    </div>
+
+                    <div className="w-4" />
+
+                    {/* No Path Q2 */}
+                    <div className="flex flex-col items-center flex-1">
+                      <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'CuSO4' ? 'bg-rose-500' : 'bg-gray-200'}`} />
+                      <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase transition-all
+                        ${selectedSaltPrep === 'CuSO4' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-400'}
+                      `}>No</div>
+                      <div className={`w-0.5 h-8 transition-all ${selectedSaltPrep === 'CuSO4' ? 'bg-rose-500' : 'bg-gray-200'}`} />
+                      <div className={`p-4 rounded-2xl border-2 transition-all text-center w-full
+                        ${selectedSaltPrep === 'CuSO4' ? 'border-orange-500 bg-orange-50 text-orange-700 scale-105 shadow-md' : 'border-gray-100 bg-gray-50 text-gray-400 opacity-40'}
+                      `}>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-1">Method</p>
+                        <p className="font-bold leading-tight">Limiting Acid + Excess Solid</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-12 flex justify-center gap-4">
+              {['NaCl', 'CuSO4', 'AgCl'].map(salt => (
+                <button
+                  key={salt}
+                  onClick={() => setSelectedSaltPrep(selectedSaltPrep === salt ? null : salt)}
+                  className={`px-6 py-3 rounded-2xl font-black transition-all active:scale-95 border-2
+                    ${selectedSaltPrep === salt ? 'bg-indigo-500 text-white border-indigo-600 shadow-lg' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}
+                  `}
+                >
+                  {salt === 'NaCl' && <span>NaCl</span>}
+                  {salt === 'CuSO4' && <span>CuSO<sub>4</sub></span>}
+                  {salt === 'AgCl' && <span>AgCl</span>}
+                </button>
+              ))}
+            </div>
+            <p className="text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-4">Click a salt to trace its preparation path</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-sky-100 p-3 rounded-2xl text-sky-600">
+                <Beaker size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Lab Apparatus</h2>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              {apparatusData.map((item) => (
+                <motion.div
+                  key={item.id}
+                  onMouseEnter={() => setHoveredApparatus(item.id)}
+                  onMouseLeave={() => setHoveredApparatus(null)}
+                  className="bg-gray-50 border-2 border-gray-100 rounded-3xl p-4 flex flex-col items-center cursor-help transition-all hover:border-sky-200 hover:bg-sky-50 group"
+                >
+                  <div className="mb-4 transition-transform group-hover:scale-110">
+                    {item.svg}
+                  </div>
+                  <p className="text-[10px] font-black text-gray-800 uppercase tracking-tight text-center">{item.name}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex justify-center gap-12 mb-12 p-6 bg-gray-50 rounded-[2rem] border-2 border-gray-100">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Accuracy</span>
+                <AnimatePresence mode="wait">
+                  {hoveredApparatus ? (
+                    <motion.span 
+                      key="acc-val"
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className={`text-sm font-black uppercase ${apparatusData.find(a => a.id === hoveredApparatus)?.accuracy === 'Accurate' ? 'text-emerald-500' : 'text-amber-500'}`}
+                    >
+                      {apparatusData.find(a => a.id === hoveredApparatus)?.accuracy}
+                    </motion.span>
+                  ) : (
+                    <motion.span key="acc-placeholder" className="text-sm font-black text-gray-300 uppercase">---</motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Volume</span>
+                <AnimatePresence mode="wait">
+                  {hoveredApparatus ? (
+                    <motion.span 
+                      key="vol-val"
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="text-sm font-black text-sky-500 uppercase"
+                    >
+                      {apparatusData.find(a => a.id === hoveredApparatus)?.volume}
+                    </motion.span>
+                  ) : (
+                    <motion.span key="vol-placeholder" className="text-sm font-black text-gray-300 uppercase">---</motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <div className="border-t-2 border-gray-100 pt-8">
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6 text-center">Miscellaneous Apparatus</h3>
+              <div className="grid grid-cols-4 gap-4">
+                {[
+                  { name: 'Conical Flask', svg: (
+                    <svg viewBox="0 0 40 40" className="w-8 h-8">
+                      <path d="M 16 5 L 24 5 L 24 15 L 35 35 L 5 35 L 16 15 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  )},
+                  { name: 'Volumetric Flask', svg: (
+                    <svg viewBox="0 0 40 40" className="w-8 h-8">
+                      <path d="M 18 5 L 22 5 L 22 20 Q 35 25 35 35 L 5 35 Q 5 25 18 20 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <line x1="18" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="1" />
+                    </svg>
+                  )},
+                  { name: 'Gas Syringe', svg: (
+                    <svg viewBox="0 0 40 40" className="w-10 h-8">
+                      <rect x="5" y="15" width="25" height="10" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <rect x="20" y="17" width="18" height="6" fill="currentColor" opacity="0.3" />
+                      <line x1="38" y1="15" x2="38" y2="25" stroke="currentColor" strokeWidth="1.5" />
+                      <line x1="2" y1="20" x2="5" y2="20" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  )},
+                  { name: 'Beaker', svg: (
+                    <svg viewBox="0 0 40 40" className="w-8 h-8">
+                      <path d="M 10 5 L 10 35 L 30 35 L 30 5 M 30 5 L 33 3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  )},
+                  { name: 'Test Tube', svg: (
+                    <svg viewBox="0 0 40 40" className="w-8 h-8">
+                      <path d="M 17 5 L 17 30 Q 17 35 20 35 Q 23 35 23 30 L 23 5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  )},
+                  { name: 'Boiling Tube', svg: (
+                    <svg viewBox="0 0 40 40" className="w-8 h-8">
+                      <path d="M 15 5 L 15 30 Q 15 35 20 35 Q 25 35 25 30 L 25 5" fill="none" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )},
+                  { name: 'Evaporating Dish', svg: (
+                    <svg viewBox="0 0 40 40" className="w-10 h-8">
+                      <path d="M 5 15 Q 20 35 35 15 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  )},
+                  { name: 'Filter Funnel', svg: (
+                    <svg viewBox="0 0 40 40" className="w-8 h-8">
+                      <path d="M 5 5 L 35 5 L 22 20 L 22 35 L 18 35 L 18 20 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  )},
+                ].map((misc, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gray-50 transition-colors group">
+                    <div className="text-gray-400 group-hover:text-sky-500 transition-colors">
+                      {misc.svg}
+                    </div>
+                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter text-center leading-none">{misc.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-indigo-100 p-3 rounded-2xl text-indigo-600">
+                <Droplets size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Acids and Bases</h2>
+            </div>
+
+            <div className="space-y-10">
+              {/* pH Scale */}
+              <div className="relative pt-8 pb-4">
+                <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                  <span>Strong Acid</span>
+                  <span>Neutral</span>
+                  <span>Strong Base</span>
+                </div>
+                <div className="h-12 w-full flex rounded-2xl overflow-hidden border-2 border-gray-100 p-1 bg-gray-50">
+                  <div 
+                    onMouseEnter={() => setHoveredPhRegion('acid')}
+                    onMouseLeave={() => setHoveredPhRegion(null)}
+                    className="flex-[6] h-full flex gap-1"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map(ph => (
+                      <div 
+                        key={ph} 
+                        className={`flex-1 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${ph <= 3 ? 'bg-rose-500 text-white shadow-[0_2px_0_0_#be123c]' : 'bg-rose-300 text-rose-800 shadow-[0_2px_0_0_#fb7185]'}`}
+                      >
+                        {ph}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex-1 h-full px-1">
+                    <div className="w-full h-full bg-emerald-400 rounded-lg flex items-center justify-center text-[10px] font-black text-white shadow-[0_2px_0_0_#047857]">7</div>
+                  </div>
+                  <div 
+                    onMouseEnter={() => setHoveredPhRegion('base')}
+                    onMouseLeave={() => setHoveredPhRegion(null)}
+                    className="flex-[7] h-full flex gap-1"
+                  >
+                    {[8, 9, 10, 11, 12, 13, 14].map(ph => (
+                      <div 
+                        key={ph} 
+                        className={`flex-1 rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${ph >= 11 ? 'bg-indigo-600 text-white shadow-[0_2px_0_0_#3730a3]' : 'bg-indigo-400 text-indigo-900 shadow-[0_2px_0_0_#818cf8]'}`}
+                      >
+                        {ph}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-between mt-2 px-2">
+                  <div className="text-[9px] font-bold text-rose-500 uppercase">Red (Acidic)</div>
+                  <div className="text-[9px] font-bold text-emerald-500 uppercase">Green</div>
+                  <div className="text-[9px] font-bold text-indigo-500 uppercase">Blue (Basic)</div>
+                </div>
+              </div>
+
+              {/* Indicators */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  { 
+                    name: 'Methyl Orange', 
+                    acid: 'bg-rose-500', 
+                    base: 'bg-amber-400', 
+                    acidText: 'Red', 
+                    baseText: 'Yellow' 
+                  },
+                  { 
+                    name: 'Thymolphthalein', 
+                    acid: 'bg-gray-100 border-2 border-dashed border-gray-300', 
+                    base: 'bg-indigo-600', 
+                    acidText: 'Colorless', 
+                    baseText: 'Blue' 
+                  },
+                  { 
+                    name: 'Litmus', 
+                    acid: 'bg-rose-500', 
+                    base: 'bg-indigo-600', 
+                    acidText: 'Red', 
+                    baseText: 'Blue' 
+                  },
+                  { 
+                    name: 'Universal Indicator', 
+                    acid: 'bg-gradient-to-r from-rose-600 via-orange-500 to-yellow-400', 
+                    base: 'bg-gradient-to-r from-blue-400 via-indigo-600 to-purple-800', 
+                    acidText: 'Warmer', 
+                    baseText: 'Cooler' 
+                  }
+                ].map((indicator) => (
+                  <div key={indicator.name} className="bg-gray-50 border-2 border-gray-100 rounded-3xl p-5 flex flex-col gap-4">
+                    <h4 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">{indicator.name}</h4>
+                    <div className="flex gap-2 h-8">
+                      <div className={`flex-1 rounded-xl transition-all duration-500 ${hoveredPhRegion === 'acid' ? indicator.acid : 'bg-gray-200 grayscale opacity-30'}`}>
+                        {hoveredPhRegion === 'acid' && (
+                          <div className="w-full h-full flex items-center justify-center text-[8px] font-black text-white uppercase tracking-tighter">
+                            {indicator.acidText}
+                          </div>
+                        )}
+                      </div>
+                      <div className={`flex-1 rounded-xl transition-all duration-500 ${hoveredPhRegion === 'base' ? indicator.base : 'bg-gray-200 grayscale opacity-30'}`}>
+                        {hoveredPhRegion === 'base' && (
+                          <div className="w-full h-full flex items-center justify-center text-[8px] font-black text-white uppercase tracking-tighter">
+                            {indicator.baseText}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Definitions */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t-2 border-gray-100">
+                <div className="space-y-3">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Acids</span>
+                    <span className="text-xs font-bold text-rose-600">H⁺ Donor</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Bases</span>
+                    <span className="text-xs font-bold text-indigo-600">H⁺ Acceptor</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Strong</span>
+                    <span className="text-xs font-bold text-gray-800">Complete Dissociation</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Weak</span>
+                    <span className="text-xs font-bold text-gray-800">Partial Dissociation</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-rose-100 p-3 rounded-2xl text-rose-600">
+                  <Atom size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Ionic Equation</h2>
+              </div>
+              <button 
+                onClick={() => {
+                  setIonicExampleIndex((prev) => (prev + 1) % 2);
+                  setIonicStep(0);
+                }}
+                className="text-xs font-black text-rose-500 uppercase tracking-widest hover:text-rose-600 transition-colors flex items-center gap-2"
+              >
+                <RefreshCw size={14} />
+                Switch Example
+              </button>
+            </div>
+
+            <div className="bg-gray-50 rounded-[2rem] p-8 border-2 border-gray-100 relative overflow-hidden min-h-[350px] flex flex-col items-center justify-center">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 absolute top-6">
+                {ionicStep === 0 ? "Molecular Equation" : ionicStep === 1 ? "Complete Ionic Equation" : "Net Ionic Equation"}
+              </p>
+
+              <div className="flex flex-col items-center gap-6 w-full">
+                {/* Line 1: Reactants */}
+                <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-2 text-xl font-black">
+                  {ionicStep === 0 ? (
+                    <AnimatePresence mode="wait">
+                      <motion.div key="r0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                        {ionicExampleIndex === 0 ? (
+                          <>
+                            <span className="text-blue-500">AgNO<sub>3</sub>(aq)</span>
+                            <span className="text-gray-300">+</span>
+                            <span className="text-blue-500">KCl(aq)</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-blue-500">Ba(NO<sub>3</sub>)<sub>2</sub>(aq)</span>
+                            <span className="text-gray-300">+</span>
+                            <span className="text-blue-500">K<sub>2</sub>SO<sub>4</sub>(aq)</span>
+                          </>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      <motion.div key="r1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap justify-center items-center gap-x-2 gap-y-2">
+                        {ionicExampleIndex === 0 ? (
+                          <>
+                            <span className="text-blue-500">Ag<sup>+</sup></span>
+                            <span className="text-gray-300">+</span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">NO<sub>3</sub><sup>-</sup></motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-gray-300 overflow-hidden whitespace-nowrap">+</motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">K<sup>+</sup></motion.span>
+                            <span className="text-gray-300">+</span>
+                            <span className="text-blue-500">Cl<sup>-</sup></span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-blue-500">Ba<sup>2+</sup></span>
+                            <span className="text-gray-300">+</span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">2NO<sub>3</sub><sup>-</sup></motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-gray-300 overflow-hidden whitespace-nowrap">+</motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">2K<sup>+</sup></motion.span>
+                            <span className="text-gray-300">+</span>
+                            <span className="text-blue-500">SO<sub>4</sub><sup>2-</sup></span>
+                          </>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
+                </div>
+
+                {/* Line 2: Arrow */}
+                <motion.div 
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="text-orange-400 text-4xl"
+                >
+                  ↓
+                </motion.div>
+
+                {/* Line 3: Products */}
+                <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-2 text-xl font-black">
+                  {ionicStep === 0 ? (
+                    <AnimatePresence mode="wait">
+                      <motion.div key="p0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                        {ionicExampleIndex === 0 ? (
+                          <>
+                            <span className="text-rose-500">AgCl(s)</span>
+                            <span className="text-gray-300">+</span>
+                            <span className="text-blue-500">KNO<sub>3</sub>(aq)</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-rose-500">BaSO<sub>4</sub>(s)</span>
+                            <span className="text-gray-300">+</span>
+                            <span className="text-blue-500">2KNO<sub>3</sub>(aq)</span>
+                          </>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      <motion.div key="p1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap justify-center items-center gap-x-2 gap-y-2">
+                        {ionicExampleIndex === 0 ? (
+                          <>
+                            <span className="text-rose-500">AgCl(s)</span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-gray-300 overflow-hidden whitespace-nowrap">+</motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">K<sup>+</sup></motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-gray-300 overflow-hidden whitespace-nowrap">+</motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">NO<sub>3</sub><sup>-</sup></motion.span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-rose-500">BaSO<sub>4</sub>(s)</span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-gray-300 overflow-hidden whitespace-nowrap">+</motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">2K<sup>+</sup></motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-gray-300 overflow-hidden whitespace-nowrap">+</motion.span>
+                            <motion.span animate={{ opacity: ionicStep === 2 ? 0 : 1, width: ionicStep === 2 ? 0 : 'auto' }} className="text-blue-500 overflow-hidden whitespace-nowrap">2NO<sub>3</sub><sup>-</sup></motion.span>
+                          </>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
+                </div>
+              </div>
+
+              {ionicStep === 1 && (
+                <motion.p 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 text-xs font-bold text-rose-500 uppercase tracking-widest text-center"
+                >
+                  Notice: {ionicExampleIndex === 0 ? "AgCl(s)" : "BaSO₄(s)"} is NOT split because it is insoluble!
+                </motion.p>
+              )}
+            </div>
+
+            <div className="mt-8 flex flex-col items-center gap-4">
+              <div className="flex items-center gap-3 bg-blue-50 px-6 py-3 rounded-2xl border-2 border-blue-100 text-blue-700 font-bold text-sm">
+                <div className="shrink-0"><Info size={18} /></div>
+                {ionicStep === 0 && "Step 1: Write the full molecular equation."}
+                {ionicStep === 1 && "Step 2: Split soluble (aq) compounds into ions."}
+                {ionicStep === 2 && "Step 3: Remove spectator ions to get the net equation."}
+              </div>
+
+              <div className="flex gap-4">
+                {ionicStep < 2 ? (
+                  <button
+                    onClick={() => setIonicStep(ionicStep + 1)}
+                    className="bg-rose-500 text-white font-black px-8 py-4 rounded-2xl shadow-[0_4px_0_0_#be123c] active:shadow-none active:translate-y-1 transition-all uppercase tracking-widest text-sm"
+                  >
+                    {ionicStep === 0 ? "Split into Ions" : "Remove Spectators"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIonicStep(0)}
+                    className="bg-gray-800 text-white font-black px-8 py-4 rounded-2xl shadow-[0_4px_0_0_#111827] active:shadow-none active:translate-y-1 transition-all uppercase tracking-widest text-sm flex items-center gap-2"
+                  >
+                    <RefreshCw size={18} />
+                    Reset
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
               <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
                 <Calculator size={24} />
               </div>
@@ -709,9 +1441,9 @@ export default function App() {
               <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight mb-2">App QR Code</h3>
               <p className="text-gray-500 font-medium mb-6">Scan to open the revision app on your mobile device!</p>
               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-100 flex justify-center mb-6">
-                <QRCodeSVG value="https://y8rev.vercel.app" size={200} level="H" includeMargin={true} />
+                <QRCodeSVG value="https://y11-rev.vercel.app/" size={200} level="H" includeMargin={true} />
               </div>
-              <p className="text-emerald-500 font-black text-sm uppercase tracking-widest">y8rev.vercel.app</p>
+              <p className="text-emerald-500 font-black text-sm uppercase tracking-widest">y11-rev.vercel.app</p>
             </motion.div>
           </div>
         )}
@@ -1632,7 +2364,7 @@ export default function App() {
     };
 
   const PlaygroundView = () => {
-    const [subMode, setSubMode] = useState<'select' | 'equations' | 'chemicals' | 'graphs' | 'simulations' | 'solubility' | 'mole'>('select');
+    const [subMode, setSubMode] = useState<'select' | 'equations' | 'chemicals' | 'graphs' | 'simulations' | 'solubility' | 'mole' | 'ionic'>('select');
     const [selectedEquation, setSelectedEquation] = useState<any>(null);
     const [equationSubject, setEquationSubject] = useState<string>('');
     const [isPracticeMode, setIsPracticeMode] = useState(false);
@@ -2403,6 +3135,283 @@ export default function App() {
               State: {state === 'gas' ? 'Gas (g)' : 'Liquid (l)'}
             </span>
           </div>
+        </div>
+      );
+    };
+
+    const NetIonicPlayground = () => {
+      const [exampleIndex, setExampleIndex] = useState(0);
+      const [step, setStep] = useState(0); // 0: Molecular, 1: Complete Ionic, 2: Net Ionic
+      const [removedIons, setRemovedIons] = useState<string[]>([]);
+      const [practiceMode, setPracticeMode] = useState(false);
+      const [practiceQuestion, setPracticeQuestion] = useState<any>(null);
+      const [practiceAnswer, setPracticeAnswer] = useState<string[]>([]);
+      const [practiceFeedback, setPracticeFeedback] = useState<string | null>(null);
+
+      const examples = [
+        {
+          name: "Silver Nitrate + Potassium Chloride",
+          molecular: {
+            reactants: ["AgNO3(aq)", "KCl(aq)"],
+            products: ["AgCl(s)", "KNO3(aq)"]
+          },
+          ionic: {
+            reactants: ["Ag+(aq)", "NO3-(aq)", "K+(aq)", "Cl-(aq)"],
+            products: ["AgCl(s)", "K+(aq)", "NO3-(aq)"]
+          },
+          spectators: ["K+(aq)", "NO3-(aq)"],
+          net: {
+            reactants: ["Ag+(aq)", "Cl-(aq)"],
+            products: ["AgCl(s)"]
+          }
+        },
+        {
+          name: "Barium Nitrate + Sodium Sulfate",
+          molecular: {
+            reactants: ["Ba(NO3)2(aq)", "Na2SO4(aq)"],
+            products: ["BaSO4(s)", "2NaNO3(aq)"]
+          },
+          ionic: {
+            reactants: ["Ba2+(aq)", "2NO3-(aq)", "2Na+(aq)", "SO42-(aq)"],
+            products: ["BaSO4(s)", "2Na+(aq)", "2NO3-(aq)"]
+          },
+          spectators: ["2Na+(aq)", "2NO3-(aq)"],
+          net: {
+            reactants: ["Ba2+(aq)", "SO42-(aq)"],
+            products: ["BaSO4(s)"]
+          }
+        },
+        {
+          name: "Lead(II) Nitrate + Potassium Iodide",
+          molecular: {
+            reactants: ["Pb(NO3)2(aq)", "2KI(aq)"],
+            products: ["PbI2(s)", "2KNO3(aq)"]
+          },
+          ionic: {
+            reactants: ["Pb2+(aq)", "2NO3-(aq)", "2K+(aq)", "2I-(aq)"],
+            products: ["PbI2(s)", "2K+(aq)", "2NO3-(aq)"]
+          },
+          spectators: ["2K+(aq)", "2NO3-(aq)"],
+          net: {
+            reactants: ["Pb2+(aq)", "2I-(aq)"],
+            products: ["PbI2(s)"]
+          }
+        },
+        {
+          name: "Calcium Chloride + Sodium Carbonate",
+          molecular: {
+            reactants: ["CaCl2(aq)", "Na2CO3(aq)"],
+            products: ["CaCO3(s)", "2NaCl(aq)"]
+          },
+          ionic: {
+            reactants: ["Ca2+(aq)", "2Cl-(aq)", "2Na+(aq)", "CO32-(aq)"],
+            products: ["CaCO3(s)", "2Na+(aq)", "2Cl-(aq)"]
+          },
+          spectators: ["2Na+(aq)", "2Cl-(aq)"],
+          net: {
+            reactants: ["Ca2+(aq)", "CO32-(aq)"],
+            products: ["CaCO3(s)"]
+          }
+        }
+      ];
+
+      const current = examples[exampleIndex];
+
+      const generatePractice = () => {
+        const ex = examples[Math.floor(Math.random() * examples.length)];
+        setPracticeQuestion(ex);
+        setPracticeAnswer([]);
+        setPracticeFeedback(null);
+        setPracticeMode(true);
+      };
+
+      const togglePracticeIon = (ion: string) => {
+        if (practiceAnswer.includes(ion)) {
+          setPracticeAnswer(practiceAnswer.filter(i => i !== ion));
+        } else {
+          setPracticeAnswer([...practiceAnswer, ion]);
+        }
+      };
+
+      const checkPractice = () => {
+        const correctSpectators = practiceQuestion.spectators;
+        const isCorrect = practiceAnswer.length === correctSpectators.length && 
+                          practiceAnswer.every(ion => correctSpectators.includes(ion));
+        
+        setPracticeFeedback(isCorrect ? 'correct' : 'incorrect');
+      };
+
+      const renderEquation = (parts: string[], isRed?: (p: string) => boolean) => (
+        <div className="flex flex-wrap items-center justify-center gap-2 text-lg font-bold">
+          {parts.map((p, i) => (
+            <React.Fragment key={i}>
+              <span 
+                className={isRed?.(p) ? 'text-rose-500' : 'text-blue-600'}
+                dangerouslySetInnerHTML={{ __html: p.replace(/(\d+[\+\-])/g, '<sup>$1</sup>').replace(/([\+\-])/g, '<sup>$1</sup>').replace(/(\d+)/g, '<sub>$1</sub>') }}
+              />
+              {i < parts.length - 1 && <span className="text-gray-400">+</span>}
+            </React.Fragment>
+          ))}
+        </div>
+      );
+
+      return (
+        <div className="space-y-8">
+          {!practiceMode ? (
+            <div className="bg-white border-2 border-gray-200 p-8 rounded-3xl shadow-[0_6px_0_0_#e5e7eb]">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Net Ionic Explorer</h3>
+                  <p className="text-blue-500 font-black text-xl uppercase tracking-widest text-xs">Step-by-Step Dissociation</p>
+                </div>
+                <div className="bg-blue-100 text-blue-600 p-4 rounded-2xl">
+                  <Droplets size={32} />
+                </div>
+              </div>
+
+              <div className="space-y-12">
+                {/* Example Selector */}
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {examples.map((ex, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setExampleIndex(i); setStep(0); setRemovedIons([]); }}
+                      className={`px-4 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all border-2 ${exampleIndex === i ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300'}`}
+                    >
+                      {ex.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Equation Display */}
+                <div className="bg-gray-50 p-8 rounded-3xl border-2 border-gray-100 space-y-6 text-center">
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                      {step === 0 ? "Molecular Equation" : step === 1 ? "Complete Ionic Equation" : "Net Ionic Equation"}
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {/* Reactants */}
+                      {step === 0 ? renderEquation(current.molecular.reactants) : 
+                       step === 1 ? renderEquation(current.ionic.reactants) : 
+                       renderEquation(current.net.reactants)}
+
+                      <div className="flex justify-center">
+                        <ArrowDown className="text-gray-300" size={32} />
+                      </div>
+
+                      {/* Products */}
+                      {step === 0 ? renderEquation(current.molecular.products, p => p.includes('(s)')) : 
+                       step === 1 ? renderEquation(current.ionic.products, p => p.includes('(s)')) : 
+                       renderEquation(current.net.products, p => p.includes('(s)'))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex flex-col items-center gap-6">
+                  <div className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100 w-full text-center">
+                    <p className="text-blue-700 font-bold text-sm">
+                      {step === 0 && "Soluble salts (aq) dissociate into ions in water. Insoluble salts (s) stay together."}
+                      {step === 1 && "Spectator ions appear on both sides of the equation. They don't participate in the reaction."}
+                      {step === 2 && "The net ionic equation shows only the species that change state."}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-4 w-full">
+                    {step < 2 && (
+                      <button
+                        onClick={() => setStep(step + 1)}
+                        className="flex-1 bg-blue-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#1d4ed8] hover:shadow-none hover:translate-y-1 transition-all"
+                      >
+                        {step === 0 ? "Dissociate Ions" : "Remove Spectators"}
+                      </button>
+                    )}
+                    {step > 0 && (
+                      <button
+                        onClick={() => setStep(0)}
+                        className="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={generatePractice}
+                    className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#059669] hover:shadow-none hover:translate-y-1 transition-all flex items-center justify-center gap-3"
+                  >
+                    <Zap size={24} />
+                    Practice Mode
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white border-2 border-gray-200 p-8 rounded-3xl shadow-[0_6px_0_0_#e5e7eb]">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Practice Challenge</h3>
+                  <p className="text-emerald-500 font-black text-xl uppercase tracking-widest text-xs">Identify Spectator Ions</p>
+                </div>
+                <button onClick={() => setPracticeMode(false)} className="text-gray-400 hover:text-gray-600">
+                  <XCircle size={32} />
+                </button>
+              </div>
+
+              <div className="space-y-8">
+                <div className="bg-gray-50 p-6 rounded-2xl border-2 border-gray-100 text-center">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Complete Ionic Equation</p>
+                  <div className="space-y-4">
+                    {renderEquation(practiceQuestion.ionic.reactants)}
+                    <div className="flex justify-center"><ArrowDown className="text-gray-300" size={24} /></div>
+                    {renderEquation(practiceQuestion.ionic.products, p => p.includes('(s)'))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-center font-black text-gray-700 uppercase text-sm">Select the Spectator Ions:</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {Array.from(new Set([...practiceQuestion.ionic.reactants, ...practiceQuestion.ionic.products])).map((ion, i) => (
+                      <button
+                        key={i}
+                        onClick={() => togglePracticeIon(ion)}
+                        disabled={practiceFeedback !== null}
+                        className={`px-4 py-3 rounded-xl font-bold border-2 transition-all ${practiceAnswer.includes(ion) ? 'bg-emerald-500 text-white border-emerald-600 shadow-[0_4px_0_0_#059669]' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'}`}
+                        dangerouslySetInnerHTML={{ __html: ion.replace(/(\d+)/g, '<sub>$1</sub>').replace(/(\^[\+\-\d]+)/g, (m) => `<sup>${m.slice(1)}</sup>`) }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {practiceFeedback && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-2xl text-center font-bold ${practiceFeedback === 'correct' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
+                  >
+                    {practiceFeedback === 'correct' ? "Correct! Spectator ions appear unchanged on both sides." : "Not quite. Spectator ions are the ones that are exactly the same on both sides."}
+                  </motion.div>
+                )}
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={checkPractice}
+                    disabled={practiceAnswer.length === 0 || practiceFeedback !== null}
+                    className="flex-1 bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_4px_0_0_#059669] disabled:opacity-50 transition-all"
+                  >
+                    Check Answer
+                  </button>
+                  <button
+                    onClick={generatePractice}
+                    className="flex-1 bg-white border-2 border-gray-200 text-gray-500 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
+                  >
+                    Next Challenge
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     };
@@ -4192,6 +5201,42 @@ export default function App() {
                 <p className="text-gray-500 font-medium">Practice stoichiometry and mole calculations.</p>
               </div>
             </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSubMode('ionic')}
+              className="w-full bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-blue-400 hover:shadow-[0_6px_0_0_#60a5fa] transition-all group"
+            >
+              <div className="bg-blue-100 text-blue-600 p-5 rounded-2xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                <Droplets size={40} />
+              </div>
+              <div className="text-left">
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Net Ionic Playground</h2>
+                <p className="text-gray-500 font-medium">Master the art of simplifying ionic equations.</p>
+              </div>
+            </motion.button>
+          </main>
+        </div>
+      );
+    }
+
+    if (subMode === 'ionic') {
+      return (
+        <div className="min-h-screen bg-gray-50 pb-24">
+          <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
+            <div className="max-w-2xl mx-auto flex items-center gap-4">
+              <button onClick={() => setSubMode('select')} className="text-gray-400 hover:text-gray-600">
+                <ChevronLeft size={32} />
+              </button>
+              <div>
+                <h1 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none">Net Ionic Playground</h1>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Equation Simplification</p>
+              </div>
+            </div>
+          </header>
+          <main className="max-w-2xl mx-auto p-6">
+            <NetIonicPlayground />
           </main>
         </div>
       );
@@ -4726,12 +5771,12 @@ export default function App() {
               <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight">Repository</h3>
             </div>
             <a 
-              href="https://github.com/Tomanlam/Y8-Revision" 
+              href="https://github.com/Tomanlam/Y11-rev" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center justify-between bg-gray-900 text-white p-4 rounded-2xl hover:bg-gray-800 transition-colors group"
             >
-              <span className="font-bold text-sm truncate mr-2">github.com/Tomanlam/Y8-Revision</span>
+              <span className="font-bold text-sm truncate mr-2">github.com/Tomanlam/Y11-rev</span>
               <ExternalLink size={18} className="flex-shrink-0 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </a>
           </motion.div>
