@@ -39,7 +39,8 @@ import {
   Droplets,
   Flame,
   TrendingUp,
-  QrCode
+  QrCode,
+  Layers
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { units, Unit, Question, Vocab } from './data';
@@ -333,15 +334,221 @@ export default function App() {
     );
   };
 
+  const Bubble = ({ i, rate }: { i: number, rate: number, key?: string | number }) => {
+    return (
+      <motion.div
+        initial={{ y: 150, x: 20 + (i * 15) % 80, opacity: 0, scale: 0.5 }}
+        animate={{ 
+          y: [150, 40], 
+          x: 20 + (i * 15) % 80 + Math.sin(i) * 10,
+          opacity: [0, 1, 0],
+          scale: [0.5, 1, 0.8]
+        }}
+        transition={{ 
+          duration: 2 / rate, 
+          repeat: Infinity, 
+          delay: i * (0.5 / rate),
+          ease: "linear"
+        }}
+        className="absolute w-2 h-2 bg-white/60 border border-white/80 rounded-full z-0"
+      />
+    );
+  };
+
+  const AcidMolecule = ({ i, active, type }: { i: number, active: boolean, type: 'strong' | 'weak', key?: string | number }) => {
+    const delay = i * 0.3;
+    // For strong acid, all dissociate. For weak, only the first one dissociates.
+    const isDissociated = type === 'strong' || (type === 'weak' && i === 0);
+    
+    return (
+      <motion.div
+        initial={{ y: -40, x: 20 + i * 25 }}
+        animate={active ? {
+          y: 100 + (i % 3) * 15,
+          x: 20 + i * 25 + (Math.random() - 0.5) * 10,
+        } : { y: -40, x: 20 + i * 25 }}
+        transition={{ duration: 1, delay, ease: "easeOut" }}
+        className="absolute"
+      >
+        <div className="relative">
+          {/* Conjugate Base (Big White Dot) */}
+          <motion.div 
+            animate={active && isDissociated ? { x: -8, y: -4, rotate: 45 } : { x: 0, y: 0, rotate: 0 }}
+            transition={{ delay: delay + 0.8, type: "spring", stiffness: 100 }}
+            className="w-5 h-5 bg-white border-2 border-gray-300 rounded-full shadow-sm flex items-center justify-center z-10"
+          >
+            <span className="text-[5px] font-black text-gray-400 leading-none">
+              {type === 'strong' ? 'Cl⁻' : 'CH₃COO⁻'}
+            </span>
+          </motion.div>
+
+          {/* H+ Ion (Small Red Dot) */}
+          <motion.div 
+            animate={active && isDissociated ? { x: 12, y: 8 } : { x: 8, y: -4 }}
+            transition={{ delay: delay + 0.8, type: "spring", stiffness: 100 }}
+            className="absolute w-2.5 h-2.5 bg-rose-500 rounded-full shadow-sm flex items-center justify-center z-20 border border-rose-600"
+          >
+             <span className="text-[4px] font-black text-white leading-none">H⁺</span>
+          </motion.div>
+          
+          {/* Connection Line (only visible when not dissociated) */}
+          {!active && (
+            <div className="absolute top-1 left-3 w-0.5 h-3 bg-gray-300 -rotate-45 -z-10" />
+          )}
+        </div>
+      </motion.div>
+    );
+  };
+
+  const SimpleSubstanceDrawing = () => (
+    <div className="relative w-full h-24 bg-sky-50/30 rounded-xl overflow-hidden border border-sky-100">
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ 
+            x: [Math.random() * 80, Math.random() * 80],
+            y: [Math.random() * 60, Math.random() * 60],
+            rotate: [0, 360]
+          }}
+          transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, repeatType: "reverse" }}
+          className="absolute flex"
+          style={{ left: `${10 + i * 15}%`, top: `${20 + (i % 3) * 20}%` }}
+        >
+          <div className="w-2.5 h-2.5 bg-sky-400/40 rounded-full" />
+          <div className="w-2.5 h-2.5 bg-sky-400/40 rounded-full -ml-1" />
+        </motion.div>
+      ))}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-black text-sky-400 uppercase tracking-widest">Loosely Packed</div>
+    </div>
+  );
+
+  const GiantSubstanceDrawing = () => (
+    <div className="relative w-full h-24 bg-rose-50/30 rounded-xl overflow-hidden border border-rose-100">
+      <div className="grid grid-cols-6 grid-rows-3 gap-1 p-2 h-full">
+        {[...Array(18)].map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05 }}
+            className="w-full h-full bg-rose-400/40 rounded-sm"
+          />
+        ))}
+      </div>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-black text-rose-400 uppercase tracking-widest">Tightly Packed</div>
+    </div>
+  );
+
+  const SimpleAtomDrawing = () => (
+    <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ 
+            x: [Math.random() * 10, -Math.random() * 10, Math.random() * 10],
+            y: [Math.random() * 10, -Math.random() * 10, Math.random() * 10]
+          }}
+          transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, ease: "linear" }}
+          className="absolute w-3 h-3 bg-blue-400 rounded-full shadow-sm"
+          style={{ left: `${20 + (i % 3) * 30}%`, top: `${20 + Math.floor(i / 3) * 40}%` }}
+        />
+      ))}
+    </div>
+  );
+
+  const SimpleMoleculeDrawing = () => (
+    <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ 
+            x: [Math.random() * 15, -Math.random() * 15],
+            y: [Math.random() * 15, -Math.random() * 15],
+            rotate: [0, 360]
+          }}
+          transition={{ duration: 4 + Math.random() * 2, repeat: Infinity, ease: "linear" }}
+          className="absolute flex items-center"
+          style={{ left: `${15 + (i % 3) * 30}%`, top: `${20 + Math.floor(i / 3) * 40}%` }}
+        >
+          <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-sm border border-emerald-500" />
+          <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-sm border border-emerald-500 -ml-1" />
+        </motion.div>
+      ))}
+    </div>
+  );
+
+  const GiantIonicDrawing = () => (
+    <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 p-2">
+      <div className="grid grid-cols-5 grid-rows-3 gap-1 h-full">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{ x: [0, 1, -1, 0], y: [0, -1, 1, 0] }}
+            transition={{ duration: 0.2, repeat: Infinity }}
+            className={`w-full h-full rounded-full shadow-sm flex items-center justify-center text-[6px] font-bold text-white
+              ${i % 2 === 0 ? 'bg-blue-500' : 'bg-rose-500'}
+            `}
+          >
+            {i % 2 === 0 ? '+' : '-'}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const GiantMetallicDrawing = () => (
+    <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 p-2">
+      <div className="grid grid-cols-5 grid-rows-3 gap-2 h-full relative z-10">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="w-full h-full bg-blue-500 rounded-full shadow-sm flex items-center justify-center text-[6px] font-bold text-white">
+            +
+          </div>
+        ))}
+      </div>
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={`e-${i}`}
+          animate={{ 
+            x: [Math.random() * 100, Math.random() * 100],
+            y: [Math.random() * 80, Math.random() * 80]
+          }}
+          transition={{ duration: 1 + Math.random(), repeat: Infinity, ease: "linear" }}
+          className="absolute w-1 h-1 bg-rose-500 rounded-full z-0"
+        />
+      ))}
+    </div>
+  );
+
+  const GiantCovalentDrawing = () => (
+    <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center">
+      <svg viewBox="0 0 100 100" className="w-16 h-16 text-gray-400">
+        {/* Simple tetrahedral representation */}
+        <circle cx="50" cy="50" r="4" fill="currentColor" />
+        <line x1="50" y1="50" x2="50" y2="20" stroke="currentColor" strokeWidth="2" />
+        <line x1="50" y1="50" x2="20" y2="70" stroke="currentColor" strokeWidth="2" />
+        <line x1="50" y1="50" x2="80" y2="70" stroke="currentColor" strokeWidth="2" />
+        <line x1="50" y1="50" x2="65" y2="40" stroke="currentColor" strokeWidth="2" />
+        <circle cx="50" cy="20" r="4" fill="currentColor" />
+        <circle cx="20" cy="70" r="4" fill="currentColor" />
+        <circle cx="80" cy="70" r="4" fill="currentColor" />
+        <circle cx="65" cy="40" r="4" fill="currentColor" />
+      </svg>
+    </div>
+  );
+
   const QuickFacts = () => {
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
     const [hoveredMoleEq, setHoveredMoleEq] = useState<number | null>(null);
     const [hoveredPhRegion, setHoveredPhRegion] = useState<'acid' | 'base' | null>(null);
+    const [acidStrengthActive, setAcidStrengthActive] = useState(false);
+    const [mgActiveStrong, setMgActiveStrong] = useState(false);
+    const [mgActiveWeak, setMgActiveWeak] = useState(false);
     const [hoveredReactivity, setHoveredReactivity] = useState<number | null>(null);
     const [selectedSaltPrep, setSelectedSaltPrep] = useState<string | null>(null);
     const [ionicStep, setIonicStep] = useState(0); // 0: Molecular, 1: Complete Ionic, 2: Net Ionic
     const [ionicExampleIndex, setIonicExampleIndex] = useState(0);
+    const [selectedBondingSubstance, setSelectedBondingSubstance] = useState<string | null>(null);
+    const [selectedSolubilitySalt, setSelectedSolubilitySalt] = useState<string | null>(null);
 
     const saltPrepData = {
       'NaCl': { soluble: true, group1: true, method: 'Titration' },
@@ -610,7 +817,9 @@ export default function App() {
                 onMouseEnter={() => setHoveredRule("All Potassium (K⁺), Sodium (Na⁺), Ammonium (NH₄⁺), and Nitrate (NO₃⁻) salts are soluble.")}
                 onMouseLeave={() => setHoveredRule(null)}
                 whileHover={{ scale: 1.05 }}
-                className="relative z-20 w-48 h-48 bg-emerald-500 rounded-full flex flex-col items-center justify-center p-6 text-center border-4 border-white shadow-xl cursor-help transition-colors hover:bg-emerald-600"
+                className={`relative z-20 w-48 h-48 rounded-full flex flex-col items-center justify-center p-6 text-center border-4 border-white shadow-xl cursor-help transition-all
+                  ${(selectedSolubilitySalt === 'NaCl' || selectedSolubilitySalt === 'NH43PO4') ? 'bg-emerald-600 scale-105 ring-4 ring-emerald-200' : 'bg-emerald-500 hover:bg-emerald-600'}
+                `}
               >
                 <div className="text-white font-black text-lg flex flex-wrap justify-center gap-x-2 leading-none">
                   <span>K<sup>+</sup></span>
@@ -626,7 +835,9 @@ export default function App() {
                 onMouseEnter={() => setHoveredRule("Most sulfates are soluble except Barium Sulfate (BaSO₄) and Lead(II) Sulfate (PbSO₄).")}
                 onMouseLeave={() => setHoveredRule(null)}
                 whileHover={{ scale: 1.1, zIndex: 30 }}
-                className="absolute top-4 z-10 w-36 h-36 bg-sky-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-sky-200 cursor-help transition-all hover:bg-sky-200"
+                className={`absolute top-4 z-10 w-36 h-36 rounded-full flex items-center justify-center p-4 text-center border-2 cursor-help transition-all
+                  ${(selectedSolubilitySalt === 'MgSO4' || selectedSolubilitySalt === 'BaSO4') ? 'bg-sky-300 border-sky-400 scale-110 z-30' : 'bg-sky-100 border-sky-200 hover:bg-sky-200'}
+                `}
               >
                 <p className="text-sky-800 font-black text-xl">SO<sub>4</sub><sup>2-</sup></p>
               </motion.div>
@@ -636,7 +847,9 @@ export default function App() {
                 onMouseEnter={() => setHoveredRule("Most halides (Cl⁻, Br⁻, I⁻) are soluble except Silver Halides (AgX) and Lead(II) Halides (PbX₂).")}
                 onMouseLeave={() => setHoveredRule(null)}
                 whileHover={{ scale: 1.1, zIndex: 30 }}
-                className="absolute bottom-4 z-10 w-36 h-36 bg-sky-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-sky-200 cursor-help transition-all hover:bg-sky-200"
+                className={`absolute bottom-4 z-10 w-36 h-36 rounded-full flex items-center justify-center p-4 text-center border-2 cursor-help transition-all
+                  ${(selectedSolubilitySalt === 'NaCl' || selectedSolubilitySalt === 'AgBr' || selectedSolubilitySalt === 'PbI2') ? 'bg-sky-300 border-sky-400 scale-110 z-30' : 'bg-sky-100 border-sky-200 hover:bg-sky-200'}
+                `}
               >
                 <p className="text-sky-800 font-black text-xl">X<sup>-</sup></p>
               </motion.div>
@@ -646,7 +859,9 @@ export default function App() {
                 onMouseEnter={() => setHoveredRule("Most hydroxides are insoluble except those of K⁺, Na⁺, and NH₄⁺.")}
                 onMouseLeave={() => setHoveredRule(null)}
                 whileHover={{ scale: 1.1, zIndex: 30 }}
-                className="absolute left-[-10px] z-10 w-36 h-36 bg-rose-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-rose-200 cursor-help transition-all hover:bg-rose-200"
+                className={`absolute left-[-10px] z-10 w-36 h-36 rounded-full flex items-center justify-center p-4 text-center border-2 cursor-help transition-all
+                  ${selectedSolubilitySalt === 'Fe(OH)2' ? 'bg-rose-300 border-rose-400 scale-110 z-30' : 'bg-rose-100 border-rose-200 hover:bg-rose-200'}
+                `}
               >
                 <p className="text-rose-800 font-black text-xl">OH<sup>-</sup></p>
               </motion.div>
@@ -656,13 +871,40 @@ export default function App() {
                 onMouseEnter={() => setHoveredRule("Most carbonates are insoluble except those of K⁺, Na⁺, and NH₄⁺.")}
                 onMouseLeave={() => setHoveredRule(null)}
                 whileHover={{ scale: 1.1, zIndex: 30 }}
-                className="absolute right-[-10px] z-10 w-36 h-36 bg-rose-100 rounded-full flex items-center justify-center p-4 text-center border-2 border-rose-200 cursor-help transition-all hover:bg-rose-200"
+                className={`absolute right-[-10px] z-10 w-36 h-36 rounded-full flex items-center justify-center p-4 text-center border-2 cursor-help transition-all
+                  ${selectedSolubilitySalt === 'CuCO3' ? 'bg-rose-300 border-rose-400 scale-110 z-30' : 'bg-rose-100 border-rose-200 hover:bg-rose-200'}
+                `}
               >
                 <p className="text-rose-800 font-black text-xl">CO<sub>3</sub><sup>2-</sup></p>
               </motion.div>
             </div>
             
-            <p className="text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-4">Hover over ions to see full rules</p>
+            <div className="mt-8 grid grid-cols-4 gap-2">
+              {[
+                { id: 'NaCl', label: 'NaCl' },
+                { id: 'MgSO4', label: 'MgSO₄' },
+                { id: 'CuCO3', label: 'CuCO₃' },
+                { id: 'Fe(OH)2', label: 'Fe(OH)₂' },
+                { id: 'AgBr', label: 'AgBr' },
+                { id: 'BaSO4', label: 'BaSO₄' },
+                { id: 'PbI2', label: 'PbI₂' },
+                { id: 'NH43PO4', label: '(NH₄)₃PO₄' }
+              ].map((salt) => (
+                <button
+                  key={salt.id}
+                  onClick={() => setSelectedSolubilitySalt(selectedSolubilitySalt === salt.id ? null : salt.id)}
+                  className={`px-2 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all active:scale-95
+                    ${selectedSolubilitySalt === salt.id 
+                      ? 'bg-emerald-500 text-white shadow-[0_3px_0_0_#059669]' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
+                  `}
+                >
+                  {salt.label}
+                </button>
+              ))}
+            </div>
+            
+            <p className="text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-6">Click a salt to see its rule</p>
           </motion.div>
 
           <motion.div
@@ -1140,6 +1382,381 @@ export default function App() {
               </div>
             </div>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.48 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-rose-100 p-3 rounded-2xl text-rose-600">
+                  <Flame size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Strength of Acids</h2>
+              </div>
+              <button 
+                onClick={() => {
+                  setAcidStrengthActive(!acidStrengthActive);
+                  if (acidStrengthActive) {
+                    setMgActiveStrong(false);
+                    setMgActiveWeak(false);
+                  }
+                }}
+                className={`px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2
+                  ${acidStrengthActive ? 'bg-rose-500 text-white shadow-[0_4px_0_0_#be123c]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
+                `}
+              >
+                {acidStrengthActive ? <RefreshCw size={14} /> : <Zap size={14} />}
+                {acidStrengthActive ? 'Reset' : 'Dissociate'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Strong Acid (HCl) */}
+              <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 flex flex-col items-center">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Strong Acid (HCl)</p>
+                
+                <div className="relative w-full h-48 border-x-2 border-b-2 border-gray-300 rounded-b-2xl bg-sky-50/30 mb-6 overflow-hidden">
+                  {/* Water level */}
+                  <div className="absolute bottom-0 w-full h-32 bg-sky-100/40 border-t-2 border-sky-200" />
+                  
+                  {/* Bubbles for Mg reaction */}
+                  {mgActiveStrong && [...Array(15)].map((_, i) => (
+                    <Bubble key={`bubble-strong-${i}`} i={i} rate={2} />
+                  ))}
+
+                  {/* Mg Ribbon */}
+                  {mgActiveStrong && (
+                    <motion.div 
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 120, opacity: 1 }}
+                      className="absolute left-1/2 -translate-x-1/2 w-8 h-2 bg-gray-400 rounded-sm shadow-sm z-10 border border-gray-500"
+                    />
+                  )}
+                  
+                  {/* Molecules */}
+                  {[...Array(5)].map((_, i) => (
+                    <AcidMolecule key={`hcl-${i}`} i={i} active={acidStrengthActive} type="strong" />
+                  ))}
+                </div>
+
+                <div className="w-full space-y-6">
+                  <div className="text-center">
+                    <p className="text-lg font-black text-gray-800">
+                      HCl → <span className="text-rose-500">H<sup>+</sup></span> + Cl<sup>-</sup>
+                    </p>
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">Complete Dissociation</p>
+                  </div>
+
+                  {/* Species Distribution Chart */}
+                  <div className="bg-white/50 rounded-2xl p-4 border border-gray-100">
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-3 text-center">Species in Solution</p>
+                    <div className="flex gap-4 h-16 items-end justify-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: acidStrengthActive ? 0 : 40 }}
+                          className="w-6 bg-gray-200 rounded-t-lg"
+                        />
+                        <span className="text-[7px] font-bold text-gray-400">HCl</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: acidStrengthActive ? 40 : 0 }}
+                          className="w-6 bg-rose-400 rounded-t-lg"
+                        />
+                        <span className="text-[7px] font-bold text-rose-400">H⁺ + Cl⁻</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Properties Section */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-200 pb-1">Physical</p>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-bold text-gray-500 uppercase">pH</span>
+                          <span className="text-[10px] font-black text-rose-600">Lower (1-2)</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-bold text-gray-500 uppercase">Conductivity</span>
+                          <span className="text-[10px] font-black text-emerald-600">Higher</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-200 pb-1">Chemical</p>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-bold text-gray-500 uppercase">Reactivity (Mg)</span>
+                          <span className="text-[10px] font-black text-rose-600">Higher Rate</span>
+                        </div>
+                        <button 
+                          disabled={!acidStrengthActive}
+                          onClick={() => setMgActiveStrong(!mgActiveStrong)}
+                          className={`mt-1 px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all
+                            ${!acidStrengthActive ? 'bg-gray-100 text-gray-300' : 
+                              mgActiveStrong ? 'bg-rose-500 text-white' : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'}
+                          `}
+                        >
+                          {mgActiveStrong ? 'Remove Mg' : 'Add Mg'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Weak Acid (CH3COOH) */}
+              <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 flex flex-col items-center">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Weak Acid (CH₃COOH)</p>
+                
+                <div className="relative w-full h-48 border-x-2 border-b-2 border-gray-300 rounded-b-2xl bg-sky-50/30 mb-6 overflow-hidden">
+                  {/* Water level */}
+                  <div className="absolute bottom-0 w-full h-32 bg-sky-100/40 border-t-2 border-sky-200" />
+                  
+                  {/* Bubbles for Mg reaction */}
+                  {mgActiveWeak && [...Array(5)].map((_, i) => (
+                    <Bubble key={`bubble-weak-${i}`} i={i} rate={0.5} />
+                  ))}
+
+                  {/* Mg Ribbon */}
+                  {mgActiveWeak && (
+                    <motion.div 
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 120, opacity: 1 }}
+                      className="absolute left-1/2 -translate-x-1/2 w-8 h-2 bg-gray-400 rounded-sm shadow-sm z-10 border border-gray-500"
+                    />
+                  )}
+                  
+                  {/* Molecules */}
+                  {[...Array(5)].map((_, i) => (
+                    <AcidMolecule key={`ch3cooh-${i}`} i={i} active={acidStrengthActive} type="weak" />
+                  ))}
+                </div>
+
+                <div className="w-full space-y-6">
+                  <div className="text-center">
+                    <p className="text-lg font-black text-gray-800">
+                      CH<sub>3</sub>COOH ⇌ CH<sub>3</sub>COO<sup>-</sup> + <span className="text-rose-500">H<sup>+</sup></span>
+                    </p>
+                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mt-1">Partial Dissociation</p>
+                  </div>
+
+                  {/* Species Distribution Chart */}
+                  <div className="bg-white/50 rounded-2xl p-4 border border-gray-100">
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-3 text-center">Species in Solution</p>
+                    <div className="flex gap-4 h-16 items-end justify-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: acidStrengthActive ? 32 : 40 }}
+                          className="w-6 bg-gray-200 rounded-t-lg"
+                        />
+                        <span className="text-[7px] font-bold text-gray-400">HA</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: acidStrengthActive ? 8 : 0 }}
+                          className="w-6 bg-rose-400 rounded-t-lg"
+                        />
+                        <span className="text-[7px] font-bold text-rose-400">H⁺ + A⁻</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Properties Section */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-200 pb-1">Physical</p>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-bold text-gray-500 uppercase">pH</span>
+                          <span className="text-[10px] font-black text-amber-600">Higher (3-5)</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-bold text-gray-500 uppercase">Conductivity</span>
+                          <span className="text-[10px] font-black text-amber-600">Lower</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-200 pb-1">Chemical</p>
+                      <div className="space-y-2">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-bold text-gray-500 uppercase">Reactivity (Mg)</span>
+                          <span className="text-[10px] font-black text-amber-600">Lower Rate</span>
+                        </div>
+                        <button 
+                          disabled={!acidStrengthActive}
+                          onClick={() => setMgActiveWeak(!mgActiveWeak)}
+                          className={`mt-1 px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all
+                            ${!acidStrengthActive ? 'bg-gray-100 text-gray-300' : 
+                              mgActiveWeak ? 'bg-rose-500 text-white' : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'}
+                          `}
+                        >
+                          {mgActiveWeak ? 'Remove Mg' : 'Add Mg'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.49 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-indigo-100 p-3 rounded-2xl text-indigo-600">
+                  <Layers size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Bonding & Structure</h2>
+              </div>
+              <div className="flex gap-2">
+                {[
+                  { id: 'Na', label: 'Na' },
+                  { id: 'He', label: 'He' },
+                  { id: 'NaCl', label: 'NaCl' },
+                  { id: 'Diamond', label: 'Diamond' },
+                  { id: 'H2O', label: 'H₂O' }
+                ].map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setSelectedBondingSubstance(selectedBondingSubstance === sub.id ? null : sub.id)}
+                    className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95
+                      ${selectedBondingSubstance === sub.id 
+                        ? 'bg-indigo-500 text-white shadow-[0_4px_0_0_#4338ca]' 
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
+                    `}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+              {/* Simple Substances */}
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-500 ${
+                ['He', 'H2O'].includes(selectedBondingSubstance || '') 
+                ? 'bg-sky-50 border-sky-200 shadow-lg scale-[1.01]' 
+                : 'bg-gray-50 border-gray-100 opacity-60'
+              }`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight">Simple Substances</h3>
+                    <p className="text-[10px] font-bold text-sky-500 uppercase tracking-widest">Low M.P. & B.P.</p>
+                  </div>
+                </div>
+                
+                <SimpleSubstanceDrawing />
+
+                <div className="grid grid-cols-2 gap-6 mt-6">
+                  {/* Simple Atoms */}
+                  <div className={`p-6 rounded-2xl border-2 transition-all ${
+                    selectedBondingSubstance === 'He' 
+                    ? 'bg-white border-sky-400 shadow-md' 
+                    : 'bg-gray-100/50 border-transparent'
+                  }`}>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Simple Atoms</p>
+                    <SimpleAtomDrawing />
+                    <div className="mt-4 space-y-1">
+                      <p className="text-[9px] font-black text-gray-800 uppercase">Gas (Low M.P.)</p>
+                      <p className="text-[9px] font-black text-rose-500 uppercase">Insulator in all states</p>
+                    </div>
+                  </div>
+
+                  {/* Simple Molecules */}
+                  <div className={`p-6 rounded-2xl border-2 transition-all ${
+                    selectedBondingSubstance === 'H2O' 
+                    ? 'bg-white border-sky-400 shadow-md' 
+                    : 'bg-gray-100/50 border-transparent'
+                  }`}>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Simple Molecules</p>
+                    <SimpleMoleculeDrawing />
+                    <div className="mt-4 space-y-1">
+                      <p className="text-[9px] font-black text-gray-800 uppercase">Mostly Gas/Liquid</p>
+                      <p className="text-[9px] font-black text-rose-500 uppercase">Insulator in all states</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Giant Substances */}
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-500 ${
+                ['Na', 'NaCl', 'Diamond'].includes(selectedBondingSubstance || '') 
+                ? 'bg-rose-50 border-rose-200 shadow-lg scale-[1.01]' 
+                : 'bg-gray-50 border-gray-100 opacity-60'
+              }`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight">Giant Substances</h3>
+                    <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">High M.P. & B.P.</p>
+                  </div>
+                </div>
+
+                <GiantSubstanceDrawing />
+
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  {/* Giant Ionic */}
+                  <div className={`p-4 rounded-2xl border-2 transition-all ${
+                    selectedBondingSubstance === 'NaCl' 
+                    ? 'bg-white border-rose-400 shadow-md' 
+                    : 'bg-gray-100/50 border-transparent'
+                  }`}>
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-3">Giant Ionic</p>
+                    <GiantIonicDrawing />
+                    <div className="mt-3 space-y-1">
+                      <p className="text-[8px] font-black text-gray-800 uppercase">Solid (Brittle)</p>
+                      <p className="text-[8px] font-black text-amber-600 uppercase">Cond. (Molten/Aq)</p>
+                    </div>
+                  </div>
+
+                  {/* Giant Metallic */}
+                  <div className={`p-4 rounded-2xl border-2 transition-all ${
+                    selectedBondingSubstance === 'Na' 
+                    ? 'bg-white border-rose-400 shadow-md' 
+                    : 'bg-gray-100/50 border-transparent'
+                  }`}>
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-3">Giant Metallic</p>
+                    <GiantMetallicDrawing />
+                    <div className="mt-3 space-y-1">
+                      <p className="text-[8px] font-black text-gray-800 uppercase">Malleable/Ductile</p>
+                      <p className="text-[8px] font-black text-emerald-600 uppercase">Conductor (All)</p>
+                    </div>
+                  </div>
+
+                  {/* Giant Covalent */}
+                  <div className={`p-4 rounded-2xl border-2 transition-all ${
+                    selectedBondingSubstance === 'Diamond' 
+                    ? 'bg-white border-rose-400 shadow-md' 
+                    : 'bg-gray-100/50 border-transparent'
+                  }`}>
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-3">Giant Covalent</p>
+                    <GiantCovalentDrawing />
+                    <div className="mt-3 space-y-1">
+                      <p className="text-[8px] font-black text-gray-800 uppercase">Hard (Diamond)</p>
+                      <p className="text-[8px] font-black text-rose-500 uppercase">Insulator (D)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
 
 
           <motion.div
