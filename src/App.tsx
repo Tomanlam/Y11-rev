@@ -535,6 +535,104 @@ export default function App() {
     </div>
   );
 
+  const ElectrolyteDrawing = ({ state }: { state: 'solid' | 'molten' | 'aqueous' }) => {
+    const ions = [...Array(12)].map((_, i) => ({
+      id: i,
+      type: i % 2 === 0 ? 'cation' : 'anion',
+      label: i % 2 === 0 ? 'M⁺' : 'X⁻',
+      color: i % 2 === 0 ? 'bg-blue-500' : 'bg-rose-500'
+    }));
+
+    const waterIons = [...Array(8)].map((_, i) => ({
+      id: `w-${i}`,
+      type: i % 2 === 0 ? 'h' : 'oh',
+      label: i % 2 === 0 ? 'H⁺' : 'OH⁻',
+      color: i % 2 === 0 ? 'bg-sky-400' : 'bg-indigo-400'
+    }));
+
+    return (
+      <div className="relative w-full h-40 bg-gray-50 rounded-2xl overflow-hidden border-2 border-gray-100 p-4">
+        {state === 'aqueous' && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 bg-blue-100/30 z-0"
+          />
+        )}
+        
+        <div className="relative z-10 w-full h-full flex items-center justify-center">
+          {state === 'solid' ? (
+            <div className="grid grid-cols-4 grid-rows-3 gap-1">
+              {ions.map((ion) => (
+                <motion.div
+                  key={ion.id}
+                  animate={{ x: [0, 1, -1, 0], y: [0, -1, 1, 0] }}
+                  transition={{ duration: 0.2, repeat: Infinity }}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-sm ${ion.color}`}
+                >
+                  {ion.type === 'cation' ? '+' : '-'}
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="relative w-full h-full">
+              {ions.map((ion, i) => (
+                <motion.div
+                  key={ion.id}
+                  initial={{ 
+                    x: 100 + (i % 4) * 35, 
+                    y: 20 + Math.floor(i / 4) * 35 
+                  }}
+                  animate={{ 
+                    x: [Math.random() * 250, Math.random() * 250], 
+                    y: [Math.random() * 100, Math.random() * 100],
+                    rotate: [0, 360]
+                  }}
+                  transition={{ 
+                    duration: state === 'molten' ? 2 : 4, 
+                    repeat: Infinity, 
+                    repeatType: "reverse",
+                    ease: "easeInOut"
+                  }}
+                  className={`absolute w-8 h-8 rounded-full flex flex-col items-center justify-center shadow-md ${ion.color}`}
+                >
+                  <span className="text-[10px] font-black text-white leading-none">{ion.label}</span>
+                </motion.div>
+              ))}
+              
+              {state === 'aqueous' && waterIons.map((ion, i) => (
+                <motion.div
+                  key={ion.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ 
+                    opacity: 1,
+                    x: [Math.random() * 250, Math.random() * 250], 
+                    y: [Math.random() * 100, Math.random() * 100],
+                  }}
+                  transition={{ 
+                    duration: 5, 
+                    repeat: Infinity, 
+                    repeatType: "reverse",
+                    ease: "linear"
+                  }}
+                  className={`absolute w-6 h-6 rounded-full flex items-center justify-center shadow-sm border border-white/50 ${ion.color}`}
+                >
+                  <span className="text-[7px] font-black text-white leading-none">{ion.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="absolute bottom-2 right-4 flex flex-col items-end">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            {state === 'solid' ? 'Lattice' : state === 'molten' ? 'Molten' : 'Aqueous'}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const QuickFacts = () => {
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
@@ -549,6 +647,7 @@ export default function App() {
     const [ionicExampleIndex, setIonicExampleIndex] = useState(0);
     const [selectedBondingSubstance, setSelectedBondingSubstance] = useState<string | null>(null);
     const [selectedSolubilitySalt, setSelectedSolubilitySalt] = useState<string | null>(null);
+    const [electrolyteState, setElectrolyteState] = useState<'solid' | 'molten' | 'aqueous'>('solid');
 
     const saltPrepData = {
       'NaCl': { soluble: true, group1: true, method: 'Titration' },
@@ -893,7 +992,7 @@ export default function App() {
                 <button
                   key={salt.id}
                   onClick={() => setSelectedSolubilitySalt(selectedSolubilitySalt === salt.id ? null : salt.id)}
-                  className={`px-2 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all active:scale-95
+                  className={`px-2 py-1.5 rounded-lg text-[9px] font-black tracking-tighter transition-all active:scale-95
                     ${selectedSolubilitySalt === salt.id 
                       ? 'bg-emerald-500 text-white shadow-[0_3px_0_0_#059669]' 
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
@@ -1636,7 +1735,7 @@ export default function App() {
                   <button
                     key={sub.id}
                     onClick={() => setSelectedBondingSubstance(selectedBondingSubstance === sub.id ? null : sub.id)}
-                    className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95
+                    className={`px-4 py-2 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95
                       ${selectedBondingSubstance === sub.id 
                         ? 'bg-indigo-500 text-white shadow-[0_4px_0_0_#4338ca]' 
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
@@ -1758,6 +1857,93 @@ export default function App() {
           </motion.div>
 
 
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
+                  <Zap size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Electrolytes</h2>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setElectrolyteState('solid')}
+                  className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                    ${electrolyteState === 'solid' ? 'bg-gray-800 text-white shadow-[0_4px_0_0_#000000]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
+                  `}
+                >
+                  Solid
+                </button>
+                <button
+                  onClick={() => setElectrolyteState('molten')}
+                  className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                    ${electrolyteState === 'molten' ? 'bg-orange-500 text-white shadow-[0_4px_0_0_#c2410c]' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}
+                  `}
+                >
+                  Molten
+                </button>
+                <button
+                  onClick={() => setElectrolyteState('aqueous')}
+                  className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                    ${electrolyteState === 'aqueous' ? 'bg-blue-500 text-white shadow-[0_4px_0_0_#1d4ed8]' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}
+                  `}
+                >
+                  Aqueous
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <ElectrolyteDrawing state={electrolyteState} />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`p-4 rounded-2xl border-2 transition-all ${electrolyteState === 'solid' ? 'bg-rose-50 border-rose-200' : 'bg-gray-50 border-gray-100 opacity-40'}`}>
+                  <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Solid State</p>
+                  <p className="text-xs font-bold text-gray-700">Ions are in fixed positions. They cannot move.</p>
+                  <p className="text-[10px] font-black text-rose-500 uppercase mt-2">Insulator</p>
+                </div>
+                <div className={`p-4 rounded-2xl border-2 transition-all ${electrolyteState !== 'solid' ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100 opacity-40'}`}>
+                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">{electrolyteState === 'molten' ? 'Molten' : 'Aqueous'} State</p>
+                  <p className="text-xs font-bold text-gray-700">Ions are mobile and free to move to electrodes.</p>
+                  <p className="text-[10px] font-black text-emerald-500 uppercase mt-2">Conductor</p>
+                </div>
+              </div>
+
+              {electrolyteState !== 'solid' && (
+                <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Ions Present</p>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full" />
+                      <span className="text-xs font-bold text-gray-700">M⁺ (Cation)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-rose-500 rounded-full" />
+                      <span className="text-xs font-bold text-gray-700">X⁻ (Anion)</span>
+                    </div>
+                    {electrolyteState === 'aqueous' && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-sky-400 rounded-full" />
+                          <span className="text-xs font-bold text-gray-700">H⁺ (from water)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-indigo-400 rounded-full" />
+                          <span className="text-xs font-bold text-gray-700">OH⁻ (from water)</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
