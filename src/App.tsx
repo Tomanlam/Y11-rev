@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -2207,7 +2207,10 @@ export default function App() {
 
       <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-black text-emerald-500 tracking-tight">IGCSE CIE Chemistry</h1>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-black text-emerald-500 tracking-tight leading-none">IGCSE CIE Chemistry</h1>
+            <p className="text-[10px] font-bold text-black uppercase tracking-widest mt-1">An App by Toman</p>
+          </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsQRModalOpen(true)}
@@ -2965,6 +2968,493 @@ export default function App() {
   );
 };
 
+    const VirtualCalculator = ({ onClose }: { onClose: () => void }) => {
+      const [display, setDisplay] = useState('0');
+      const [prevValue, setPrevValue] = useState<number | null>(null);
+      const [operator, setOperator] = useState<string | null>(null);
+      const [waitingForOperand, setWaitingForOperand] = useState(false);
+
+      const inputDigit = (digit: string) => {
+        if (waitingForOperand) {
+          setDisplay(digit);
+          setWaitingForOperand(false);
+        } else {
+          setDisplay(display === '0' ? digit : display + digit);
+        }
+      };
+
+      const inputDot = () => {
+        if (waitingForOperand) {
+          setDisplay('0.');
+          setWaitingForOperand(false);
+        } else if (display.indexOf('.') === -1) {
+          setDisplay(display + '.');
+        }
+      };
+
+      const clearDisplay = () => {
+        setDisplay('0');
+        setPrevValue(null);
+        setOperator(null);
+        setWaitingForOperand(false);
+      };
+
+      const performOperation = (nextOperator: string) => {
+        const inputValue = parseFloat(display);
+
+        if (prevValue === null) {
+          setPrevValue(inputValue);
+        } else if (operator) {
+          const currentValue = prevValue || 0;
+          let newValue = currentValue;
+
+          if (operator === '+') newValue = currentValue + inputValue;
+          else if (operator === '-') newValue = currentValue - inputValue;
+          else if (operator === '×') newValue = currentValue * inputValue;
+          else if (operator === '÷') newValue = currentValue / inputValue;
+
+          setPrevValue(newValue);
+          setDisplay(String(newValue));
+        }
+
+        setWaitingForOperand(true);
+        setOperator(nextOperator);
+      };
+
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="fixed bottom-24 right-6 z-50 bg-gray-800 p-4 rounded-3xl shadow-2xl border-4 border-gray-700 w-64"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-gray-400 font-black text-[10px] uppercase tracking-widest">Calculator</span>
+            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+              <XCircle size={20} />
+            </button>
+          </div>
+          <div className="bg-gray-900 p-4 rounded-2xl mb-4 text-right overflow-hidden">
+            <div className="text-gray-500 text-[10px] font-mono h-4">
+              {prevValue !== null && `${prevValue} ${operator || ''}`}
+            </div>
+            <div className="text-white text-2xl font-mono truncate">{display}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {['C', '÷', '×', '-'].map(btn => (
+              <button
+                key={btn}
+                onClick={() => btn === 'C' ? clearDisplay() : performOperation(btn)}
+                className="p-3 rounded-xl bg-gray-700 text-orange-400 font-black hover:bg-gray-600 transition-colors"
+              >
+                {btn}
+              </button>
+            ))}
+            {[7, 8, 9, '+'].map(btn => (
+              <button
+                key={btn}
+                onClick={() => typeof btn === 'number' ? inputDigit(String(btn)) : performOperation(btn)}
+                className={`p-3 rounded-xl font-black transition-colors ${typeof btn === 'number' ? 'bg-gray-600 text-white hover:bg-gray-500' : 'bg-gray-700 text-orange-400 hover:bg-gray-600'}`}
+              >
+                {btn}
+              </button>
+            ))}
+            {[4, 5, 6, '='].map(btn => (
+              <button
+                key={btn}
+                onClick={() => typeof btn === 'number' ? inputDigit(String(btn)) : performOperation(btn === '=' ? '=' : btn)}
+                className={`p-3 rounded-xl font-black transition-colors ${typeof btn === 'number' ? 'bg-gray-600 text-white hover:bg-gray-500' : 'bg-gray-700 text-emerald-400 hover:bg-gray-600'}`}
+              >
+                {btn}
+              </button>
+            ))}
+            {[1, 2, 3, '0'].map(btn => (
+              <button
+                key={btn}
+                onClick={() => inputDigit(String(btn))}
+                className="p-3 rounded-xl bg-gray-600 text-white font-black hover:bg-gray-500 transition-colors"
+              >
+                {btn}
+              </button>
+            ))}
+            <button
+              onClick={inputDot}
+              className="p-3 rounded-xl bg-gray-600 text-white font-black hover:bg-gray-500 transition-colors col-span-4"
+            >
+              .
+            </button>
+          </div>
+        </motion.div>
+      );
+    };
+
+    const MoleCalculationPlayground = () => {
+      const [calcMode, setCalcMode] = useState<'mass' | 'conc' | 'gas' | 'dimensional'>('mass');
+      const [showCalculator, setShowCalculator] = useState(false);
+      const [examples, setExamples] = useState<any[]>([]);
+      const [userAnswers, setUserAnswers] = useState<string[]>(['', '', '', '', '', '']);
+      const [isChecked, setIsChecked] = useState(false);
+
+      const formatFormula = (formula: string) => {
+        return formula.split(/(\d+)/).map((part, i) => 
+          /\d+/.test(part) ? <sub key={i} className="text-[0.7em]">{part}</sub> : part
+        );
+      };
+
+      const generateExamples = useCallback(() => {
+        const massList = [
+          { formula: "H2", mr: 2, mass: 4 },
+          { formula: "CH4", mr: 16, mass: 3.2 },
+          { formula: "CO2", mr: 44, mass: 11 },
+          { formula: "NH3", mr: 17, mass: 3.4 },
+          { formula: "O2", mr: 32, mass: 1.6 },
+          { formula: "N2", mr: 28, mass: 14 },
+          { formula: "NaCl", mr: 58.5, mass: 11.7 },
+          { formula: "MgO", mr: 40, mass: 8 },
+          { formula: "H2O", mr: 18, mass: 3.6 },
+          { formula: "HCl", mr: 36.5, mass: 7.3 }
+        ];
+
+        const concList = [
+          { name: "NaOH", conc: 0.1, vol: 250 },
+          { name: "HCl", conc: 2.0, vol: 50 },
+          { name: "H2SO4", conc: 0.5, vol: 100 },
+          { name: "NaCl", conc: 1.0, vol: 500 },
+          { name: "KOH", conc: 0.2, vol: 25 },
+          { name: "HNO3", conc: 1.5, vol: 200 }
+        ];
+
+        const gasList = [
+          { name: "H2", vol: 2400 },
+          { name: "O2", vol: 12000 },
+          { name: "CO2", vol: 480 },
+          { name: "N2", vol: 6000 },
+          { name: "CH4", vol: 120 },
+          { name: "NH3", vol: 240 }
+        ];
+
+        let selected: any[] = [];
+        if (calcMode === 'mass') {
+          selected = [...massList].sort(() => Math.random() - 0.5).slice(0, 6).map(ex => ({ ...ex, answer: (ex.mass / ex.mr).toFixed(2) }));
+        } else if (calcMode === 'conc') {
+          selected = [...concList].sort(() => Math.random() - 0.5).slice(0, 6).map(ex => ({ ...ex, answer: (ex.conc * (ex.vol / 1000)).toFixed(3) }));
+        } else if (calcMode === 'gas') {
+          selected = [...gasList].sort(() => Math.random() - 0.5).slice(0, 6).map(ex => ({ ...ex, answer: (ex.vol / 24000).toFixed(3) }));
+        } else if (calcMode === 'dimensional') {
+          selected = [
+            { type: 'mass', formula: "H2", mr: 2, mass: 4, answer: "2.00" },
+            { type: 'conc', name: "NaOH", conc: 0.1, vol: 500, answer: "0.050" },
+            { type: 'gas', name: "H2", vol: 480, answer: "0.020" },
+            ...massList.sort(() => Math.random() - 0.5).slice(0, 3).map(ex => ({ ...ex, type: 'mass', answer: (ex.mass / ex.mr).toFixed(2) }))
+          ];
+        }
+
+        setExamples(selected);
+        setUserAnswers(['', '', '', '', '', '']);
+        setIsChecked(false);
+      }, [calcMode]);
+
+      useEffect(() => {
+        generateExamples();
+      }, [generateExamples]);
+
+      const checkAnswers = () => {
+        setIsChecked(true);
+      };
+
+      const DimensionalAnalysisView = () => {
+        const [activeExampleIndex, setActiveExampleIndex] = useState(0);
+        const [placedBlocks, setPlacedBlocks] = useState<any[]>([]);
+        const [isDimChecked, setIsDimChecked] = useState(false);
+        const [isDimCorrect, setIsDimCorrect] = useState(false);
+        
+        const ex = examples[activeExampleIndex];
+        if (!ex) return null;
+
+        const blocks = [
+          { id: 'b1', top: `1 mol`, bottom: `${ex.mr || '2'} g`, val: 1 / (ex.mr || 2) },
+          { id: 'b2', top: `1 dm³`, bottom: `1000 cm³`, val: 1 / 1000 },
+          { id: 'b3', top: `1 mol`, bottom: `24 dm³`, val: 1 / 24 },
+          { id: 'b4', top: `${ex.conc || '0.1'} mol`, bottom: `1 dm³`, val: ex.conc || 0.1 }
+        ];
+
+        const [availableBlocks, setAvailableBlocks] = useState(blocks.map(b => ({ ...b, inverted: false })));
+
+        useEffect(() => {
+          setAvailableBlocks(blocks.map(b => ({ ...b, inverted: false })));
+        }, [activeExampleIndex, examples]);
+
+        const toggleInvert = (id: string, isPlaced: boolean, index?: number) => {
+          if (isPlaced && index !== undefined) {
+            const newPlaced = [...placedBlocks];
+            newPlaced[index] = { ...newPlaced[index], inverted: !newPlaced[index].inverted };
+            setPlacedBlocks(newPlaced);
+          } else {
+            setAvailableBlocks(availableBlocks.map(b => b.id === id ? { ...b, inverted: !b.inverted } : b));
+          }
+          setIsDimChecked(false);
+        };
+
+        const addBlock = (block: any) => {
+          setPlacedBlocks([...placedBlocks, { ...block, instanceId: Math.random() }]);
+          setIsDimChecked(false);
+        };
+
+        const removeBlock = (index: number) => {
+          const newPlaced = [...placedBlocks];
+          newPlaced.splice(index, 1);
+          setPlacedBlocks(newPlaced);
+          setIsDimChecked(false);
+        };
+
+        const checkDimResult = () => {
+          let currentVal = ex.mass || ex.vol || 0;
+          placedBlocks.forEach(b => {
+            const multiplier = b.inverted ? (1 / b.val) : b.val;
+            currentVal *= multiplier;
+          });
+          
+          const diff = Math.abs(currentVal - parseFloat(ex.answer));
+          setIsDimCorrect(diff < 0.005);
+          setIsDimChecked(true);
+        };
+
+        return (
+          <div className="space-y-6">
+            <div className="bg-purple-50 border-2 border-purple-100 p-6 rounded-3xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-purple-600 font-black text-lg uppercase tracking-tight">Dimensional Analysis</h3>
+                {isDimChecked && (
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={`px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-2
+                      ${isDimCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}
+                    `}
+                  >
+                    {isDimCorrect ? <><CheckCircle2 size={14} /> Correct!</> : <><XCircle size={14} /> Incorrect</>}
+                  </motion.div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-4 flex-wrap min-h-[100px]">
+                <div className="bg-white px-4 py-3 rounded-xl border-2 border-purple-200 font-black text-gray-700 shadow-sm">
+                  {ex.mass ? `${ex.mass} g ` : ex.vol ? `${ex.vol} cm³ ` : ''}
+                  {formatFormula(ex.formula || ex.name)}
+                </div>
+                
+                {placedBlocks.map((b, i) => (
+                  <React.Fragment key={b.instanceId}>
+                    <span className="text-2xl font-black text-purple-400">×</span>
+                    <div className="relative group">
+                      <motion.div 
+                        layoutId={b.instanceId}
+                        onClick={() => toggleInvert(b.id, true, i)}
+                        className="bg-purple-600 p-3 rounded-xl flex flex-col items-center justify-center min-w-[100px] cursor-pointer border-2 border-purple-400 shadow-lg hover:bg-purple-500 transition-colors"
+                      >
+                        <div className="text-white text-[10px] font-black uppercase tracking-widest">{b.inverted ? b.bottom : b.top}</div>
+                        <div className="w-full h-[2px] bg-white my-1" />
+                        <div className="text-white text-[10px] font-black uppercase tracking-widest">{b.inverted ? b.top : b.bottom}</div>
+                      </motion.div>
+                      <button 
+                        onClick={() => removeBlock(i)}
+                        className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <XCircle size={14} />
+                      </button>
+                    </div>
+                  </React.Fragment>
+                ))}
+                
+                {placedBlocks.length > 0 && (
+                  <>
+                    <span className="text-2xl font-black text-purple-400">=</span>
+                    <div className="bg-emerald-100 px-4 py-3 rounded-xl border-2 border-emerald-200 font-black text-emerald-700 shadow-sm">
+                      {isDimChecked && isDimCorrect ? `${ex.answer} mol` : '? mol'}
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest mt-6 bg-white/50 p-2 rounded-lg inline-block">
+                💡 Click blocks to invert. Click available blocks below to add them.
+              </p>
+            </div>
+
+            <div className="bg-gray-100 p-6 rounded-3xl">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Available Blocks</p>
+              <div className="flex gap-4 flex-wrap">
+                {availableBlocks.map((b) => (
+                  <motion.div 
+                    key={b.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => addBlock(b)}
+                    className="bg-purple-600 p-3 rounded-xl flex flex-col items-center justify-center min-w-[110px] cursor-pointer border-2 border-purple-400 shadow-lg hover:bg-purple-500 transition-colors"
+                  >
+                    <div className="text-white text-[10px] font-black uppercase tracking-widest">{b.inverted ? b.bottom : b.top}</div>
+                    <div className="w-full h-[2px] bg-white my-1" />
+                    <div className="text-white text-[10px] font-black uppercase tracking-widest">{b.inverted ? b.top : b.bottom}</div>
+                  </motion.div>
+                ))}
+                <button
+                  onClick={() => setAvailableBlocks(availableBlocks.map(b => ({ ...b, inverted: !b.inverted })))}
+                  className="p-3 rounded-xl border-2 border-dashed border-purple-300 text-purple-400 font-black text-[10px] uppercase tracking-widest hover:bg-purple-50 transition-colors"
+                >
+                  Invert All
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+              <div className="flex gap-2 bg-white p-2 rounded-2xl border-2 border-gray-100">
+                {examples.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setActiveExampleIndex(i); setPlacedBlocks([]); setIsDimChecked(false); }}
+                    className={`w-10 h-10 rounded-xl font-black text-sm transition-all
+                      ${activeExampleIndex === i ? 'bg-purple-500 text-white shadow-md scale-110' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}
+                    `}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={checkDimResult}
+                  disabled={placedBlocks.length === 0}
+                  className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_6px_0_0_#059669] active:scale-95 transition-all
+                    ${placedBlocks.length === 0 ? 'bg-gray-200 text-gray-400 shadow-none cursor-not-allowed' : 'bg-emerald-500 text-white'}
+                  `}
+                >
+                  Check Setup
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="space-y-8">
+          <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl overflow-x-auto">
+            {(['mass', 'conc', 'gas', 'dimensional'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setCalcMode(m)}
+                className={`flex-1 min-w-[100px] py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                  ${calcMode === m ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'}
+                `}
+              >
+                {m === 'mass' ? 'From Mass' : m === 'conc' ? 'From Conc/Vol' : m === 'gas' ? 'From Gas Vol' : 'Dimensional Analysis'}
+              </button>
+            ))}
+          </div>
+
+          {calcMode !== 'dimensional' ? (
+            <>
+              <div className="bg-orange-50 border-2 border-orange-100 p-6 rounded-3xl">
+                <h3 className="text-orange-600 font-black text-lg uppercase tracking-tight mb-2">Formula</h3>
+                <div className="text-2xl font-black text-gray-800 font-mono">
+                  {calcMode === 'mass' && <span>n = m / M<sub>r</sub></span>}
+                  {calcMode === 'conc' && <span>n = C × V</span>}
+                  {calcMode === 'gas' && <span>n = V / 24</span>}
+                </div>
+                <p className="text-gray-500 text-xs font-bold mt-2 uppercase tracking-widest">
+                  {calcMode === 'mass' && "m = mass (g), Mr = molar mass (g/mol)"}
+                  {calcMode === 'conc' && "C = conc (mol/dm³), V = volume (dm³)"}
+                  {calcMode === 'gas' && "V = gas volume (dm³), 24 dm³/mol = molar volume"}
+                </p>
+                {(calcMode === 'conc' || calcMode === 'gas') && (
+                  <div className="mt-4 p-3 bg-amber-100/50 rounded-xl border border-amber-200">
+                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest leading-tight">
+                      ⚠️ Reminder: Convert cm³ to dm³ first (divide by 1000)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {examples.map((ex, i) => (
+                  <div key={i} className={`bg-white border-2 p-4 rounded-2xl shadow-sm transition-all ${isChecked ? (Math.abs(parseFloat(userAnswers[i]) - parseFloat(ex.answer)) < 0.05 ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50') : 'border-gray-100'}`}>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{formatFormula(ex.formula || ex.name)}</p>
+                    <div className="space-y-1 mb-4">
+                      {ex.mass && <p className="text-xs font-bold text-gray-700">m = <span className="text-orange-500">{ex.mass} g</span></p>}
+                      {ex.mr && <p className="text-xs font-bold text-gray-700">M<sub>r</sub> = <span className="text-blue-500">{ex.mr}</span></p>}
+                      {ex.conc && <p className="text-xs font-bold text-gray-700">C = <span className="text-orange-500">{ex.conc} mol/dm³</span></p>}
+                      {ex.vol && <p className="text-xs font-bold text-gray-700">V = <span className="text-blue-500">{ex.vol} cm³</span></p>}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={userAnswers[i]}
+                        onChange={(e) => {
+                          const newAns = [...userAnswers];
+                          newAns[i] = e.target.value;
+                          setUserAnswers(newAns);
+                        }}
+                        placeholder="0.00"
+                        className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:border-orange-400 transition-all"
+                      />
+                      {isChecked && (
+                        <div className="absolute -top-2 -right-2">
+                          {Math.abs(parseFloat(userAnswers[i]) - parseFloat(ex.answer)) < 0.05 ? (
+                            <CheckCircle2 className="text-emerald-500" size={20} />
+                          ) : (
+                            <XCircle className="text-rose-500" size={20} />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {isChecked && Math.abs(parseFloat(userAnswers[i]) - parseFloat(ex.answer)) >= 0.05 && (
+                      <p className="text-[10px] font-black text-rose-500 mt-2 uppercase">Ans: {ex.answer}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={checkAnswers}
+                  className="flex items-center justify-center gap-3 px-8 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-[0_6px_0_0_#059669] active:scale-95 transition-all"
+                >
+                  <CheckCircle2 size={20} />
+                  Check Answers
+                </button>
+                <button
+                  onClick={generateExamples}
+                  className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl font-black uppercase tracking-widest shadow-[0_6px_0_0_#e5e7eb] hover:border-orange-400 active:scale-95 transition-all"
+                >
+                  <RefreshCw size={20} />
+                  More Questions
+                </button>
+              </div>
+            </>
+          ) : (
+            <DimensionalAnalysisView />
+          )}
+
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowCalculator(!showCalculator)}
+              className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95
+                ${showCalculator ? 'bg-gray-800 text-white shadow-[0_6px_0_0_#000000]' : 'bg-white border-2 border-gray-200 text-gray-600 shadow-[0_6px_0_0_#e5e7eb] hover:border-orange-400'}
+              `}
+            >
+              <Calculator size={20} />
+              {showCalculator ? 'Hide Calculator' : 'Show Calculator'}
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {showCalculator && <VirtualCalculator onClose={() => setShowCalculator(false)} />}
+          </AnimatePresence>
+        </div>
+      );
+    };
+
     const SolubilityPlayground = () => {
       const salts = [
         { name: 'Potassium Nitrate', formula: 'KNO₃', soluble: true, rule: 'All K⁺ and NO₃⁻ salts are soluble.' },
@@ -3167,7 +3657,7 @@ export default function App() {
     };
 
   const PlaygroundView = () => {
-    const [subMode, setSubMode] = useState<'select' | 'equations' | 'chemicals' | 'graphs' | 'simulations' | 'solubility' | 'mole' | 'ionic'>('select');
+    const [subMode, setSubMode] = useState<'select' | 'equations' | 'chemicals' | 'graphs' | 'simulations' | 'solubility' | 'mole' | 'mole-calc' | 'ionic'>('select');
     const [selectedEquation, setSelectedEquation] = useState<any>(null);
     const [equationSubject, setEquationSubject] = useState<string>('');
     const [isPracticeMode, setIsPracticeMode] = useState(false);
@@ -5993,6 +6483,21 @@ export default function App() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => setSubMode('mole-calc')}
+              className="w-full bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-orange-400 hover:shadow-[0_6px_0_0_#fb923c] transition-all group"
+            >
+              <div className="bg-orange-100 text-orange-600 p-5 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                <Variable size={40} />
+              </div>
+              <div className="text-left">
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Mole Calculation Playground</h2>
+                <p className="text-gray-500 font-medium">Calculate moles from mass, concentration, and volume.</p>
+              </div>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setSubMode('mole')}
               className="w-full bg-white border-2 border-gray-200 p-8 rounded-3xl flex items-center gap-6 shadow-[0_6px_0_0_#e5e7eb] hover:border-orange-400 hover:shadow-[0_6px_0_0_#fb923c] transition-all group"
             >
@@ -6040,6 +6545,27 @@ export default function App() {
           </header>
           <main className="max-w-2xl mx-auto p-6">
             <NetIonicPlayground />
+          </main>
+        </div>
+      );
+    }
+
+    if (subMode === 'mole-calc') {
+      return (
+        <div className="min-h-screen bg-gray-50 pb-24">
+          <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
+            <div className="max-w-2xl mx-auto flex items-center gap-4">
+              <button onClick={() => setSubMode('select')} className="text-gray-400 hover:text-gray-600">
+                <ChevronLeft size={32} />
+              </button>
+              <div>
+                <h1 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none">Mole Calculation Playground</h1>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Formula Practice</p>
+              </div>
+            </div>
+          </header>
+          <main className="max-w-2xl mx-auto p-6">
+            <MoleCalculationPlayground />
           </main>
         </div>
       );
