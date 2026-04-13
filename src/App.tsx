@@ -633,6 +633,545 @@ export default function App() {
     );
   };
 
+  const TitrationCurve = () => {
+    const [flaskType, setFlaskType] = useState<'acid' | 'base'>('base');
+    const [volumeAdded, setVolumeAdded] = useState(0);
+    const [isAdding, setIsAdding] = useState(false);
+    const timerRef = useRef<any>(null);
+
+    const calculatePH = (v: number, type: 'acid' | 'base') => {
+      const c1 = 0.1; 
+      const v1 = 25;  
+      const c2 = 0.1; 
+      
+      const moles1 = (c1 * v1) / 1000;
+      const moles2 = (c2 * v) / 1000;
+      
+      if (type === 'base') { 
+        if (moles2 < moles1) {
+          const remainingOH = moles1 - moles2;
+          const totalV = (v1 + v) / 1000;
+          const ohConc = remainingOH / totalV;
+          return 14 + Math.log10(ohConc);
+        } else if (Math.abs(moles2 - moles1) < 1e-9) {
+          return 7;
+        } else {
+          const excessH = moles2 - moles1;
+          const totalV = (v1 + v) / 1000;
+          const hConc = excessH / totalV;
+          return -Math.log10(hConc);
+        }
+      } else { 
+        if (moles2 < moles1) {
+          const remainingH = moles1 - moles2;
+          const totalV = (v1 + v) / 1000;
+          const hConc = remainingH / totalV;
+          return -Math.log10(hConc);
+        } else if (Math.abs(moles2 - moles1) < 1e-9) {
+          return 7;
+        } else {
+          const excessOH = moles2 - moles1;
+          const totalV = (v1 + v) / 1000;
+          const ohConc = excessOH / totalV;
+          return 14 + Math.log10(ohConc);
+        }
+      }
+    };
+
+    const chartData = useMemo(() => {
+      const points = [];
+      for (let i = 0; i <= 50; i += 0.5) {
+        points.push({
+          volume: i,
+          ph: calculatePH(i, flaskType)
+        });
+      }
+      return points;
+    }, [flaskType]);
+
+    const handleAddSolution = () => {
+      if (isAdding) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        setIsAdding(false);
+      } else {
+        setIsAdding(true);
+        timerRef.current = setInterval(() => {
+          setVolumeAdded(prev => {
+            if (prev >= 50) {
+              if (timerRef.current) clearInterval(timerRef.current);
+              setIsAdding(false);
+              return 50;
+            }
+            return prev + 0.5;
+          });
+        }, 50);
+      }
+    };
+
+    const reset = () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setIsAdding(false);
+      setVolumeAdded(0);
+    };
+
+    useEffect(() => {
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+    }, []);
+
+    const currentPH = calculatePH(volumeAdded, flaskType);
+    
+    const getPHColor = (ph: number) => {
+      if (ph < 6.5) return 'text-rose-500';
+      if (ph > 7.5) return 'text-blue-500';
+      return 'text-purple-500';
+    };
+
+    const CustomTooltip = ({ active, payload }: any) => {
+      if (active && payload && payload.length) {
+        const ph = payload[0].value;
+        const vol = payload[0].payload.volume;
+        let state = "Neutral";
+        let color = "text-purple-500";
+        if (ph < 6.5) { state = "Acidic"; color = "text-rose-500"; }
+        else if (ph > 7.5) { state = "Basic"; color = "text-blue-500"; }
+        
+        return (
+          <div className="bg-white p-3 border-2 border-gray-100 rounded-xl shadow-xl">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Volume: {vol} ml</p>
+            <p className={`text-sm font-black ${color}`}>pH: {ph.toFixed(2)}</p>
+            <p className={`text-[8px] font-black uppercase tracking-widest ${color}`}>{state}</p>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          <div className="w-full lg:w-1/3 flex flex-col items-center justify-center bg-gray-50 rounded-3xl p-6 border-2 border-gray-100 min-h-[400px]">
+            <div className="relative w-32 h-80">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-48 border-2 border-gray-300 rounded-b-lg bg-white/50 overflow-hidden">
+                <motion.div 
+                  className={`absolute bottom-0 w-full ${flaskType === 'base' ? 'bg-rose-400/40' : 'bg-blue-400/40'}`}
+                  animate={{ height: `${((50 - volumeAdded) / 50) * 100}%` }}
+                />
+                <div className="absolute inset-0 flex flex-col justify-between py-2 px-1 pointer-events-none">
+                  {[0, 10, 20, 30, 40, 50].map(v => (
+                    <div key={v} className="flex items-center justify-between">
+                      <div className="w-2 h-[1px] bg-gray-400" />
+                      <span className="text-[6px] font-bold text-gray-400">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="absolute top-48 left-1/2 -translate-x-1/2 w-4 h-8 bg-gray-400 rounded-sm">
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-2 bg-gray-600 rounded-full transition-transform ${isAdding ? 'rotate-90' : 'rotate-0'}`} />
+              </div>
+
+              {isAdding && (
+                <motion.div 
+                  className={`absolute top-56 left-1/2 -translate-x-1/2 w-1 h-3 rounded-full ${flaskType === 'base' ? 'bg-rose-400' : 'bg-blue-400'}`}
+                  animate={{ y: [0, 40], opacity: [1, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
+                />
+              )}
+
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-24">
+                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
+                  <defs>
+                    <clipPath id="flask-clip">
+                      <path d="M40 0 L60 0 L60 20 L90 90 L10 90 L40 20 Z" />
+                    </clipPath>
+                  </defs>
+                  <path d="M40 0 L60 0 L60 20 L90 90 L10 90 L40 20 Z" fill="none" stroke="#d1d5db" strokeWidth="2" />
+                  <motion.rect 
+                    x="0" y="0" width="100" height="100"
+                    fill={currentPH < 6.5 ? '#f43f5e' : currentPH > 7.5 ? '#3b82f6' : '#a855f7'}
+                    fillOpacity="0.4"
+                    clipPath="url(#flask-clip)"
+                    animate={{ y: 90 - (25 + volumeAdded) * 0.8 }}
+                  />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Flask Content</p>
+              <p className={`text-sm font-black ${flaskType === 'acid' ? 'text-rose-500' : 'text-blue-500'}`}>
+                {flaskType === 'acid' ? 'Acid (HCl)' : 'Base (NaOH)'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full space-y-6">
+            <div className="bg-white p-4 rounded-3xl border-2 border-gray-100 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis 
+                    dataKey="volume" 
+                    type="number" 
+                    domain={[0, 50]} 
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#9ca3af' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    domain={[0, 14]} 
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#9ca3af' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="ph" 
+                    stroke="#8b5cf6" 
+                    strokeWidth={3} 
+                    dot={false}
+                    activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
+                  />
+                  <Line 
+                    data={[{ volume: volumeAdded, ph: currentPH }]} 
+                    type="monotone" 
+                    dataKey="ph" 
+                    stroke="transparent"
+                    dot={{ r: 6, fill: currentPH < 6.5 ? '#f43f5e' : currentPH > 7.5 ? '#3b82f6' : '#a855f7', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Current pH</p>
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-3xl font-black ${getPHColor(currentPH)}`}>{currentPH.toFixed(2)}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${getPHColor(currentPH)}`}>
+                    {currentPH < 6.5 ? 'Acidic' : currentPH > 7.5 ? 'Basic' : 'Neutral'}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Volume Added</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-gray-800">{volumeAdded.toFixed(1)}</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ml</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleAddSolution}
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black uppercase tracking-widest transition-all
+                  ${isAdding 
+                    ? 'bg-rose-500 text-white shadow-[0_6px_0_0_#be123c] active:shadow-none active:translate-y-1' 
+                    : 'bg-emerald-500 text-white shadow-[0_6px_0_0_#047857] hover:bg-emerald-400 active:shadow-none active:translate-y-1'}
+                `}
+              >
+                {isAdding ? <><XCircle size={18} /> Stop</> : <><RefreshCw size={18} /> Add Burette Solution</>}
+              </button>
+              <button
+                onClick={reset}
+                className="px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-600 hover:border-purple-400 shadow-[0_6px_0_0_#e5e7eb] active:shadow-none active:translate-y-1 transition-all"
+              >
+                Reset
+              </button>
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-2xl border-2 border-purple-100">
+              <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-3">Setup Configuration</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => { setFlaskType('base'); reset(); }}
+                  className={`flex-1 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                    ${flaskType === 'base' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-purple-400 border-2 border-purple-100'}
+                  `}
+                >
+                  Acid in Burette / Base in Flask
+                </button>
+                <button
+                  onClick={() => { setFlaskType('acid'); reset(); }}
+                  className={`flex-1 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                    ${flaskType === 'acid' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-purple-400 border-2 border-purple-100'}
+                  `}
+                >
+                  Base in Burette / Acid in Flask
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const AdditionVsSubstitution = () => {
+    const [type, setType] = useState<'substitution' | 'addition'>('substitution');
+    const [isReacting, setIsReacting] = useState(false);
+    const [hasReacted, setHasReacted] = useState(false);
+
+    const reset = () => {
+      setIsReacting(false);
+      setHasReacted(false);
+    };
+
+    const startReaction = () => {
+      setIsReacting(true);
+      setTimeout(() => {
+        setIsReacting(false);
+        setHasReacted(true);
+      }, 2000);
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex gap-4 bg-gray-100 p-2 rounded-2xl">
+          <button
+            onClick={() => { setType('substitution'); reset(); }}
+            className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+              ${type === 'substitution' ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'}
+            `}
+          >
+            Alkane Substitution
+          </button>
+          <button
+            onClick={() => { setType('addition'); reset(); }}
+            className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+              ${type === 'addition' ? 'bg-white text-emerald-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'}
+            `}
+          >
+            Alkene Addition
+          </button>
+        </div>
+
+        <div className="bg-gray-50 rounded-[2rem] p-8 border-2 border-gray-100 min-h-[450px] flex flex-col items-center justify-center relative overflow-hidden">
+          {/* UV Light Indicator */}
+          {type === 'substitution' && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-yellow-100 px-4 py-1 rounded-full border border-yellow-200 z-20"
+            >
+              <Zap size={14} className="text-yellow-600" />
+              <span className="text-[10px] font-black text-yellow-700 uppercase tracking-widest">Requires UV Light</span>
+            </motion.div>
+          )}
+
+          <div className="flex flex-col lg:flex-row items-center gap-16 w-full justify-center">
+            {/* Hydrocarbon / Product */}
+            <div className="relative">
+              {/* C-C Bond */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-1 z-0">
+                {type === 'addition' && !hasReacted ? (
+                  <>
+                    <div className="absolute -top-1 left-0 w-full h-1 bg-gray-300 rounded-full" />
+                    <div className="absolute -bottom-1 left-0 w-full h-1 bg-gray-300 rounded-full" />
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gray-300 rounded-full" />
+                )}
+              </div>
+
+              <div className="flex items-center gap-16 relative z-10">
+                {/* Left Carbon Group */}
+                <div className="relative flex items-center justify-center w-12 h-12">
+                  <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-gray-900 flex items-center justify-center text-xs font-black text-white">C</div>
+                  
+                  {/* Top H */}
+                  <div className="absolute -top-12 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</div>
+                    <div className="w-[2px] h-4 bg-gray-300" />
+                  </div>
+                  
+                  {/* Bottom H */}
+                  <div className="absolute -bottom-12 flex flex-col items-center">
+                    <div className="w-[2px] h-4 bg-gray-300" />
+                    <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</div>
+                  </div>
+
+                  {/* Left H or Cl */}
+                  <div className="absolute -left-12 flex items-center">
+                    <AnimatePresence mode="wait">
+                      {hasReacted && type === 'addition' ? (
+                        <motion.div key="cl-l" initial={{ scale: 0, x: 20 }} animate={{ scale: 1, x: 0 }} className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-emerald-400 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-black text-white">Cl</div>
+                          <div className="h-[2px] w-4 bg-gray-300" />
+                        </motion.div>
+                      ) : type === 'substitution' ? (
+                        <div key="h-l" className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</div>
+                          <div className="h-[2px] w-4 bg-gray-300" />
+                        </div>
+                      ) : null}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                {/* Right Carbon Group */}
+                <div className="relative flex items-center justify-center w-12 h-12">
+                  <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-gray-900 flex items-center justify-center text-xs font-black text-white">C</div>
+                  
+                  {/* Top H */}
+                  <div className="absolute -top-12 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</div>
+                    <div className="w-[2px] h-4 bg-gray-300" />
+                  </div>
+                  
+                  {/* Bottom H */}
+                  <div className="absolute -bottom-12 flex flex-col items-center">
+                    <div className="w-[2px] h-4 bg-gray-300" />
+                    <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</div>
+                  </div>
+
+                  {/* Right H or Cl */}
+                  <div className="absolute -right-12 flex items-center">
+                    <div className="h-[2px] w-4 bg-gray-300" />
+                    <AnimatePresence mode="wait">
+                      {hasReacted ? (
+                        <motion.div key="cl-r" initial={{ scale: 0, x: -20 }} animate={{ scale: 1, x: 0 }} className="w-8 h-8 rounded-full bg-emerald-400 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-black text-white">Cl</motion.div>
+                      ) : type === 'substitution' ? (
+                        <motion.div key="h-r" exit={{ opacity: 0, x: 20 }} className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</motion.div>
+                      ) : null}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 text-center w-max">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                  {hasReacted ? 'Product' : 'Reactant'}
+                </p>
+                <p className="text-sm font-black text-gray-800 uppercase">
+                  {hasReacted 
+                    ? (type === 'substitution' ? 'Chloroethane' : '1,2-dichloroethane')
+                    : (type === 'substitution' ? 'Ethane' : 'Ethene')}
+                </p>
+              </div>
+            </div>
+
+            {/* Plus Sign */}
+            {!hasReacted && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-black text-gray-300">+</motion.div>
+            )}
+
+            {/* Chlorine / HCl */}
+            <div className="relative">
+              <AnimatePresence mode="wait">
+                {!hasReacted ? (
+                  <motion.div 
+                    key="cl2"
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-emerald-400 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-black text-white">Cl</div>
+                    <div className="h-[2px] w-4 bg-gray-300" />
+                    <div className="w-10 h-10 rounded-full bg-emerald-400 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-black text-white">Cl</div>
+                  </motion.div>
+                ) : type === 'substitution' ? (
+                  <motion.div 
+                    key="hcl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-gray-500 flex items-center justify-center text-[10px] font-black text-white">H</div>
+                    <div className="h-[2px] w-4 bg-gray-300" />
+                    <div className="w-10 h-10 rounded-full bg-emerald-400 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-black text-white">Cl</div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 text-center w-max">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                  {hasReacted ? (type === 'substitution' ? 'Side Product' : '') : 'Reactant'}
+                </p>
+                <p className="text-sm font-black text-gray-800 uppercase">
+                  {hasReacted 
+                    ? (type === 'substitution' ? 'Hydrogen Chloride' : '')
+                    : 'Chlorine'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Animation Overlay */}
+          <AnimatePresence>
+            {isReacting && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-white/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center"
+              >
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="text-emerald-500 mb-4"
+                >
+                  <RefreshCw size={48} />
+                </motion.div>
+                <p className="text-sm font-black text-gray-800 uppercase tracking-widest">Reaction in Progress...</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white p-6 rounded-3xl border-2 border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Reaction Type</p>
+            <p className={`text-xl font-black uppercase tracking-tight ${type === 'substitution' ? 'text-orange-500' : 'text-emerald-500'}`}>
+              {type === 'substitution' ? 'Substitution' : 'Addition'}
+            </p>
+            <p className="text-xs font-bold text-gray-500 mt-2">
+              {type === 'substitution' 
+                ? 'One hydrogen atom is replaced by a chlorine atom.' 
+                : 'The double bond breaks and both chlorine atoms add to the carbons.'}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border-2 border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Key Facts</p>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                <div className={`w-2 h-2 rounded-full ${type === 'substitution' ? 'bg-orange-500' : 'bg-emerald-500'}`} />
+                {type === 'substitution' ? 'Produces 2 products' : 'Produces 1 product'}
+              </li>
+              <li className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                <div className={`w-2 h-2 rounded-full ${type === 'substitution' ? 'bg-orange-500' : 'bg-emerald-500'}`} />
+                {type === 'substitution' ? 'Requires UV Light' : 'No UV Light needed'}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={startReaction}
+            disabled={isReacting || hasReacted}
+            className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black uppercase tracking-widest transition-all
+              ${isReacting || hasReacted
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-emerald-500 text-white shadow-[0_6px_0_0_#047857] hover:bg-emerald-400 active:shadow-none active:translate-y-1'}
+            `}
+          >
+            {isReacting ? 'Reacting...' : hasReacted ? 'Reaction Complete' : 'Start Reaction'}
+          </button>
+          <button
+            onClick={reset}
+            className="px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-600 hover:border-purple-400 shadow-[0_6px_0_0_#e5e7eb] active:shadow-none active:translate-y-1 transition-all"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const QuickFacts = () => {
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
@@ -1943,6 +2482,42 @@ export default function App() {
                 </div>
               )}
             </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
+                  <ArrowRightLeft size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Addition VS Substitution</h2>
+              </div>
+            </div>
+
+            <AdditionVsSubstitution />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.58 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-100 p-3 rounded-2xl text-purple-600">
+                  <FlaskConical size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Titration Curve</h2>
+              </div>
+            </div>
+
+            <TitrationCurve />
           </motion.div>
 
           <motion.div
