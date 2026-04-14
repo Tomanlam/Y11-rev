@@ -40,7 +40,9 @@ import {
   Flame,
   TrendingUp,
   QrCode,
-  Layers
+  Layers,
+  Settings,
+  Activity
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { units, Unit, Question, Vocab } from './data';
@@ -1172,9 +1174,441 @@ export default function App() {
     );
   };
 
+  const EquilibriumProcesses = () => {
+    const [process, setProcess] = useState<'haber' | 'contact'>('haber');
+    const [temp, setTemp] = useState(450);
+    const [pressure, setPressure] = useState(process === 'haber' ? 200 : 2);
+    const [concA, setConcA] = useState(1.0); // N2 or SO2
+    const [concB, setConcB] = useState(3.0); // H2 or O2
+    const [concP, setConcP] = useState(0.0); // NH3 or SO3
+    const [timeData, setTimeData] = useState<any[]>([]);
+    
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const currentDataRef = useRef<any[]>([]);
+    
+    // Refs to track slider values for the interval without restarting it constantly
+    const paramsRef = useRef({ temp, pressure, concA, concB, concP, process });
+
+    useEffect(() => {
+      paramsRef.current = { temp, pressure, concA, concB, concP, process };
+    }, [temp, pressure, concA, concB, concP, process]);
+
+    // Handle disturbance: when a slider moves, we inject the change into the simulation
+    const lastValues = useRef({ concA, concB, concP, pressure });
+    useEffect(() => {
+      if (currentDataRef.current.length > 0) {
+        const lastIdx = currentDataRef.current.length - 1;
+        const lastPoint = currentDataRef.current[lastIdx];
+        
+        const pRatio = pressure / lastValues.current.pressure;
+        const deltaA = concA - lastValues.current.concA;
+        const deltaB = concB - lastValues.current.concB;
+        const deltaP = concP - lastValues.current.concP;
+
+        // Create a new array to avoid mutating state-linked objects
+        const updatedData = [...currentDataRef.current];
+        updatedData[lastIdx] = {
+          ...lastPoint,
+          A: Math.max(0, lastPoint.A * pRatio + deltaA),
+          B: Math.max(0, lastPoint.B * pRatio + deltaB),
+          P: Math.max(0, lastPoint.P * pRatio + deltaP),
+        };
+        currentDataRef.current = updatedData;
+        setTimeData(updatedData);
+      }
+      lastValues.current = { concA, concB, concP, pressure };
+    }, [concA, concB, concP, pressure]);
+
+    useEffect(() => {
+      // Initialize data
+      const initialData = [];
+      const startA = process === 'haber' ? 1.0 : 2.0;
+      const startB = process === 'haber' ? 3.0 : 1.0;
+      for (let i = 0; i < 60; i++) {
+        initialData.push({ time: i, A: startA, B: startB, P: 0, isEquilibrium: true });
+      }
+      currentDataRef.current = initialData;
+      setTimeData(initialData);
+      lastValues.current = { concA: startA, concB: startB, concP: 0, pressure: process === 'haber' ? 200 : 2 };
+      setConcA(startA);
+      setConcB(startB);
+      setConcP(0);
+      setPressure(process === 'haber' ? 200 : 2);
+      setTemp(450);
+
+      let time = 60;
+      timerRef.current = setInterval(() => {
+        const { temp, pressure, process } = paramsRef.current;
+        
+        // Simplified equilibrium constant Kc simulation
+        // Exothermic: K decreases as T increases
+        const K_base = process === 'haber' ? 0.05 : 5.0;
+        const K = K_base * Math.exp((450 - temp) / 60);
+        
+        const lastData = currentDataRef.current[currentDataRef.current.length - 1];
+        
+        // Stoichiometry
+        const a = process === 'haber' ? 1 : 2;
+        const b = process === 'haber' ? 3 : 1;
+        const p = 2;
+
+        // Reaction Quotient Q = [P]^p / ([A]^a * [B]^b)
+        const Q = (Math.pow(lastData.P, p) + 0.001) / (Math.pow(lastData.A, a) * Math.pow(lastData.B, b) + 0.001);
+        const targetQ = K;
+        
+        // The "force" is based on the difference between current Q and target K
+        const force = Math.log(targetQ / Q);
+        
+        // Rate of reaction depends on T and P (collisions)
+        const collisionFactor = (temp / 450) * Math.pow(pressure / (process === 'haber' ? 200 : 2), 0.5);
+        let shift = force * 0.01 * collisionFactor;
+
+        // Safety clamps to prevent overshooting or negative concentrations
+        if (shift > 0) {
+          shift = Math.min(shift, lastData.A / (a * 5), lastData.B / (b * 5));
+        } else if (shift < 0) {
+          shift = Math.max(shift, -lastData.P / (p * 5));
+        }
+
+        const nextA = Math.max(0, lastData.A - shift * a);
+        const nextB = Math.max(0, lastData.B - shift * b);
+        const nextP = Math.max(0, lastData.P + shift * p);
+
+        // Equilibrium is reached when the shift becomes negligible
+        const isEq = Math.abs(shift) < 0.0002;
+
+        const newData = [
+          ...currentDataRef.current.slice(1),
+          {
+            time: time++,
+            A: Number(nextA.toFixed(3)),
+            B: Number(nextB.toFixed(3)),
+            P: Number(nextP.toFixed(3)),
+            isEquilibrium: isEq
+          }
+        ];
+        currentDataRef.current = newData;
+        setTimeData(newData);
+      }, 100);
+
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+    }, [process]);
+
+    const CustomTooltip = ({ active, payload }: any) => {
+      if (active && payload && payload.length) {
+        const isEq = payload[0].payload.isEquilibrium;
+        return (
+          <div className="bg-white border-2 border-gray-200 p-4 rounded-2xl shadow-xl">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Concentrations</p>
+            <div className="space-y-1">
+              {payload.map((entry: any, index: number) => (
+                <div key={index} className="flex items-center justify-between gap-4">
+                  <span className="text-xs font-bold" style={{ color: entry.color }}>
+                    {entry.name}:
+                  </span>
+                  <span className="text-xs font-black">{entry.value} mol/dm³</span>
+                </div>
+              ))}
+            </div>
+            <div className={`mt-3 pt-2 border-t border-gray-100 flex items-center gap-2`}>
+              <div className={`w-2 h-2 rounded-full ${isEq ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isEq ? 'text-emerald-500' : 'text-rose-500'}`}>
+                {isEq ? 'Equilibrium Reached' : 'Approaching Equilibrium'}
+              </span>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    return (
+      <div className="space-y-8">
+        {/* Comparison Header */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={() => {
+              setProcess('haber');
+              setPressure(200);
+              setConcA(1.0);
+              setConcB(3.0);
+              setConcP(0.0);
+              currentDataRef.current = []; // Reset simulation
+            }}
+            className={`p-6 rounded-[2rem] border-2 transition-all text-left relative overflow-hidden group
+              ${process === 'haber' ? 'bg-indigo-50 border-indigo-200 ring-4 ring-indigo-50' : 'bg-white border-gray-100 hover:border-indigo-100'}
+            `}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className={`p-2 rounded-xl ${process === 'haber' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                <Zap size={20} />
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${process === 'haber' ? 'text-indigo-500' : 'text-gray-400'}`}>Haber Process</span>
+            </div>
+            <h3 className="text-lg font-black text-gray-800 mb-1">N₂(g) + 3H₂(g) ⇌ 2NH₃(g)</h3>
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div className="flex flex-col">
+                <span className="text-[8px] font-bold text-gray-400 uppercase">Temp</span>
+                <span className="text-xs font-black text-gray-700">450°C</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[8px] font-bold text-gray-400 uppercase">Pressure</span>
+                <span className="text-xs font-black text-gray-700">200 atm</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[8px] font-bold text-gray-400 uppercase">Catalyst</span>
+                <span className="text-xs font-black text-gray-700">Iron (Fe)</span>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              setProcess('contact');
+              setPressure(2);
+              setConcA(2.0);
+              setConcB(1.0);
+              setConcP(0.0);
+              currentDataRef.current = []; // Reset simulation
+            }}
+            className={`p-6 rounded-[2rem] border-2 transition-all text-left relative overflow-hidden group
+              ${process === 'contact' ? 'bg-emerald-50 border-emerald-200 ring-4 ring-emerald-50' : 'bg-white border-gray-100 hover:border-emerald-100'}
+            `}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className={`p-2 rounded-xl ${process === 'contact' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                <Flame size={20} />
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${process === 'contact' ? 'text-emerald-500' : 'text-gray-400'}`}>Contact Process</span>
+            </div>
+            <h3 className="text-lg font-black text-gray-800 mb-1">2SO₂(g) + O₂(g) ⇌ 2SO₃(g)</h3>
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div className="flex flex-col">
+                <span className="text-[8px] font-bold text-gray-400 uppercase">Temp</span>
+                <span className="text-xs font-black text-gray-700">450°C</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[8px] font-bold text-gray-400 uppercase">Pressure</span>
+                <span className="text-xs font-black text-gray-700">2 atm</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[8px] font-bold text-gray-400 uppercase">Catalyst</span>
+                <span className="text-xs font-black text-gray-700">V₂O₅</span>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        {/* Controls */}
+        <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Settings size={20} className="text-gray-400" />
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Control Panel</h4>
+            </div>
+            <button 
+              onClick={() => {
+                const startA = process === 'haber' ? 1.0 : 2.0;
+                const startB = process === 'haber' ? 3.0 : 1.0;
+                setConcA(startA);
+                setConcB(startB);
+                setConcP(0);
+                setTemp(450);
+                setPressure(process === 'haber' ? 200 : 2);
+                const resetData = currentDataRef.current.map(d => ({ ...d, A: startA, B: startB, P: 0 }));
+                currentDataRef.current = resetData;
+                setTimeData(resetData);
+              }}
+              className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-600 transition-colors"
+            >
+              Reset Conditions
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Column 1: Concentration */}
+            <div className="space-y-6 bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-4 bg-emerald-500 rounded-full" />
+                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Concentrations (M)</h5>
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                      {process === 'haber' ? 'N₂ (Nitrogen)' : 'SO₂ (Sulfur Dioxide)'}
+                    </label>
+                    <span className="text-xs font-black text-emerald-600">{concA.toFixed(1)} M</span>
+                  </div>
+                  <input 
+                    type="range" min="0.1" max="5" step="0.1" value={concA}
+                    onChange={(e) => setConcA(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                      {process === 'haber' ? 'H₂ (Hydrogen)' : 'O₂ (Oxygen)'}
+                    </label>
+                    <span className="text-xs font-black text-emerald-600">{concB.toFixed(1)} M</span>
+                  </div>
+                  <input 
+                    type="range" min="0.1" max="5" step="0.1" value={concB}
+                    onChange={(e) => setConcB(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                      {process === 'haber' ? 'NH₃ (Ammonia)' : 'SO₃ (Sulfur Trioxide)'}
+                    </label>
+                    <span className="text-xs font-black text-emerald-600">{concP.toFixed(1)} M</span>
+                  </div>
+                  <input 
+                    type="range" min="0" max="5" step="0.1" value={concP}
+                    onChange={(e) => setConcP(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Pressure */}
+            <div className="space-y-6 bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-4 bg-indigo-500 rounded-full" />
+                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">System Pressure</h5>
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pressure</label>
+                    <span className="text-xs font-black text-indigo-600">{pressure} atm</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min={process === 'haber' ? 50 : 1} 
+                    max={process === 'haber' ? 400 : 10} 
+                    step={process === 'haber' ? 10 : 0.5} 
+                    value={pressure}
+                    onChange={(e) => setPressure(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                </div>
+                <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                  <p className="text-[10px] text-indigo-700 font-bold leading-relaxed">
+                    <span className="block mb-1 text-indigo-900 font-black uppercase tracking-tighter">Le Chatelier's Principle:</span>
+                    Increasing pressure favors the side with fewer gas moles. 
+                    {process === 'haber' ? ' (Reactants: 4 mol → Product: 2 mol)' : ' (Reactants: 3 mol → Product: 2 mol)'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 3: Temperature */}
+            <div className="space-y-6 bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-4 bg-rose-500 rounded-full" />
+                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Temperature</h5>
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Temperature</label>
+                    <span className="text-xs font-black text-rose-600">{temp}°C</span>
+                  </div>
+                  <input 
+                    type="range" min="300" max="600" step="10" value={temp}
+                    onChange={(e) => setTemp(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                  />
+                </div>
+                <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100">
+                  <p className="text-[10px] text-rose-700 font-bold leading-relaxed">
+                    <span className="block mb-1 text-rose-900 font-black uppercase tracking-tighter">Thermal Effect:</span>
+                    Both processes are exothermic. Increasing temperature shifts equilibrium to the left, decreasing yield.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Graph */}
+        <div className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="bg-sky-100 p-3 rounded-2xl text-sky-600">
+                <Activity size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Equilibrium Graph</h2>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-rose-500" />
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{process === 'haber' ? 'N₂' : 'SO₂'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{process === 'haber' ? 'H₂' : 'O₂'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{process === 'haber' ? 'NH₃' : 'SO₃'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={timeData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="time" hide />
+                <YAxis domain={[0, 'auto']} hide />
+                <Tooltip content={<CustomTooltip />} />
+                <Line 
+                  type="monotone" dataKey="A" name={process === 'haber' ? 'N₂' : 'SO₂'} 
+                  stroke="#ef4444" strokeWidth={4} dot={false} isAnimationActive={false}
+                />
+                <Line 
+                  type="monotone" dataKey="B" name={process === 'haber' ? 'H₂' : 'O₂'} 
+                  stroke="#3b82f6" strokeWidth={4} dot={false} isAnimationActive={false}
+                />
+                <Line 
+                  type="monotone" dataKey="P" name={process === 'haber' ? 'NH₃' : 'SO₃'} 
+                  stroke="#10b981" strokeWidth={4} dot={false} isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="mt-8 flex items-center justify-center gap-8 border-t-2 border-gray-50 pt-8">
+            <div className="text-center">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Le Chatelier's Tip</p>
+              <p className="text-xs font-bold text-gray-600">
+                {temp > 450 ? "Higher temp shifts equilibrium LEFT (Exothermic)" : "Lower temp shifts equilibrium RIGHT"}
+              </p>
+            </div>
+            <div className="w-px h-8 bg-gray-100" />
+            <div className="text-center">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Pressure Effect</p>
+              <p className="text-xs font-bold text-gray-600">
+                Higher pressure shifts equilibrium to the side with FEWER gas moles.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const CommonChemicals = () => {
     const [mode, setMode] = useState<'facts' | 'flashcards'>('facts');
-    const [revealed, setRevealed] = useState<{[key: number]: {name: boolean, color: boolean, test: boolean}}>({});
+    const [flipped, setFlipped] = useState<{[key: number]: boolean}>({});
 
     const chemicals = [
       { name: 'Cu²⁺', color: 'Blue', test: 'Test with hydroxide', colorClass: 'bg-blue-500' },
@@ -1190,13 +1624,19 @@ export default function App() {
       { name: 'Cu', color: 'Brown/Pink', test: 'Visual', colorClass: 'bg-orange-300' },
     ];
 
-    const toggleReveal = (index: number, field: 'name' | 'color' | 'test') => {
-      setRevealed(prev => ({
+    const duolingoColors = [
+      'bg-[#58cc02]', // Green
+      'bg-[#1cb0f6]', // Blue
+      'bg-[#ff9600]', // Orange
+      'bg-[#ff4b4b]', // Red
+      'bg-[#ce82ff]', // Purple
+      'bg-[#ffc800]', // Yellow
+    ];
+
+    const toggleFlip = (index: number) => {
+      setFlipped(prev => ({
         ...prev,
-        [index]: {
-          ...prev[index],
-          [field]: !prev[index]?.[field]
-        }
+        [index]: !prev[index]
       }));
     };
 
@@ -1222,76 +1662,55 @@ export default function App() {
         </div>
 
         {mode === 'facts' ? (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {chemicals.map((chem, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-white p-4 rounded-3xl border-2 border-gray-100 flex items-center gap-4 hover:border-emerald-200 transition-all group"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.03 }}
+                className="bg-white p-4 rounded-3xl border-2 border-gray-100 flex flex-col items-center text-center gap-3 hover:border-emerald-200 transition-all group"
               >
-                <div className={`w-12 h-12 rounded-2xl ${chem.colorClass} flex-shrink-0 shadow-inner`} />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-gray-800">{chem.name}</h3>
-                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{chem.color}</span>
-                  </div>
-                  <p className="text-xs font-bold text-gray-500">{chem.test}</p>
+                <div className={`w-12 h-12 rounded-2xl ${chem.colorClass} shadow-inner`} />
+                <div>
+                  <h3 className="text-lg font-black text-gray-800">{chem.name}</h3>
+                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">{chem.color}</p>
+                  <p className="text-[9px] font-bold text-gray-400 leading-tight">{chem.test}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-[2.5rem] border-2 border-gray-100 overflow-hidden">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b-2 border-gray-100">
-                  <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Chemical</th>
-                  <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Color</th>
-                  <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Test / Fact</th>
-                </tr>
-              </thead>
-              <tbody>
-                {chemicals.map((chem, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4">
-                      <button
-                        onClick={() => toggleReveal(i, 'name')}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-black transition-all
-                          ${revealed[i]?.name ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-transparent select-none'}
-                        `}
-                      >
-                        {chem.name}
-                      </button>
-                    </td>
-                    <td className="p-4">
-                      <button
-                        onClick={() => toggleReveal(i, 'color')}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-black transition-all
-                          ${revealed[i]?.color ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-transparent select-none'}
-                        `}
-                      >
-                        {chem.color}
-                      </button>
-                    </td>
-                    <td className="p-4">
-                      <button
-                        onClick={() => toggleReveal(i, 'test')}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all
-                          ${revealed[i]?.test ? 'bg-sky-50 text-sky-600' : 'bg-gray-100 text-transparent select-none'}
-                        `}
-                      >
-                        {chem.test}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="p-4 bg-gray-50 text-center">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Click cells to reveal answers</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {chemicals.map((chem, i) => (
+              <div 
+                key={i} 
+                className="perspective-1000 h-40 cursor-pointer"
+                onClick={() => toggleFlip(i)}
+              >
+                <motion.div
+                  initial={false}
+                  animate={{ rotateY: flipped[i] ? 180 : 0 }}
+                  transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+                  className="relative w-full h-full preserve-3d"
+                >
+                  {/* Front */}
+                  <div className={`absolute inset-0 backface-hidden rounded-3xl flex flex-col items-center justify-center p-4 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-white/20 ${duolingoColors[i % duolingoColors.length]}`}>
+                    <span className="text-3xl font-black text-white drop-shadow-md">{chem.name}</span>
+                    <span className="mt-2 text-[10px] font-black text-white/60 uppercase tracking-widest">Tap to flip</span>
+                  </div>
+
+                  {/* Back */}
+                  <div 
+                    className="absolute inset-0 backface-hidden rounded-3xl flex flex-col items-center justify-center p-4 bg-white border-2 border-gray-100 shadow-[0_8px_0_0_rgba(0,0,0,0.05)] rotate-y-180"
+                  >
+                    <div className={`w-8 h-8 rounded-lg mb-3 ${chem.colorClass} shadow-inner`} />
+                    <p className="text-sm font-black text-gray-800 uppercase tracking-tight mb-1">{chem.color}</p>
+                    <p className="text-[10px] font-bold text-gray-500 text-center leading-tight">{chem.test}</p>
+                  </div>
+                </motion.div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -2894,6 +3313,24 @@ export default function App() {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-indigo-100 p-3 rounded-2xl text-indigo-600">
+                  <Activity size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Equilibrium Processes</h2>
+              </div>
+            </div>
+
+            <EquilibriumProcesses />
           </motion.div>
 
           <motion.div
@@ -7736,7 +8173,7 @@ export default function App() {
   };
 
   const AboutView = () => {
-    const revisionNumber = "1.7.0";
+    const revisionNumber = "2.0.0";
     
     return (
       <div className="min-h-screen bg-gray-50 pb-24">
