@@ -1172,6 +1172,132 @@ export default function App() {
     );
   };
 
+  const CommonChemicals = () => {
+    const [mode, setMode] = useState<'facts' | 'flashcards'>('facts');
+    const [revealed, setRevealed] = useState<{[key: number]: {name: boolean, color: boolean, test: boolean}}>({});
+
+    const chemicals = [
+      { name: 'Cu²⁺', color: 'Blue', test: 'Test with hydroxide', colorClass: 'bg-blue-500' },
+      { name: 'Fe²⁺', color: 'Green', test: 'Test with hydroxide', colorClass: 'bg-emerald-500' },
+      { name: 'Fe³⁺', color: 'Brown/Yellow', test: 'Test with hydroxide', colorClass: 'bg-amber-600' },
+      { name: 'Cr³⁺', color: 'Green', test: 'Test with hydroxide', colorClass: 'bg-green-600' },
+      { name: 'NO₂', color: 'Brown', test: 'Visual', colorClass: 'bg-orange-800' },
+      { name: 'SO₂', color: 'Colorless', test: 'Decolorize KMnO₄', colorClass: 'bg-gray-100 border-2 border-gray-200' },
+      { name: 'NH₃', color: 'Colorless', test: 'Turn damp red litmus blue', colorClass: 'bg-gray-100 border-2 border-gray-200' },
+      { name: 'O₂', color: 'Colorless', test: 'Relights glowing splint', colorClass: 'bg-gray-100 border-2 border-gray-200' },
+      { name: 'H₂', color: 'Colorless', test: 'Squeaky pop with burning splint', colorClass: 'bg-gray-100 border-2 border-gray-200' },
+      { name: 'Most metals', color: 'Grey', test: 'Conductor, reacts with acids', colorClass: 'bg-gray-400' },
+      { name: 'Cu', color: 'Brown/Pink', test: 'Visual', colorClass: 'bg-orange-300' },
+    ];
+
+    const toggleReveal = (index: number, field: 'name' | 'color' | 'test') => {
+      setRevealed(prev => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          [field]: !prev[index]?.[field]
+        }
+      }));
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex gap-4 bg-gray-100 p-2 rounded-2xl">
+          <button
+            onClick={() => setMode('facts')}
+            className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+              ${mode === 'facts' ? 'bg-white text-emerald-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'}
+            `}
+          >
+            Facts Mode
+          </button>
+          <button
+            onClick={() => setMode('flashcards')}
+            className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+              ${mode === 'flashcards' ? 'bg-white text-purple-500 shadow-sm' : 'text-gray-400 hover:text-gray-600'}
+            `}
+          >
+            Flash Cards
+          </button>
+        </div>
+
+        {mode === 'facts' ? (
+          <div className="grid grid-cols-1 gap-4">
+            {chemicals.map((chem, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-white p-4 rounded-3xl border-2 border-gray-100 flex items-center gap-4 hover:border-emerald-200 transition-all group"
+              >
+                <div className={`w-12 h-12 rounded-2xl ${chem.colorClass} flex-shrink-0 shadow-inner`} />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-black text-gray-800">{chem.name}</h3>
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{chem.color}</span>
+                  </div>
+                  <p className="text-xs font-bold text-gray-500">{chem.test}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-[2.5rem] border-2 border-gray-100 overflow-hidden">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b-2 border-gray-100">
+                  <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Chemical</th>
+                  <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Color</th>
+                  <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Test / Fact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chemicals.map((chem, i) => (
+                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4">
+                      <button
+                        onClick={() => toggleReveal(i, 'name')}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-black transition-all
+                          ${revealed[i]?.name ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-transparent select-none'}
+                        `}
+                      >
+                        {chem.name}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => toggleReveal(i, 'color')}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-black transition-all
+                          ${revealed[i]?.color ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-transparent select-none'}
+                        `}
+                      >
+                        {chem.color}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => toggleReveal(i, 'test')}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all
+                          ${revealed[i]?.test ? 'bg-sky-50 text-sky-600' : 'bg-gray-100 text-transparent select-none'}
+                        `}
+                      >
+                        {chem.test}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="p-4 bg-gray-50 text-center">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Click cells to reveal answers</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const QuickFacts = () => {
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
@@ -2768,6 +2894,24 @@ export default function App() {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
+                  <Beaker size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Common Chemicals</h2>
+              </div>
+            </div>
+
+            <CommonChemicals />
           </motion.div>
         </main>
       </motion.div>
