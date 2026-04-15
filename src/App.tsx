@@ -42,7 +42,8 @@ import {
   QrCode,
   Layers,
   Settings,
-  Activity
+  Activity,
+  Hash
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { units, Unit, Question, Vocab } from './data';
@@ -1113,23 +1114,201 @@ export default function App() {
     );
   };
 
+  const ElectrolysisSimulator = ({ electrolyte, state }: { electrolyte: string; state: 'molten' | 'aqueous' }) => {
+    const [isSimulating, setIsSimulating] = useState(false);
+    
+    const getElectrolyteData = (id: string) => {
+      switch (id) {
+        case 'Al2O3': return { 
+          cations: [{ label: <span>Al<sup>3+</sup></span>, color: 'bg-blue-500', target: 'cathode' }],
+          anions: [{ label: <span>O<sup>2-</sup></span>, color: 'bg-red-500', target: 'anode' }],
+          cathodeProduct: { type: 'solid', color: 'bg-gray-400', label: 'Al' },
+          anodeProduct: { type: 'bubbles', color: 'bg-blue-100', label: <span>O<sub>2</sub></span> }
+        };
+        case 'NaCl': return state === 'molten' ? {
+          cations: [{ label: <span>Na<sup>+</sup></span>, color: 'bg-blue-500', target: 'cathode' }],
+          anions: [{ label: <span>Cl<sup>-</sup></span>, color: 'bg-red-500', target: 'anode' }],
+          cathodeProduct: { type: 'solid', color: 'bg-gray-300', label: 'Na' },
+          anodeProduct: { type: 'bubbles', color: 'bg-green-100', label: <span>Cl<sub>2</sub></span> }
+        } : {
+          cations: [
+            { label: <span>Na<sup>+</sup></span>, color: 'bg-blue-500', target: 'none' },
+            { label: <span>H<sup>+</sup></span>, color: 'bg-blue-400', target: 'cathode' }
+          ],
+          anions: [
+            { label: <span>Cl<sup>-</sup></span>, color: 'bg-red-500', target: electrolyte === 'conc NaCl' ? 'anode' : 'none' },
+            { label: <span>OH<sup>-</sup></span>, color: 'bg-red-400', target: electrolyte === 'conc NaCl' ? 'none' : 'anode' }
+          ],
+          cathodeProduct: { type: 'bubbles', color: 'bg-blue-50', label: <span>H<sub>2</sub></span> },
+          anodeProduct: electrolyte === 'conc NaCl' ? 
+            { type: 'bubbles', color: 'bg-green-100', label: <span>Cl<sub>2</sub></span> } :
+            { type: 'bubbles', color: 'bg-blue-50', label: <span>O<sub>2</sub></span> }
+        };
+        case 'conc NaCl': return getElectrolyteData('NaCl');
+        case 'dilute NaCl': return getElectrolyteData('NaCl');
+        case 'PbBr2': return {
+          cations: [{ label: <span>Pb<sup>2+</sup></span>, color: 'bg-blue-500', target: 'cathode' }],
+          anions: [{ label: <span>Br<sup>-</sup></span>, color: 'bg-red-500', target: 'anode' }],
+          cathodeProduct: { type: 'solid', color: 'bg-gray-500', label: 'Pb' },
+          anodeProduct: { type: 'bubbles', color: 'bg-orange-800', label: <span>Br<sub>2</sub></span> }
+        };
+        case 'dilute H2SO4': return {
+          cations: [{ label: <span>H<sup>+</sup></span>, color: 'bg-blue-400', target: 'cathode' }],
+          anions: [
+            { label: <span>SO<sub>4</sub><sup>2-</sup></span>, color: 'bg-red-600', target: 'none' },
+            { label: <span>OH<sup>-</sup></span>, color: 'bg-red-400', target: 'anode' }
+          ],
+          cathodeProduct: { type: 'bubbles', color: 'bg-blue-50', label: <span>H<sub>2</sub></span> },
+          anodeProduct: { type: 'bubbles', color: 'bg-blue-50', label: <span>O<sub>2</sub></span> }
+        };
+        case 'dilute CuSO4': return {
+          cations: [
+            { label: <span>Cu<sup>2+</sup></span>, color: 'bg-blue-600', target: 'cathode' },
+            { label: <span>H<sup>+</sup></span>, color: 'bg-blue-400', target: 'none' }
+          ],
+          anions: [
+            { label: <span>SO<sub>4</sub><sup>2-</sup></span>, color: 'bg-red-600', target: 'none' },
+            { label: <span>OH<sup>-</sup></span>, color: 'bg-red-400', target: 'anode' }
+          ],
+          cathodeProduct: { type: 'solid', color: 'bg-orange-700', label: 'Cu' },
+          anodeProduct: { type: 'bubbles', color: 'bg-blue-50', label: <span>O<sub>2</sub></span> }
+        };
+        default: return null;
+      }
+    };
+
+    const data = getElectrolyteData(electrolyte);
+    if (!data) return null;
+
+    return (
+      <div className="space-y-4">
+        <div className="relative w-full h-56 bg-blue-50/30 rounded-[2rem] border-2 border-gray-100 overflow-hidden p-4">
+          {/* Electrodes */}
+          <div className="absolute left-4 top-4 bottom-4 w-6 bg-gray-800 rounded-full shadow-lg flex flex-col items-center justify-between py-4 z-20">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black text-white -rotate-90">CATHODE (-)</span>
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          </div>
+          <div className="absolute right-4 top-4 bottom-4 w-6 bg-gray-800 rounded-full shadow-lg flex flex-col items-center justify-between py-4 z-20">
+            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black text-white rotate-90">ANODE (+)</span>
+            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+          </div>
+
+          {/* Ions */}
+          <div className="relative w-full h-full">
+            {[...data.cations, ...data.anions].map((ion, i) => {
+              const isTargeted = ion.target !== 'none';
+              return (
+                <motion.div
+                  key={`${ion.target}-${i}`}
+                  initial={{ x: 100 + (i % 3) * 40, y: 40 + Math.floor(i / 3) * 40 }}
+                  animate={isSimulating && isTargeted ? {
+                    x: ion.target === 'cathode' ? 20 : 260,
+                    opacity: [1, 1, 0]
+                  } : {
+                    x: [null, 100 + Math.random() * 80, 100 + Math.random() * 80],
+                    y: [null, 40 + Math.random() * 60, 40 + Math.random() * 60]
+                  }}
+                  transition={{ 
+                    duration: isSimulating && isTargeted ? 2 : 4, 
+                    repeat: isSimulating && isTargeted ? 0 : Infinity,
+                    repeatType: "reverse"
+                  }}
+                  className={`absolute w-10 h-10 rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-md border-2 border-white/20 ${ion.color}`}
+                >
+                  {ion.label}
+                </motion.div>
+              );
+            })}
+            
+            {/* Products */}
+            <AnimatePresence>
+              {isSimulating && (
+                <>
+                  {/* Cathode Product */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.5 }}
+                    className="absolute left-10 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
+                  >
+                    {data.cathodeProduct.type === 'solid' ? (
+                      <div className={`w-8 h-16 rounded-lg shadow-inner border-2 border-white/30 ${data.cathodeProduct.color}`} />
+                    ) : (
+                      <div className="flex flex-wrap w-8 gap-1 justify-center">
+                        {[...Array(6)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ y: [-10, -100], opacity: [0, 1, 0], scale: [0.5, 1.2, 0.8] }}
+                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                            className={`w-3 h-3 rounded-full border border-white/50 ${data.cathodeProduct.color}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-[10px] font-black text-gray-800 bg-white/80 px-2 py-0.5 rounded-full border border-gray-100">{data.cathodeProduct.label}</span>
+                  </motion.div>
+
+                  {/* Anode Product */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.5 }}
+                    className="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
+                  >
+                    {data.anodeProduct.type === 'solid' ? (
+                      <div className={`w-8 h-16 rounded-lg shadow-inner border-2 border-white/30 ${data.anodeProduct.color}`} />
+                    ) : (
+                      <div className="flex flex-wrap w-8 gap-1 justify-center">
+                        {[...Array(6)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ y: [-10, -100], opacity: [0, 1, 0], scale: [0.5, 1.2, 0.8] }}
+                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                            className={`w-3 h-3 rounded-full border border-white/50 ${data.anodeProduct.color}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-[10px] font-black text-gray-800 bg-white/80 px-2 py-0.5 rounded-full border border-gray-100">{data.anodeProduct.label}</span>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setIsSimulating(!isSimulating)}
+          className={`w-full py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all
+            ${isSimulating ? 'bg-rose-500 text-white shadow-[0_4px_0_0_#be123c]' : 'bg-emerald-500 text-white shadow-[0_4px_0_0_#047857]'}
+            active:translate-y-1 active:shadow-none
+          `}
+        >
+          {isSimulating ? 'Reset Simulation' : 'Start Electrolysis'}
+        </button>
+      </div>
+    );
+  };
+
   const ElectrolyteDrawing = ({ state }: { state: 'solid' | 'molten' | 'aqueous' }) => {
     const ions = [...Array(12)].map((_, i) => ({
       id: i,
       type: i % 2 === 0 ? 'cation' : 'anion',
       label: i % 2 === 0 ? 'M⁺' : 'X⁻',
-      color: i % 2 === 0 ? 'bg-blue-500' : 'bg-rose-500'
+      color: i % 2 === 0 ? 'bg-blue-500' : 'bg-red-500'
     }));
 
     const waterIons = [...Array(8)].map((_, i) => ({
       id: `w-${i}`,
       type: i % 2 === 0 ? 'h' : 'oh',
       label: i % 2 === 0 ? 'H⁺' : 'OH⁻',
-      color: i % 2 === 0 ? 'bg-sky-400' : 'bg-indigo-400'
+      color: i % 2 === 0 ? 'bg-blue-500' : 'bg-red-500'
     }));
 
     return (
-      <div className="relative w-full h-40 bg-gray-50 rounded-2xl overflow-hidden border-2 border-gray-100 p-4">
+      <div className="relative w-full h-56 bg-gray-50 rounded-3xl overflow-hidden border-2 border-gray-100 p-4">
         {state === 'aqueous' && (
           <motion.div 
             initial={{ opacity: 0 }}
@@ -1138,64 +1317,65 @@ export default function App() {
           />
         )}
         
-        <div className="relative z-10 w-full h-full flex items-center justify-center">
+        {/* Electrodes */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gray-800 z-20 flex flex-col items-center justify-center gap-4 shadow-lg">
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          <span className="text-[10px] font-black text-white -rotate-90 whitespace-nowrap tracking-widest">CATHODE (-)</span>
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+        </div>
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gray-800 z-20 flex flex-col items-center justify-center gap-4 shadow-lg">
+          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+          <span className="text-[10px] font-black text-white rotate-90 whitespace-nowrap tracking-widest">ANODE (+)</span>
+          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+        </div>
+        
+        <div className="relative z-10 w-full h-full flex items-center justify-center px-10">
           {state === 'solid' ? (
-            <div className="grid grid-cols-4 grid-rows-3 gap-1">
-              {ions.map((ion) => (
-                <motion.div
-                  key={ion.id}
-                  animate={{ x: [0, 1, -1, 0], y: [0, -1, 1, 0] }}
-                  transition={{ duration: 0.2, repeat: Infinity }}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-sm ${ion.color}`}
-                >
-                  {ion.type === 'cation' ? '+' : '-'}
-                </motion.div>
-              ))}
+            <div className="grid grid-cols-4 grid-rows-3 gap-2">
+              {[...Array(12)].map((_, i) => {
+                const row = Math.floor(i / 4);
+                const col = i % 4;
+                const isCation = (row + col) % 2 === 0;
+                return (
+                  <motion.div
+                    key={i}
+                    animate={{ x: [0, 1, -1, 0], y: [0, -1, 1, 0] }}
+                    transition={{ duration: 0.3, repeat: Infinity, delay: i * 0.05 }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black text-white shadow-md border-2 border-white/20 ${isCation ? 'bg-blue-500' : 'bg-red-500'}`}
+                  >
+                    {isCation ? '+' : '-'}
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className="relative w-full h-full">
               {ions.map((ion, i) => (
                 <motion.div
                   key={ion.id}
-                  initial={{ 
-                    x: 100 + (i % 4) * 35, 
-                    y: 20 + Math.floor(i / 4) * 35 
-                  }}
+                  initial={{ x: 40 + Math.random() * 200, y: 20 + Math.random() * 140 }}
                   animate={{ 
-                    x: [Math.random() * 250, Math.random() * 250], 
-                    y: [Math.random() * 100, Math.random() * 100],
-                    rotate: [0, 360]
+                    x: ion.type === 'cation' ? [null, 10, 40 + Math.random() * 200] : [null, 280, 40 + Math.random() * 200],
+                    opacity: [1, 1, 0.5, 1]
                   }}
-                  transition={{ 
-                    duration: state === 'molten' ? 2 : 4, 
-                    repeat: Infinity, 
-                    repeatType: "reverse",
-                    ease: "easeInOut"
-                  }}
-                  className={`absolute w-8 h-8 rounded-full flex flex-col items-center justify-center shadow-md ${ion.color}`}
+                  transition={{ duration: state === 'molten' ? 3 : 5, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
+                  className={`absolute w-10 h-10 rounded-full flex flex-col items-center justify-center shadow-md border-2 border-white/20 ${ion.color}`}
                 >
                   <span className="text-[10px] font-black text-white leading-none">{ion.label}</span>
                 </motion.div>
               ))}
-              
               {state === 'aqueous' && waterIons.map((ion, i) => (
                 <motion.div
                   key={ion.id}
-                  initial={{ opacity: 0 }}
+                  initial={{ x: 40 + Math.random() * 200, y: 20 + Math.random() * 140 }}
                   animate={{ 
-                    opacity: 1,
-                    x: [Math.random() * 250, Math.random() * 250], 
-                    y: [Math.random() * 100, Math.random() * 100],
+                    x: ion.type === 'h' ? [null, 10, 40 + Math.random() * 200] : [null, 280, 40 + Math.random() * 200],
+                    opacity: [1, 1, 0.5, 1]
                   }}
-                  transition={{ 
-                    duration: 5, 
-                    repeat: Infinity, 
-                    repeatType: "reverse",
-                    ease: "linear"
-                  }}
-                  className={`absolute w-6 h-6 rounded-full flex items-center justify-center shadow-sm border border-white/50 ${ion.color}`}
+                  transition={{ duration: 6, repeat: Infinity, ease: "linear", delay: i * 0.5 }}
+                  className={`absolute w-8 h-8 rounded-full flex items-center justify-center shadow-sm border border-white/50 ${ion.color}`}
                 >
-                  <span className="text-[7px] font-black text-white leading-none">{ion.label}</span>
+                  <span className="text-[8px] font-black text-white leading-none">{ion.label}</span>
                 </motion.div>
               ))}
             </div>
@@ -2583,6 +2763,24 @@ export default function App() {
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
     const [hoveredMoleEq, setHoveredMoleEq] = useState<number | null>(null);
+    const [hoveredMetalType, setHoveredMetalType] = useState<'transition' | 'main-group' | null>(null);
+    const [hoveredOxideElement, setHoveredOxideElement] = useState<number | null>(null);
+    const [hoveredOxideType, setHoveredOxideType] = useState<string | null>(null);
+    const [beaker1Add, setBeaker1Add] = useState<'none' | 'acid' | 'base'>('none');
+    const [beaker2Add, setBeaker2Add] = useState<'none' | 'acid' | 'base'>('none');
+    const [beaker3Add, setBeaker3Add] = useState<'none' | 'acid' | 'base'>('none');
+    const [revealedOxidation, setRevealedOxidation] = useState<number[]>([]);
+    const [alExtractionActive, setAlExtractionActive] = useState(false);
+    const [feExtractionActive, setFeExtractionActive] = useState(false);
+    const [hoveredExtractionMetal, setHoveredExtractionMetal] = useState<string | null>(null);
+    const [rateReaction, setRateReaction] = useState<'Mg' | 'CaCO3' | 'Haber'>('Mg');
+    const [rateParams, setRateParams] = useState({
+      concentration: 2,
+      temperature: 2,
+      surfaceArea: 2,
+      pressure: 2,
+      catalyst: false
+    });
     const [hoveredPhRegion, setHoveredPhRegion] = useState<'acid' | 'base' | null>(null);
     const [acidStrengthActive, setAcidStrengthActive] = useState(false);
     const [mgActiveStrong, setMgActiveStrong] = useState(false);
@@ -2594,6 +2792,7 @@ export default function App() {
     const [selectedBondingSubstance, setSelectedBondingSubstance] = useState<string | null>(null);
     const [selectedSolubilitySalt, setSelectedSolubilitySalt] = useState<string | null>(null);
     const [electrolyteState, setElectrolyteState] = useState<'solid' | 'molten' | 'aqueous'>('solid');
+    const [selectedElectrolyte, setSelectedElectrolyte] = useState<string | null>(null);
 
     const saltPrepData = {
       'NaCl': { soluble: true, group1: true, method: 'Titration' },
@@ -3836,35 +4035,39 @@ export default function App() {
                 </div>
                 <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Electrolytes</h2>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setElectrolyteState('solid')}
-                  className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
-                    ${electrolyteState === 'solid' ? 'bg-gray-800 text-white shadow-[0_4px_0_0_#000000]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}
-                  `}
-                >
-                  Solid
-                </button>
-                <button
-                  onClick={() => setElectrolyteState('molten')}
-                  className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
-                    ${electrolyteState === 'molten' ? 'bg-orange-500 text-white shadow-[0_4px_0_0_#c2410c]' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'}
-                  `}
-                >
-                  Molten
-                </button>
-                <button
-                  onClick={() => setElectrolyteState('aqueous')}
-                  className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
-                    ${electrolyteState === 'aqueous' ? 'bg-blue-500 text-white shadow-[0_4px_0_0_#1d4ed8]' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}
-                  `}
-                >
-                  Aqueous
-                </button>
-              </div>
             </div>
 
             <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                <button
+                  onClick={() => { setElectrolyteState('solid'); setSelectedElectrolyte(null); }}
+                  className={`p-4 rounded-3xl border-2 transition-all text-left group
+                    ${electrolyteState === 'solid' ? 'bg-gray-800 border-gray-900 shadow-[0_8px_0_0_#000000]' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}
+                  `}
+                >
+                  <p className={`text-sm font-black uppercase tracking-tight mb-1 ${electrolyteState === 'solid' ? 'text-white' : 'text-gray-800'}`}>Solid</p>
+                  <p className={`text-[10px] font-bold leading-tight ${electrolyteState === 'solid' ? 'text-gray-400' : 'text-gray-500'}`}>Ions in fixed lattice. No movement.</p>
+                </button>
+                <button
+                  onClick={() => { setElectrolyteState('molten'); setSelectedElectrolyte(null); }}
+                  className={`p-4 rounded-3xl border-2 transition-all text-left group
+                    ${electrolyteState === 'molten' ? 'bg-orange-500 border-orange-600 shadow-[0_8px_0_0_#c2410c]' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}
+                  `}
+                >
+                  <p className={`text-sm font-black uppercase tracking-tight mb-1 ${electrolyteState === 'molten' ? 'text-white' : 'text-gray-800'}`}>Molten</p>
+                  <p className={`text-[10px] font-bold leading-tight ${electrolyteState === 'molten' ? 'text-orange-100' : 'text-gray-500'}`}>Melted by heat. Ions are free to move.</p>
+                </button>
+                <button
+                  onClick={() => { setElectrolyteState('aqueous'); setSelectedElectrolyte(null); }}
+                  className={`p-4 rounded-3xl border-2 transition-all text-left group
+                    ${electrolyteState === 'aqueous' ? 'bg-blue-500 border-blue-600 shadow-[0_8px_0_0_#1d4ed8]' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}
+                  `}
+                >
+                  <p className={`text-sm font-black uppercase tracking-tight mb-1 ${electrolyteState === 'aqueous' ? 'text-white' : 'text-gray-800'}`}>Aqueous</p>
+                  <p className={`text-[10px] font-bold leading-tight ${electrolyteState === 'aqueous' ? 'text-blue-100' : 'text-gray-500'}`}>Dissolved in water. Ions are mobile.</p>
+                </button>
+              </div>
+
               <ElectrolyteDrawing state={electrolyteState} />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3889,22 +4092,130 @@ export default function App() {
                       <span className="text-xs font-bold text-gray-700">M⁺ (Cation)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-rose-500 rounded-full" />
+                      <div className="w-3 h-3 bg-red-500 rounded-full" />
                       <span className="text-xs font-bold text-gray-700">X⁻ (Anion)</span>
                     </div>
                     {electrolyteState === 'aqueous' && (
                       <>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-sky-400 rounded-full" />
+                          <div className="w-3 h-3 bg-blue-500 rounded-full" />
                           <span className="text-xs font-bold text-gray-700">H⁺ (from water)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-indigo-400 rounded-full" />
+                          <div className="w-3 h-3 bg-red-500 rounded-full" />
                           <span className="text-xs font-bold text-gray-700">OH⁻ (from water)</span>
                         </div>
                       </>
                     )}
                   </div>
+                </div>
+              )}
+
+              {electrolyteState !== 'solid' && (
+                <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Select Electrolyte</p>
+                  <div className="flex flex-wrap gap-2">
+                    {electrolyteState === 'molten' ? (
+                      [
+                        { id: 'Al2O3', label: <span>Al<sub>2</sub>O<sub>3</sub></span> },
+                        { id: 'NaCl', label: 'NaCl' },
+                        { id: 'PbBr2', label: <span>PbBr<sub>2</sub></span> }
+                      ].map(e => (
+                        <button
+                          key={e.id}
+                          onClick={() => setSelectedElectrolyte(e.id)}
+                          className={`px-3 py-1.5 rounded-xl font-black text-[10px] uppercase transition-all border-2
+                            ${selectedElectrolyte === e.id ? 'bg-orange-500 text-white border-orange-600 shadow-md' : 'bg-white text-gray-600 border-gray-100 hover:border-orange-200'}
+                          `}
+                        >
+                          {e.label}
+                        </button>
+                      ))
+                    ) : (
+                      [
+                        { id: 'conc NaCl', label: 'Conc. NaCl' },
+                        { id: 'dilute NaCl', label: 'Dilute NaCl' },
+                        { id: 'dilute H2SO4', label: <span>Dilute H<sub>2</sub>SO<sub>4</sub></span> },
+                        { id: 'dilute CuSO4', label: <span>Dilute CuSO<sub>4</sub></span> }
+                      ].map(e => (
+                        <button
+                          key={e.id}
+                          onClick={() => setSelectedElectrolyte(e.id)}
+                          className={`px-3 py-1.5 rounded-xl font-black text-[10px] uppercase transition-all border-2
+                            ${selectedElectrolyte === e.id ? 'bg-blue-500 text-white border-blue-600 shadow-md' : 'bg-white text-gray-600 border-gray-100 hover:border-blue-200'}
+                          `}
+                        >
+                          {e.label}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {electrolyteState !== 'solid' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={`bg-white p-5 rounded-3xl border-2 transition-all shadow-sm ${selectedElectrolyte ? 'border-blue-200 ring-2 ring-blue-100' : 'border-gray-100'}`}>
+                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3">At Cathode (-)</p>
+                    {electrolyteState === 'molten' ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-gray-700">
+                          {selectedElectrolyte === 'Al2O3' ? <span>Al<sup>3+</sup> + 3e<sup>-</sup> → Al</span> :
+                           selectedElectrolyte === 'NaCl' ? <span>Na<sup>+</sup> + e<sup>-</sup> → Na</span> :
+                           selectedElectrolyte === 'PbBr2' ? <span>Pb<sup>2+</sup> + 2e<sup>-</sup> → Pb</span> :
+                           <span>M<sup>n+</sup> + ne<sup>-</sup> → M</span>}
+                        </p>
+                        <p className="text-[9px] font-medium text-gray-400 italic">Reduction of metal cation</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className={`p-3 rounded-2xl border transition-all ${selectedElectrolyte && ['conc NaCl', 'dilute NaCl', 'dilute H2SO4'].includes(selectedElectrolyte) ? 'bg-blue-100 border-blue-300 shadow-inner' : 'bg-blue-50 border-blue-100'} ${selectedElectrolyte === 'dilute CuSO4' ? 'opacity-50' : ''}`}>
+                          <p className="text-[9px] font-black text-blue-500 uppercase mb-1">If M &gt; H (Reactive)</p>
+                          <p className="text-xs font-bold text-gray-700">2H<sup>+</sup> + 2e<sup>-</sup> → H<sub>2</sub></p>
+                        </div>
+                        <div className={`p-3 rounded-2xl border transition-all ${selectedElectrolyte === 'dilute CuSO4' ? 'bg-blue-100 border-blue-300 shadow-inner' : 'bg-gray-50 border-gray-100'} ${selectedElectrolyte && selectedElectrolyte !== 'dilute CuSO4' ? 'opacity-50' : ''}`}>
+                          <p className="text-[9px] font-black text-gray-400 uppercase mb-1">If M &lt; H (Unreactive)</p>
+                          <p className="text-xs font-bold text-gray-700">
+                            {selectedElectrolyte === 'dilute CuSO4' ? <span>Cu<sup>2+</sup> + 2e<sup>-</sup> → Cu</span> : <span>M<sup>n+</sup> + ne<sup>-</sup> → M</span>}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className={`bg-white p-5 rounded-3xl border-2 transition-all shadow-sm ${selectedElectrolyte ? 'border-red-200 ring-2 ring-red-100' : 'border-gray-100'}`}>
+                    <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-3">At Anode (+)</p>
+                    {electrolyteState === 'molten' ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-gray-700">
+                          {selectedElectrolyte === 'Al2O3' ? <span>2O<sup>2-</sup> → O<sub>2</sub> + 4e<sup>-</sup></span> :
+                           selectedElectrolyte === 'NaCl' ? <span>2Cl<sup>-</sup> → Cl<sub>2</sub> + 2e<sup>-</sup></span> :
+                           selectedElectrolyte === 'PbBr2' ? <span>2Br<sup>-</sup> → Br<sub>2</sub> + 2e<sup>-</sup></span> :
+                           <span>2X<sup>n-</sup> → X<sub>2</sub> + 2ne<sup>-</sup></span>}
+                        </p>
+                        <p className="text-[9px] font-medium text-gray-400 italic">Oxidation of non-metal anion</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className={`p-3 rounded-2xl border transition-all ${selectedElectrolyte === 'conc NaCl' ? 'bg-red-100 border-red-300 shadow-inner' : 'bg-red-50 border-red-100'} ${selectedElectrolyte && selectedElectrolyte !== 'conc NaCl' ? 'opacity-50' : ''}`}>
+                          <p className="text-[9px] font-black text-red-500 uppercase mb-1">If X⁻ concentrated</p>
+                          <p className="text-xs font-bold text-gray-700">
+                            {selectedElectrolyte === 'conc NaCl' ? <span>2Cl<sup>-</sup> → Cl<sub>2</sub> + 2e<sup>-</sup></span> : <span>2X<sup>n-</sup> → X<sub>2</sub> + 2ne<sup>-</sup></span>}
+                          </p>
+                        </div>
+                        <div className={`p-3 rounded-2xl border transition-all ${['dilute NaCl', 'dilute H2SO4', 'dilute CuSO4'].includes(selectedElectrolyte || '') ? 'bg-red-100 border-red-300 shadow-inner' : 'bg-gray-50 border-gray-100'} ${selectedElectrolyte === 'conc NaCl' ? 'opacity-50' : ''}`}>
+                          <p className="text-[9px] font-black text-gray-400 uppercase mb-1">If X⁻ diluted / absent</p>
+                          <p className="text-xs font-bold text-gray-700">4OH<sup>-</sup> → O<sub>2</sub> + 2H<sub>2</sub>O + 4e<sup>-</sup></p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {electrolyteState !== 'solid' && selectedElectrolyte && (
+                <div className="mt-8">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">Electrolysis Simulator</p>
+                  <ElectrolysisSimulator electrolyte={selectedElectrolyte} state={electrolyteState} />
                 </div>
               )}
             </div>
@@ -4248,6 +4559,1113 @@ export default function App() {
             </div>
 
             <CommonChemicals />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-amber-100 p-3 rounded-2xl text-amber-600">
+                <LayoutGrid size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Transition vs Main Group Metals</h2>
+            </div>
+
+            <div className="space-y-8">
+              {/* Periodic Table Section */}
+              <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 text-center">Interactive Periodic Table</p>
+                
+                <div 
+                  className="grid gap-1 max-w-3xl mx-auto overflow-x-auto no-scrollbar pb-4"
+                  style={{ gridTemplateColumns: 'repeat(18, minmax(0, 1fr))' }}
+                >
+                  {/* Simplified Periodic Table Grid */}
+                  {Array.from({ length: 7 * 18 }).map((_, i) => {
+                    const row = Math.floor(i / 18) + 1;
+                    const col = (i % 18) + 1;
+                    
+                    // Define which cells are metals
+                    const isMainGroup = (
+                      (col === 1 && row >= 2) || // Group 1 (Li-Fr)
+                      (col === 2 && row >= 2) || // Group 2 (Be-Ra)
+                      (col === 13 && row >= 3) || // Al, Ga, In, Tl
+                      (col === 14 && row >= 5) || // Sn, Pb
+                      (col === 15 && row >= 6) || // Bi
+                      (col === 16 && row >= 6)    // Po
+                    );
+                    
+                    const isTransition = (col >= 3 && col <= 12 && row >= 4 && row <= 6);
+                    
+                    if (isMainGroup || isTransition) {
+                      return (
+                        <motion.div
+                          key={i}
+                          onMouseEnter={() => setHoveredMetalType(isTransition ? 'transition' : 'main-group')}
+                          onMouseLeave={() => setHoveredMetalType(null)}
+                          whileHover={{ scale: 1.2, zIndex: 10 }}
+                          className={`aspect-square rounded-sm border transition-all cursor-help
+                            ${isTransition ? 'bg-emerald-500 border-emerald-600' : 'bg-orange-500 border-orange-600'}
+                            ${hoveredMetalType && (isTransition ? hoveredMetalType !== 'transition' : hoveredMetalType !== 'main-group') ? 'opacity-20 grayscale' : 'opacity-100'}
+                          `}
+                        />
+                      );
+                    }
+                    
+                    // Non-metals or empty space
+                    const isNonMetal = (
+                      (col === 1 && row === 1) || // H
+                      (col === 18) || // Noble gases
+                      (col >= 13 && row <= 5) // B, C, N, O, F, etc.
+                    );
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className={`aspect-square rounded-sm ${isNonMetal ? 'bg-gray-200/50' : ''}`} 
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="flex justify-center gap-8 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-orange-500 rounded-sm" />
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Main Group Metals</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-emerald-500 rounded-sm" />
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Transition Metals</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comparison Table */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-white border-2 border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+                  <div className="grid grid-cols-3 bg-gray-50 border-b-2 border-gray-100 p-4">
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Property</div>
+                    <div className="text-[10px] font-black text-orange-500 uppercase tracking-widest text-center">Main Group</div>
+                    <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest text-center">Transition</div>
+                  </div>
+                  
+                  {[
+                    { prop: "M.p. / B.p.", main: "Lower", trans: "Higher", type: "Physical" },
+                    { prop: "Density", main: "Lower", trans: "Higher", type: "Physical" },
+                    { prop: "Hardness", main: "Lower", trans: "Higher", type: "Physical" },
+                    { prop: "Ion Color", main: "Colorless", trans: "Colored", type: "Physical" },
+                    { prop: "Compound Color", main: "White", trans: "Colored", type: "Physical" },
+                    { prop: "Catalysis", main: "No", trans: "Yes", type: "Chemical" },
+                    { prop: "Oxidation States", main: "Fixed", trans: "Variable", type: "Chemical" }
+                  ].map((row, idx) => (
+                    <motion.div 
+                      key={row.prop}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.8 + idx * 0.05 }}
+                      className={`grid grid-cols-3 p-4 items-center border-b border-gray-50 last:border-0 transition-colors
+                        ${hoveredMetalType === 'main-group' ? 'bg-orange-50/30' : hoveredMetalType === 'transition' ? 'bg-emerald-50/30' : ''}
+                      `}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-tighter mb-0.5">{row.type}</span>
+                        <span className="text-xs font-bold text-gray-700">{row.prop}</span>
+                      </div>
+                      <div className={`text-center text-sm font-black transition-all ${hoveredMetalType === 'main-group' ? 'text-orange-600 scale-110' : 'text-gray-400'}`}>
+                        {row.main}
+                      </div>
+                      <div className={`text-center text-sm font-black transition-all ${hoveredMetalType === 'transition' ? 'text-emerald-600 scale-110' : 'text-gray-400'}`}>
+                        {row.trans}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Interactive Overlay Info */}
+              <AnimatePresence mode="wait">
+                {hoveredMetalType && (
+                  <motion.div
+                    key={hoveredMetalType}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`p-6 rounded-3xl border-2 shadow-sm ${hoveredMetalType === 'transition' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-orange-50 border-orange-200 text-orange-900'}`}
+                  >
+                    <h4 className="font-black uppercase tracking-widest text-sm mb-2">
+                      {hoveredMetalType === 'transition' ? 'Transition Metals' : 'Main Group Metals'}
+                    </h4>
+                    <p className="text-xs font-medium leading-relaxed">
+                      {hoveredMetalType === 'transition' 
+                        ? "Found in the middle block of the periodic table. They have high melting points, high densities, and form colored compounds. They are also excellent catalysts."
+                        : "Found in Groups 1, 2, and the right side of the table. They typically have lower melting points and densities compared to transition metals, and form white compounds."}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-sky-100 p-3 rounded-2xl text-sky-600">
+                <Droplets size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Types of Oxide</h2>
+            </div>
+
+            <div className="space-y-10">
+              {/* Classification Legend */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { type: 'Basic', color: 'bg-blue-500', text: 'Metal oxides (mostly)', desc: <span>MgO, CuO</span> },
+                  { type: 'Acidic', color: 'bg-red-500', text: 'Non-metal oxides', desc: <span>CO<sub>2</sub>, SO<sub>2</sub></span> },
+                  { type: 'Amphoteric', color: 'bg-purple-500', text: 'Al and Zn oxides', desc: <span>Al<sub>2</sub>O<sub>3</sub>, ZnO</span> },
+                  { type: 'Neutral', color: 'bg-emerald-500', text: 'Few non-metals', desc: <span>H<sub>2</sub>O, CO, N<sub>2</sub>O</span> }
+                ].map((item) => (
+                  <motion.div 
+                    key={item.type} 
+                    onMouseEnter={() => setHoveredOxideType(item.type)}
+                    onMouseLeave={() => setHoveredOxideType(null)}
+                    whileHover={{ scale: 1.02 }}
+                    className={`bg-gray-50 p-5 rounded-3xl border-2 transition-all cursor-help
+                      ${hoveredOxideType === item.type ? 'border-gray-300 shadow-md bg-white' : 'border-gray-100'}
+                    `}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`w-4 h-4 rounded-full ${item.color} shadow-sm`} />
+                      <span className="text-xs font-black uppercase tracking-widest text-gray-800">{item.type}</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-500 leading-tight">{item.text}</p>
+                    <div className="text-[9px] font-black text-gray-400 mt-2 bg-white/50 px-2 py-1 rounded-lg inline-block">{item.desc}</div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Periodic Table for Oxides */}
+              <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 text-center">Oxide Classification Table</p>
+                <div 
+                  className="grid gap-1 max-w-3xl mx-auto overflow-x-auto no-scrollbar pb-4"
+                  style={{ gridTemplateColumns: 'repeat(18, minmax(0, 1fr))' }}
+                >
+                  {Array.from({ length: 7 * 18 }).map((_, i) => {
+                    const row = Math.floor(i / 18) + 1;
+                    const col = (i % 18) + 1;
+                    
+                    const isAmphoteric = (col === 13 && row === 3) || (col === 12 && row === 4); // Al, Zn
+                    const isNonMetal = (col === 1 && row === 1) || (col >= 14 && row <= 5) || (col >= 15 && row <= 6) || (col === 13 && row === 2) || (col === 17);
+                    const isMetal = (col <= 12 && row >= 2) || (col === 13 && row >= 4) || (col === 14 && row >= 5);
+                    const isNoble = col === 18;
+
+                    let colorClass = "bg-gray-200/30";
+                    let type = "";
+
+                    if (isAmphoteric) {
+                      colorClass = "bg-purple-500 border-purple-600";
+                      type = "Amphoteric";
+                    } else if (isNonMetal && !isNoble) {
+                      if ((col === 1 && row === 1) || (col === 14 && row === 2) || (col === 15 && row === 2)) {
+                        colorClass = "bg-emerald-500 border-emerald-600"; // H, C, N (Neutral examples)
+                        type = "Neutral";
+                      } else {
+                        colorClass = "bg-red-500 border-red-600";
+                        type = "Acidic";
+                      }
+                    } else if (isMetal && !isAmphoteric) {
+                      colorClass = "bg-blue-500 border-blue-600";
+                      type = "Basic";
+                    }
+
+                    if (isNoble || (row === 1 && col > 1 && col < 18)) return <div key={i} className="aspect-square" />;
+
+                    // Determine if this element should be highlighted based on hoveredOxideType
+                    const isHighlighted = !hoveredOxideType || 
+                      (hoveredOxideType === 'Basic' && type === 'Basic') ||
+                      (hoveredOxideType === 'Acidic' && type === 'Acidic') ||
+                      (hoveredOxideType === 'Amphoteric' && type === 'Amphoteric') ||
+                      (hoveredOxideType === 'Neutral' && type === 'Neutral');
+
+                    return (
+                      <motion.div
+                        key={i}
+                        onMouseEnter={() => setHoveredOxideElement(i)}
+                        onMouseLeave={() => setHoveredOxideElement(null)}
+                        whileHover={{ scale: 1.2, zIndex: 10 }}
+                        className={`aspect-square rounded-sm border transition-all cursor-help ${colorClass}
+                          ${!isHighlighted ? 'opacity-10 grayscale' : 'opacity-100'}
+                          ${hoveredOxideElement !== null && hoveredOxideElement !== i ? 'opacity-30' : ''}
+                        `}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="mt-4 text-center">
+                  <AnimatePresence mode="wait">
+                    {hoveredOxideElement !== null ? (
+                      <motion.p 
+                        key="oxide-info"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="text-[10px] font-black text-gray-600 uppercase tracking-widest"
+                      >
+                        This element forms a 
+                        <span className="mx-1 text-gray-800">
+                          {(() => {
+                            const row = Math.floor(hoveredOxideElement / 18) + 1;
+                            const col = (hoveredOxideElement % 18) + 1;
+                            if ((col === 13 && row === 3) || (col === 12 && row === 4)) return "Amphoteric";
+                            if ((col === 1 && row === 1) || (col === 14 && row === 2) || (col === 15 && row === 2)) return "Neutral or Acidic";
+                            if ((col >= 14 && row <= 5) || (col >= 15 && row <= 6) || (col === 13 && row === 2) || (col === 17)) return "Acidic";
+                            return "Basic";
+                          })()}
+                        </span>
+                        oxide
+                      </motion.p>
+                    ) : (
+                      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Hover elements to see oxide type</p>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Reaction Table */}
+              <div className="bg-white border-2 border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+                <div className="grid grid-cols-3 bg-gray-50 border-b-2 border-gray-100 p-4">
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Oxide Type</div>
+                  <div className="text-[10px] font-black text-red-500 uppercase tracking-widest text-center">Reacts with Acid?</div>
+                  <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest text-center">Reacts with Base?</div>
+                </div>
+                {[
+                  { type: 'Basic', acid: 'Yes', base: 'No', color: 'text-blue-600' },
+                  { type: 'Acidic', acid: 'No', base: 'Yes', color: 'text-red-600' },
+                  { type: 'Amphoteric', acid: 'Yes', base: 'Yes', color: 'text-purple-600' },
+                  { type: 'Neutral', acid: 'No', base: 'No', color: 'text-emerald-600' }
+                ].map((row) => (
+                  <div key={row.type} className="grid grid-cols-3 p-4 border-b border-gray-50 last:border-0">
+                    <div className={`text-xs font-black uppercase tracking-widest ${row.color}`}>{row.type}</div>
+                    <div className={`text-center text-xs font-bold ${row.acid === 'Yes' ? 'text-emerald-500' : 'text-rose-400'}`}>{row.acid}</div>
+                    <div className={`text-center text-xs font-bold ${row.base === 'Yes' ? 'text-emerald-500' : 'text-rose-400'}`}>{row.base}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Beaker Simulation */}
+              <div className="space-y-6">
+                <div className="flex justify-center gap-4">
+                  <button 
+                    onClick={() => { setBeaker1Add('none'); setBeaker2Add('none'); setBeaker3Add('none'); }}
+                    className="px-4 py-2 rounded-xl bg-gray-800 text-white font-black text-[10px] uppercase tracking-widest shadow-[0_4px_0_0_#000000] active:shadow-none active:translate-y-1 transition-all"
+                  >
+                    Reset All
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {/* Beaker 1: P4O10 (Acidic) */}
+                  <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 flex flex-col items-center">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-4">P<sub>4</sub>O<sub>10</sub> (Acidic)</p>
+                    <div className="relative w-24 h-32 border-x-2 border-b-2 border-gray-300 rounded-b-2xl bg-white/50 overflow-hidden mb-4 shadow-inner">
+                      <motion.div 
+                        animate={{ 
+                          height: beaker1Add !== 'none' ? '75%' : '45%',
+                          backgroundColor: beaker1Add === 'acid' ? '#fee2e2' : beaker1Add === 'base' ? '#dbeafe' : '#f3f4f6'
+                        }}
+                        className="absolute bottom-0 w-full transition-colors duration-500"
+                      />
+                      <AnimatePresence>
+                        {beaker1Add !== 'base' && (
+                          <motion.div 
+                            initial={{ scale: 1, opacity: 1 }}
+                            animate={{ 
+                              scale: beaker1Add === 'base' ? 0 : 1,
+                              opacity: beaker1Add === 'base' ? 0 : 1
+                            }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-10 bg-gray-200 rounded-lg shadow-sm border border-gray-300 z-10"
+                          />
+                        )}
+                      </AnimatePresence>
+                      {/* Liquid surface line */}
+                      <div className="absolute w-full h-[2px] bg-white/30 bottom-[45%] z-0" />
+                    </div>
+                    <div className="flex flex-col gap-2 w-full">
+                      <button 
+                        onClick={() => setBeaker1Add('acid')} 
+                        className="flex items-center justify-center gap-2 py-2 rounded-xl bg-red-500 text-white font-black text-[9px] uppercase tracking-widest shadow-[0_3px_0_0_#b91c1c] active:shadow-none active:translate-y-1 transition-all"
+                      >
+                        <Zap size={10} /> Add Acid
+                      </button>
+                      <button 
+                        onClick={() => setBeaker1Add('base')} 
+                        className="flex items-center justify-center gap-2 py-2 rounded-xl bg-blue-500 text-white font-black text-[9px] uppercase tracking-widest shadow-[0_3px_0_0_#1d4ed8] active:shadow-none active:translate-y-1 transition-all"
+                      >
+                        <Droplets size={10} /> Add Base
+                      </button>
+                    </div>
+                    <p className="mt-3 text-[8px] font-black text-gray-400 uppercase text-center">
+                      {beaker1Add === 'none' ? "Experiment" : beaker1Add === 'acid' ? "No Reaction" : "Dissolves!"}
+                    </p>
+                  </div>
+
+                  {/* Beaker 2: MgO (Basic) */}
+                  <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 flex flex-col items-center">
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">MgO (Basic)</p>
+                    <div className="relative w-24 h-32 border-x-2 border-b-2 border-gray-300 rounded-b-2xl bg-white/50 overflow-hidden mb-4 shadow-inner">
+                      <motion.div 
+                        animate={{ 
+                          height: beaker2Add !== 'none' ? '75%' : '45%',
+                          backgroundColor: beaker2Add === 'acid' ? '#fee2e2' : beaker2Add === 'base' ? '#dbeafe' : '#f3f4f6'
+                        }}
+                        className="absolute bottom-0 w-full transition-colors duration-500"
+                      />
+                      <AnimatePresence>
+                        {beaker2Add !== 'acid' && (
+                          <motion.div 
+                            initial={{ scale: 1, opacity: 1 }}
+                            animate={{ 
+                              scale: beaker2Add === 'acid' ? 0 : 1,
+                              opacity: beaker2Add === 'acid' ? 0 : 1
+                            }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-10 bg-gray-200 rounded-lg shadow-sm border border-gray-300 z-10"
+                          />
+                        )}
+                      </AnimatePresence>
+                      <div className="absolute w-full h-[2px] bg-white/30 bottom-[45%] z-0" />
+                    </div>
+                    <div className="flex flex-col gap-2 w-full">
+                      <button 
+                        onClick={() => setBeaker2Add('acid')} 
+                        className="flex items-center justify-center gap-2 py-2 rounded-xl bg-red-500 text-white font-black text-[9px] uppercase tracking-widest shadow-[0_3px_0_0_#b91c1c] active:shadow-none active:translate-y-1 transition-all"
+                      >
+                        <Zap size={10} /> Add Acid
+                      </button>
+                      <button 
+                        onClick={() => setBeaker2Add('base')} 
+                        className="flex items-center justify-center gap-2 py-2 rounded-xl bg-blue-500 text-white font-black text-[9px] uppercase tracking-widest shadow-[0_3px_0_0_#1d4ed8] active:shadow-none active:translate-y-1 transition-all"
+                      >
+                        <Droplets size={10} /> Add Base
+                      </button>
+                    </div>
+                    <p className="mt-3 text-[8px] font-black text-gray-400 uppercase text-center">
+                      {beaker2Add === 'none' ? "Experiment" : beaker2Add === 'base' ? "No Reaction" : "Dissolves!"}
+                    </p>
+                  </div>
+
+                  {/* Beaker 3: Al2O3 (Amphoteric) */}
+                  <div className="bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 flex flex-col items-center">
+                    <p className="text-[10px] font-black text-purple-500 uppercase tracking-widest mb-4">Al<sub>2</sub>O<sub>3</sub> (Amphoteric)</p>
+                    <div className="relative w-24 h-32 border-x-2 border-b-2 border-gray-300 rounded-b-2xl bg-white/50 overflow-hidden mb-4 shadow-inner">
+                      <motion.div 
+                        animate={{ 
+                          height: beaker3Add !== 'none' ? '75%' : '45%',
+                          backgroundColor: beaker3Add === 'acid' ? '#fee2e2' : beaker3Add === 'base' ? '#dbeafe' : '#f3f4f6'
+                        }}
+                        className="absolute bottom-0 w-full transition-colors duration-500"
+                      />
+                      <AnimatePresence>
+                        {beaker3Add === 'none' && (
+                          <motion.div 
+                            initial={{ scale: 1, opacity: 1 }}
+                            animate={{ 
+                              scale: beaker3Add !== 'none' ? 0 : 1,
+                              opacity: beaker3Add !== 'none' ? 0 : 1
+                            }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-10 bg-gray-200 rounded-lg shadow-sm border border-gray-300 z-10"
+                          />
+                        )}
+                      </AnimatePresence>
+                      <div className="absolute w-full h-[2px] bg-white/30 bottom-[45%] z-0" />
+                    </div>
+                    <div className="flex flex-col gap-2 w-full">
+                      <button 
+                        onClick={() => setBeaker3Add('acid')} 
+                        className="flex items-center justify-center gap-2 py-2 rounded-xl bg-red-500 text-white font-black text-[9px] uppercase tracking-widest shadow-[0_3px_0_0_#b91c1c] active:shadow-none active:translate-y-1 transition-all"
+                      >
+                        <Zap size={10} /> Add Acid
+                      </button>
+                      <button 
+                        onClick={() => setBeaker3Add('base')} 
+                        className="flex items-center justify-center gap-2 py-2 rounded-xl bg-blue-500 text-white font-black text-[9px] uppercase tracking-widest shadow-[0_3px_0_0_#1d4ed8] active:shadow-none active:translate-y-1 transition-all"
+                      >
+                        <Droplets size={10} /> Add Base
+                      </button>
+                    </div>
+                    <p className="mt-3 text-[8px] font-black text-gray-400 uppercase text-center">
+                      {beaker3Add === 'none' ? "Experiment" : "Dissolves!"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
+                <Hash size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Oxidation Number</h2>
+            </div>
+
+            <div className="space-y-10">
+              {/* Rules Legend */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { rule: 'Rule 1', title: 'Elements', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100', desc: 'Oxidation number = 0' },
+                  { rule: 'Rule 2', title: 'Compounds', color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100', desc: 'Sum of all atoms = 0' },
+                  { rule: 'Rule 3', title: 'Ions', color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100', desc: 'Sum = Ion Charge' }
+                ].map((item) => (
+                  <div key={item.rule} className={`${item.bg} p-5 rounded-3xl border-2 ${item.border}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${item.color}`}>{item.rule}</span>
+                    </div>
+                    <h3 className="text-sm font-black text-gray-800 uppercase mb-1">{item.title}</h3>
+                    <p className="text-[10px] font-bold text-gray-500 leading-tight">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Preferred Values */}
+              <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">Common Oxidation States</p>
+                <div className="flex flex-wrap justify-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-gray-700">H =</span>
+                    <span className="px-2 py-1 bg-white rounded-lg border border-gray-200 text-xs font-black text-emerald-500">+1</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-gray-700">O =</span>
+                    <span className="px-2 py-1 bg-white rounded-lg border border-gray-200 text-xs font-black text-red-500">-2</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-gray-700">Halogens (F, Cl, Br, I) =</span>
+                    <span className="px-2 py-1 bg-white rounded-lg border border-gray-200 text-xs font-black text-purple-500">-1</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Examples */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Click to reveal oxidation number of colored atom</p>
+                  <button 
+                    onClick={() => setRevealedOxidation([])}
+                    className="text-[9px] font-black text-emerald-500 uppercase tracking-widest hover:underline"
+                  >
+                    Reset All
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    // Elements
+                    { id: 1, rule: 1, formula: <span><span className="text-orange-500">O</span><sub>2</sub></span>, ans: "0" },
+                    { id: 2, rule: 1, formula: <span className="text-orange-500">Fe</span>, ans: "0" },
+                    { id: 3, rule: 1, formula: <span><span className="text-orange-500">Cl</span><sub>2</sub></span>, ans: "0" },
+                    { id: 4, rule: 1, formula: <span className="text-orange-500">Na</span>, ans: "0" },
+                    // Compounds
+                    { id: 5, rule: 2, formula: <span><span className="text-emerald-500">C</span>H<sub>4</sub></span>, ans: "-4" },
+                    { id: 6, rule: 2, formula: <span><span className="text-emerald-500">C</span>O<sub>2</sub></span>, ans: "+4" },
+                    { id: 7, rule: 2, formula: <span><span className="text-emerald-500">C</span><sub>2</sub>H<sub>5</sub>OH</span>, ans: "-2" },
+                    { id: 8, rule: 2, formula: <span><span className="text-emerald-500">Si</span>O<sub>2</sub></span>, ans: "+4" },
+                    { id: 9, rule: 2, formula: <span><span className="text-emerald-500">Al</span><sub>2</sub>O<sub>3</sub></span>, ans: "+3" },
+                    { id: 10, rule: 2, formula: <span><span className="text-emerald-500">Fe</span><sub>2</sub>O<sub>3</sub></span>, ans: "+3" },
+                    // Ions
+                    { id: 11, rule: 3, formula: <span><span className="text-blue-500">C</span>O<sub>3</sub><sup>2-</sup></span>, ans: "+4" },
+                    { id: 12, rule: 3, formula: <span><span className="text-blue-500">P</span>O<sub>4</sub><sup>3-</sup></span>, ans: "+5" },
+                    { id: 13, rule: 3, formula: <span><span className="text-blue-500">Mn</span>O<sub>4</sub><sup>-</sup></span>, ans: "+7" },
+                    { id: 14, rule: 3, formula: <span><span className="text-blue-500">Cr</span><sub>2</sub>O<sub>7</sub><sup>2-</sup></span>, ans: "+6" },
+                  ].map((ex) => (
+                    <motion.button
+                      key={ex.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        if (revealedOxidation.includes(ex.id)) {
+                          setRevealedOxidation(revealedOxidation.filter(id => id !== ex.id));
+                        } else {
+                          setRevealedOxidation([...revealedOxidation, ex.id]);
+                        }
+                      }}
+                      className={`h-24 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all
+                        ${revealedOxidation.includes(ex.id) 
+                          ? 'bg-white border-gray-300 shadow-inner' 
+                          : 'bg-gray-50 border-gray-100 hover:border-gray-200 shadow-sm'}
+                      `}
+                    >
+                      <div className="text-lg font-bold text-gray-800">{ex.formula}</div>
+                      <AnimatePresence mode="wait">
+                        {revealedOxidation.includes(ex.id) ? (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className={`text-sm font-black ${ex.rule === 1 ? 'text-orange-500' : ex.rule === 2 ? 'text-emerald-500' : 'text-blue-500'}`}
+                          >
+                            {ex.ans}
+                          </motion.div>
+                        ) : (
+                          <div className="w-6 h-1 bg-gray-200 rounded-full" />
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-rose-100 p-3 rounded-2xl text-rose-600">
+                <Flame size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Metal Extraction</h2>
+            </div>
+
+            <div className="space-y-10">
+              {/* Common Ores */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { name: 'Bauxite', formula: <span>Al<sub>2</sub>O<sub>3</sub></span>, color: 'bg-[#b45f06]', border: 'border-[#8e4b05]', text: 'Reddish-Brown' },
+                  { name: 'Haematite', formula: <span>Fe<sub>2</sub>O<sub>3</sub></span>, color: 'bg-[#444444]', border: 'border-[#222222]', text: 'Dark Grey/Red' },
+                  { name: 'Zinc Blende', formula: <span>ZnS</span>, color: 'bg-[#783f04]', border: 'border-[#5b3003]', text: 'Yellow-Brown' }
+                ].map((ore) => (
+                  <div key={ore.name} className="bg-gray-50 p-5 rounded-3xl border-2 border-gray-100 flex flex-col items-center text-center">
+                    <div className={`w-12 h-12 rounded-2xl ${ore.color} border-4 ${ore.border} shadow-inner mb-3 rotate-12`} />
+                    <h3 className="text-xs font-black text-gray-800 uppercase mb-1">{ore.name}</h3>
+                    <div className="text-[10px] font-bold text-gray-500">{ore.formula}</div>
+                    <p className="text-[8px] font-black text-gray-400 uppercase mt-2">{ore.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Reactivity & Methods */}
+              <div className="bg-gray-50 rounded-[2rem] p-8 border-2 border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8 text-center">Extraction Methods vs Reactivity</p>
+                
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  {/* Vertical Reactivity Series */}
+                  <div className="flex flex-col gap-1 w-full md:w-24">
+                    {['K', 'Na', 'Ca', 'Mg', 'Al', 'C', 'Zn', 'Fe', 'Pb', 'H', 'Cu', 'Ag', 'Au'].map((m) => {
+                      const isAboveC = ['K', 'Na', 'Ca', 'Mg', 'Al'].includes(m);
+                      const isBelowC = ['Zn', 'Fe', 'Pb', 'Cu'].includes(m);
+                      const isNative = ['Ag', 'Au'].includes(m);
+                      const isC = m === 'C';
+                      
+                      return (
+                        <motion.div
+                          key={m}
+                          onMouseEnter={() => setHoveredExtractionMetal(m)}
+                          onMouseLeave={() => setHoveredExtractionMetal(null)}
+                          className={`px-3 py-1.5 rounded-xl border-2 font-black text-xs transition-all cursor-help text-center
+                            ${isC ? 'bg-gray-800 text-white border-black' : 
+                              isAboveC ? 'bg-blue-100 text-blue-600 border-blue-200' :
+                              isBelowC ? 'bg-orange-100 text-orange-600 border-orange-200' :
+                              isNative ? 'bg-yellow-100 text-yellow-600 border-yellow-200' :
+                              'bg-gray-100 text-gray-400 border-gray-200'}
+                            ${hoveredExtractionMetal && hoveredExtractionMetal !== m ? 'opacity-30 scale-95' : 'opacity-100 scale-100'}
+                          `}
+                        >
+                          {m}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Method Buttons/Cards on the right */}
+                  <div className="flex-1 grid grid-cols-1 gap-4 w-full">
+                    <div className={`p-6 rounded-[2rem] border-2 transition-all flex items-center gap-6 ${hoveredExtractionMetal && ['K', 'Na', 'Ca', 'Mg', 'Al'].includes(hoveredExtractionMetal) ? 'bg-blue-50 border-blue-200 shadow-xl scale-[1.02]' : 'bg-white border-gray-100 opacity-50'}`}>
+                      <div className="bg-blue-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg">E</div>
+                      <div>
+                        <h4 className="text-sm font-black text-blue-600 uppercase mb-1">Electrolysis</h4>
+                        <p className="text-xs font-bold text-gray-500">Required for metals MORE reactive than Carbon. High energy cost.</p>
+                      </div>
+                    </div>
+                    <div className={`p-6 rounded-[2rem] border-2 transition-all flex items-center gap-6 ${hoveredExtractionMetal && ['Zn', 'Fe', 'Pb', 'Cu'].includes(hoveredExtractionMetal) ? 'bg-orange-50 border-orange-200 shadow-xl scale-[1.02]' : 'bg-white border-gray-100 opacity-50'}`}>
+                      <div className="bg-orange-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg">R</div>
+                      <div>
+                        <h4 className="text-sm font-black text-orange-600 uppercase mb-1">Reduction with Carbon</h4>
+                        <p className="text-xs font-bold text-gray-500">For metals LESS reactive than Carbon. Cheaper method.</p>
+                      </div>
+                    </div>
+                    <div className={`p-6 rounded-[2rem] border-2 transition-all flex items-center gap-6 ${hoveredExtractionMetal && ['Ag', 'Au'].includes(hoveredExtractionMetal) ? 'bg-yellow-50 border-yellow-200 shadow-xl scale-[1.02]' : 'bg-white border-gray-100 opacity-50'}`}>
+                      <div className="bg-yellow-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg">N</div>
+                      <div>
+                        <h4 className="text-sm font-black text-yellow-600 uppercase mb-1">Native State</h4>
+                        <p className="text-xs font-bold text-gray-500">Found as pure metal. No chemical extraction needed.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Extraction Simulations - Stacked */}
+              <div className="space-y-12">
+                {/* Al Extraction Simulation */}
+                <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest">Al Extraction (Electrolysis)</h3>
+                    <button 
+                      onClick={() => setAlExtractionActive(!alExtractionActive)}
+                      className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                        ${alExtractionActive ? 'bg-rose-500 text-white shadow-[0_4px_0_0_#9f1239]' : 'bg-emerald-500 text-white shadow-[0_4px_0_0_#065f46]'}
+                        active:shadow-none active:translate-y-1
+                      `}
+                    >
+                      {alExtractionActive ? 'Stop' : 'Start'}
+                    </button>
+                  </div>
+
+                  <div className="relative h-64 bg-white rounded-3xl border-2 border-gray-200 overflow-hidden mb-6">
+                    {/* Steel Cathode Container */}
+                    <div className="absolute inset-x-4 bottom-4 top-12 border-x-8 border-b-8 border-gray-400 rounded-b-3xl z-0" />
+                    
+                    {/* Molten Electrolyte */}
+                    <motion.div 
+                      animate={{ 
+                        backgroundColor: alExtractionActive ? '#fff7ed' : '#f3f4f6',
+                        opacity: alExtractionActive ? [0.8, 1, 0.8] : 1
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="absolute inset-x-6 bottom-6 top-14 bg-orange-50 rounded-b-2xl z-10"
+                    />
+
+                    {/* Graphite Anodes */}
+                    <div className="absolute inset-x-12 top-0 flex justify-around z-30">
+                      {[1, 2, 3].map((i) => (
+                        <motion.div 
+                          key={i}
+                          animate={{ 
+                            height: alExtractionActive ? 80 : 100,
+                            width: alExtractionActive ? 12 : 16
+                          }}
+                          transition={{ duration: 10, repeat: Infinity, repeatType: 'reverse' }}
+                          className="w-4 bg-gray-700 rounded-b-lg shadow-md relative"
+                        >
+                          {/* Bubbles (CO2) */}
+                          {alExtractionActive && (
+                            <motion.div 
+                              animate={{ y: [-20, -60], opacity: [1, 0], scale: [0.5, 1.2] }}
+                              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.4 }}
+                              className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] font-black text-gray-400"
+                            >
+                              CO₂
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Ions Animation */}
+                    {alExtractionActive && (
+                      <>
+                        {/* O2- ions migrating to Anode */}
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <motion.div
+                            key={`o-${i}`}
+                            initial={{ x: 40 + Math.random() * 120, y: 180 }}
+                            animate={{ 
+                              y: [180, 80],
+                              opacity: [0, 1, 0]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                            className="absolute w-4 h-4 bg-red-400 rounded-full flex items-center justify-center text-[6px] font-black text-white z-20"
+                          >
+                            O²⁻
+                          </motion.div>
+                        ))}
+                        {/* Al3+ ions migrating to Cathode */}
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <motion.div
+                            key={`al-${i}`}
+                            initial={{ x: 40 + Math.random() * 120, y: 100 }}
+                            animate={{ 
+                              y: [100, 220],
+                              opacity: [0, 1, 0]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                            className="absolute w-4 h-4 bg-blue-400 rounded-full flex items-center justify-center text-[6px] font-black text-white z-20"
+                          >
+                            Al³⁺
+                          </motion.div>
+                        ))}
+                        {/* Molten Al collecting at bottom */}
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: 15 }}
+                          className="absolute inset-x-6 bottom-6 bg-gray-300 rounded-b-xl z-15 border-t-2 border-white/50"
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-3 rounded-2xl border border-gray-100">
+                      <p className="text-[8px] font-black text-gray-400 uppercase mb-1">Anode (+)</p>
+                      <p className="text-[10px] font-bold text-gray-700">2O²⁻ → O₂ + 4e⁻</p>
+                      <p className="text-[7px] font-medium text-gray-400 mt-1">O₂ reacts with graphite → CO₂</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-2xl border border-gray-100">
+                      <p className="text-[8px] font-black text-gray-400 uppercase mb-1">Cathode (-)</p>
+                      <p className="text-[10px] font-bold text-gray-700">Al³⁺ + 3e⁻ → Al</p>
+                      <p className="text-[7px] font-medium text-gray-400 mt-1">Molten Al sinks to bottom</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fe Extraction Simulation */}
+                <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest">Fe Extraction (Blast Furnace)</h3>
+                      <p className="text-[10px] font-bold text-gray-400 mt-1">Raw Materials: Haematite (Fe₂O₃), Coke (C), Limestone (CaCO₃)</p>
+                    </div>
+                    <button 
+                      onClick={() => setFeExtractionActive(!feExtractionActive)}
+                      className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all
+                        ${feExtractionActive ? 'bg-rose-500 text-white shadow-[0_4px_0_0_#9f1239]' : 'bg-orange-500 text-white shadow-[0_4px_0_0_#9a3412]'}
+                        active:shadow-none active:translate-y-1
+                      `}
+                    >
+                      {feExtractionActive ? 'Stop' : 'Start'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="relative h-80 bg-white rounded-3xl border-2 border-gray-200 overflow-hidden">
+                      {/* Blast Furnace Shape */}
+                      <div className="absolute inset-x-12 bottom-4 top-4 bg-gray-100 border-x-4 border-gray-300 rounded-t-[4rem] z-0" />
+                      
+                      {/* Heat Glow */}
+                      <motion.div 
+                        animate={{ 
+                          opacity: feExtractionActive ? [0.3, 0.6, 0.3] : 0.1,
+                          scale: feExtractionActive ? [1, 1.05, 1] : 1
+                        }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        className="absolute bottom-4 left-1/2 -translate-x-1/2 w-40 h-40 bg-orange-400 blur-3xl rounded-full z-10"
+                      />
+
+                      {/* Raw Materials Falling */}
+                      {feExtractionActive && (
+                        <>
+                          {Array.from({ length: 8 }).map((_, i) => (
+                            <motion.div
+                              key={`ore-${i}`}
+                              initial={{ y: 20, x: 80 + Math.random() * 40 }}
+                              animate={{ y: [20, 250], opacity: [1, 0] }}
+                              transition={{ duration: 4, repeat: Infinity, delay: i * 0.5 }}
+                              className={`absolute w-3 h-3 rounded-sm z-20 ${i % 3 === 0 ? 'bg-[#444444]' : i % 3 === 1 ? 'bg-gray-800' : 'bg-gray-300'}`}
+                            />
+                          ))}
+                          {/* Gas Rising */}
+                          {Array.from({ length: 6 }).map((_, i) => (
+                            <motion.div
+                              key={`gas-${i}`}
+                              initial={{ y: 250, x: 80 + Math.random() * 40 }}
+                              animate={{ y: [250, 40], opacity: [0, 1, 0] }}
+                              transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.4 }}
+                              className="absolute text-[8px] font-black text-gray-400 z-20"
+                            >
+                              {i % 2 === 0 ? 'CO' : 'CO₂'}
+                            </motion.div>
+                          ))}
+                          {/* Molten Iron and Slag */}
+                          <motion.div 
+                            initial={{ height: 0 }}
+                            animate={{ height: 25 }}
+                            className="absolute inset-x-14 bottom-4 bg-[#555555] rounded-b-lg z-25 border-t-2 border-orange-500/50"
+                          />
+                          <motion.div 
+                            initial={{ height: 0 }}
+                            animate={{ height: 10 }}
+                            className="absolute inset-x-14 bottom-[29px] bg-gray-400/80 rounded-t-sm z-24"
+                          />
+                        </>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Step-by-Step Reactions</p>
+                      {[
+                        { step: 1, title: 'Combustion of Coke', eq: <span>C + O<sub>2</sub> → CO<sub>2</sub></span> },
+                        { step: 2, title: 'Thermal Decomposition', eq: <span>CaCO<sub>3</sub> → CaO + CO<sub>2</sub></span> },
+                        { step: 3, title: 'Formation of Reducing Agent', eq: <span>C + CO<sub>2</sub> → 2CO</span> },
+                        { step: 4, title: 'Reduction of Haematite', eq: <span>3CO + Fe<sub>2</sub>O<sub>3</sub> → 2Fe + 3CO<sub>2</sub></span> },
+                        { step: 5, title: 'Removal of Impurities', eq: <span>CaO + SiO<sub>2</sub> → CaSiO<sub>3</sub></span> }
+                      ].map((s) => (
+                        <motion.div 
+                          key={s.step}
+                          animate={{ 
+                            opacity: feExtractionActive ? 1 : 0.5,
+                            x: feExtractionActive ? 0 : -10
+                          }}
+                          transition={{ delay: s.step * 0.2 }}
+                          className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-orange-100 text-orange-600 text-[8px] font-black px-1.5 py-0.5 rounded-full">STEP {s.step}</span>
+                            <span className="text-[9px] font-black text-gray-800 uppercase">{s.title}</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-700 font-mono">{s.eq}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
+                <TrendingUp size={24} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Rate & Equilibrium Yield</h2>
+            </div>
+
+            <div className="space-y-10">
+              {/* Definitions & Table */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="bg-emerald-50 p-6 rounded-3xl border-2 border-emerald-100">
+                    <h3 className="text-sm font-black text-emerald-600 uppercase mb-2">Rate (How Fast)</h3>
+                    <p className="text-xs font-bold text-gray-600">The speed at which reactants are converted into products.</p>
+                  </div>
+                  <div className="bg-blue-50 p-6 rounded-3xl border-2 border-blue-100">
+                    <h3 className="text-sm font-black text-blue-600 uppercase mb-2">Yield (How Much)</h3>
+                    <p className="text-xs font-bold text-gray-600">The amount of product obtained from a reaction.</p>
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-3xl border-2 border-gray-100">
+                  <table className="w-full text-left text-[10px]">
+                    <thead className="bg-gray-50 border-b-2 border-gray-100">
+                      <tr>
+                        <th className="p-3 font-black text-gray-400 uppercase">Factor</th>
+                        <th className="p-3 font-black text-emerald-500 uppercase">Affects Rate?</th>
+                        <th className="p-3 font-black text-blue-500 uppercase">Affects Yield?</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {[
+                        { f: 'Concentration', r: true, y: true },
+                        { f: 'Pressure', r: true, y: true },
+                        { f: 'Temperature', r: true, y: true },
+                        { f: 'Surface Area', r: true, y: false },
+                        { f: 'Catalyst', r: true, y: false }
+                      ].map((row) => (
+                        <tr key={row.f} className="hover:bg-gray-50 transition-colors">
+                          <td className="p-3 font-bold text-gray-700">{row.f}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded-full font-black uppercase text-[8px] ${row.r ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                              {row.r ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded-full font-black uppercase text-[8px] ${row.y ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
+                              {row.y ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Simulator */}
+              <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100">
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Controls */}
+                  <div className="w-full md:w-72 space-y-6">
+                    <div>
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Select Reaction</label>
+                      <div className="grid grid-cols-1 gap-2">
+                        {[
+                          { id: 'Mg', label: 'Mg + 2HCl', sub: 'H₂ Gas' },
+                          { id: 'CaCO3', label: 'CaCO₃ + 2HCl', sub: 'CO₂ Gas' },
+                          { id: 'Haber', label: 'N₂ + 3H₂ ⇌ 2NH₃', sub: 'NH₃ Yield' }
+                        ].map((r) => (
+                          <button
+                            key={r.id}
+                            onClick={() => setRateReaction(r.id as any)}
+                            className={`p-3 rounded-2xl border-2 text-left transition-all
+                              ${rateReaction === r.id ? 'bg-white border-emerald-500 shadow-md' : 'bg-gray-100 border-transparent opacity-60 hover:opacity-100'}
+                            `}
+                          >
+                            <div className="text-xs font-black text-gray-800">{r.label}</div>
+                            <div className="text-[9px] font-bold text-gray-500">{r.sub}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {[
+                        { id: 'concentration', label: 'Concentration', min: 1, max: 5, step: 1, disabled: false },
+                        { id: 'temperature', label: 'Temperature', min: 1, max: 5, step: 1, disabled: false },
+                        { id: 'surfaceArea', label: 'Surface Area', min: 1, max: 5, step: 1, disabled: rateReaction === 'Haber' },
+                        { id: 'pressure', label: 'Pressure', min: 1, max: 5, step: 1, disabled: rateReaction !== 'Haber' },
+                      ].map((ctrl) => (
+                        <div key={ctrl.id} className={ctrl.disabled ? 'opacity-30 grayscale pointer-events-none' : ''}>
+                          <div className="flex justify-between items-center mb-1">
+                            <label className="text-[9px] font-black text-gray-500 uppercase">{ctrl.label}</label>
+                            <span className="text-[9px] font-black text-emerald-500">LVL {(rateParams as any)[ctrl.id]}</span>
+                          </div>
+                          <input 
+                            type="range"
+                            min={ctrl.min}
+                            max={ctrl.max}
+                            step={ctrl.step}
+                            value={(rateParams as any)[ctrl.id]}
+                            onChange={(e) => setRateParams({...rateParams, [ctrl.id]: parseInt(e.target.value)})}
+                            className="w-full accent-emerald-500 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+                      ))}
+
+                      <div className={rateReaction === 'Mg' || rateReaction === 'CaCO3' ? 'opacity-30 grayscale pointer-events-none' : ''}>
+                        <button
+                          onClick={() => setRateParams({...rateParams, catalyst: !rateParams.catalyst})}
+                          className={`w-full p-3 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all
+                            ${rateParams.catalyst ? 'bg-emerald-500 text-white border-emerald-600 shadow-[0_4px_0_0_#059669]' : 'bg-white text-gray-400 border-gray-200'}
+                          `}
+                        >
+                          {rateReaction === 'Haber' ? 'Fe Catalyst' : 'Catalyst (N/A)'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Graph */}
+                  <div className="flex-1 bg-white rounded-[2rem] p-6 border-2 border-gray-100 shadow-inner min-h-[300px]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        {rateReaction === 'Haber' ? 'Yield of NH₃ vs Time' : `Volume of ${rateReaction === 'Mg' ? 'H₂' : 'CO₂'} vs Time`}
+                      </h4>
+                      <div className="flex gap-4">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span className="text-[8px] font-black text-gray-400 uppercase">Rate</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-[8px] font-black text-gray-400 uppercase">Yield</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={useMemo(() => {
+                          const data = [];
+                          // Simplified Rate Constant k
+                          let k = 0.05 * rateParams.concentration * (1 + (rateParams.temperature - 1) * 0.5);
+                          if (rateReaction !== 'Haber') {
+                            k *= (1 + (rateParams.surfaceArea - 1) * 0.3);
+                          } else {
+                            k *= (1 + (rateParams.pressure - 1) * 0.2);
+                            if (rateParams.catalyst) k *= 2;
+                          }
+
+                          // Simplified Equilibrium Yield Vmax
+                          let Vmax = 100;
+                          if (rateReaction === 'Haber') {
+                            // Haber is exothermic, higher temp = lower yield
+                            Vmax = 100 + (rateParams.pressure - 1) * 20 - (rateParams.temperature - 1) * 15;
+                            Vmax = Math.max(20, Vmax);
+                          }
+
+                          for (let t = 0; t <= 100; t += 5) {
+                            const v = Vmax * (1 - Math.exp(-k * t / 10));
+                            data.push({ time: t, volume: parseFloat(v.toFixed(1)) });
+                          }
+                          return data;
+                        }, [rateParams, rateReaction])}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis 
+                            dataKey="time" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 8, fontWeight: 800, fill: '#94a3b8' }} 
+                            label={{ value: 'Time (s)', position: 'insideBottom', offset: -5, fontSize: 8, fontWeight: 800, fill: '#94a3b8' }}
+                          />
+                          <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 8, fontWeight: 800, fill: '#94a3b8' }}
+                            label={{ value: 'Volume (cm³)', angle: -90, position: 'insideLeft', fontSize: 8, fontWeight: 800, fill: '#94a3b8' }}
+                          />
+                          <Tooltip 
+                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="volume" 
+                            stroke="#10b981" 
+                            strokeWidth={4} 
+                            dot={false} 
+                            animationDuration={1000}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+                        <p className="text-[8px] font-black text-emerald-600 uppercase mb-1">Observation: Rate</p>
+                        <p className="text-[10px] font-bold text-gray-700">
+                          {rateParams.concentration > 3 || rateParams.temperature > 3 || (rateReaction !== 'Haber' && rateParams.surfaceArea > 3) || (rateReaction === 'Haber' && (rateParams.pressure > 3 || rateParams.catalyst)) 
+                            ? "Steep initial gradient indicates a FAST reaction." 
+                            : "Gentle initial gradient indicates a SLOW reaction."}
+                        </p>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-2xl border border-blue-100">
+                        <p className="text-[8px] font-black text-blue-600 uppercase mb-1">Observation: Yield</p>
+                        <p className="text-[10px] font-bold text-gray-700">
+                          {rateReaction === 'Haber' 
+                            ? `Equilibrium yield is ${rateParams.pressure > 3 ? 'HIGH' : rateParams.temperature > 3 ? 'LOW' : 'MODERATE'}.`
+                            : "Final yield is constant (limited by solid reactant)."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </main>
       </motion.div>
