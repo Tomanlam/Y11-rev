@@ -1347,7 +1347,7 @@ export default function App() {
               </div>
               <span className={`text-[10px] font-black uppercase tracking-widest ${process === 'haber' ? 'text-indigo-500' : 'text-gray-400'}`}>Haber Process</span>
             </div>
-            <h3 className="text-lg font-black text-gray-800 mb-1">N₂(g) + 3H₂(g) ⇌ 2NH₃(g)</h3>
+            <h3 className="text-lg font-black text-gray-800 mb-1 whitespace-nowrap">N₂(g) + 3H₂(g) ⇌ 2NH₃(g)</h3>
             <div className="grid grid-cols-3 gap-2 mt-4">
               <div className="flex flex-col">
                 <span className="text-[8px] font-bold text-gray-400 uppercase">Temp</span>
@@ -1383,7 +1383,7 @@ export default function App() {
               </div>
               <span className={`text-[10px] font-black uppercase tracking-widest ${process === 'contact' ? 'text-emerald-500' : 'text-gray-400'}`}>Contact Process</span>
             </div>
-            <h3 className="text-lg font-black text-gray-800 mb-1">2SO₂(g) + O₂(g) ⇌ 2SO₃(g)</h3>
+            <h3 className="text-lg font-black text-gray-800 mb-1 whitespace-nowrap">2SO₂(g) + O₂(g) ⇌ 2SO₃(g)</h3>
             <div className="grid grid-cols-3 gap-2 mt-4">
               <div className="flex flex-col">
                 <span className="text-[8px] font-bold text-gray-400 uppercase">Temp</span>
@@ -1402,11 +1402,11 @@ export default function App() {
         </div>
 
         {/* Controls */}
-        <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100">
-          <div className="flex items-center justify-between mb-8">
+        <div className="bg-gray-50 rounded-[2.5rem] p-6 border-2 border-gray-100">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Settings size={20} className="text-gray-400" />
-              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Control Panel</h4>
+              <Settings size={18} className="text-gray-400" />
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Simulation Parameters</h4>
             </div>
             <button 
               onClick={() => {
@@ -1423,71 +1423,71 @@ export default function App() {
               }}
               className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-600 transition-colors"
             >
-              Reset Conditions
+              Reset All
             </button>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Column 1: Concentration */}
-            <div className="space-y-6 bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-emerald-500 rounded-full" />
-                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Concentrations (M)</h5>
+            <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-3 bg-emerald-500 rounded-full" />
+                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Concentrations</h5>
               </div>
-              <div className="space-y-6">
-                <div className="space-y-3">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                      {process === 'haber' ? 'N₂ (Nitrogen)' : 'SO₂ (Sulfur Dioxide)'}
+                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                      {process === 'haber' ? 'N₂' : 'SO₂'}
                     </label>
-                    <span className="text-xs font-black text-emerald-600">{concA.toFixed(1)} M</span>
+                    <span className="text-[10px] font-black text-emerald-600">{concA.toFixed(1)} M</span>
                   </div>
                   <input 
                     type="range" min="0.1" max="5" step="0.1" value={concA}
                     onChange={(e) => setConcA(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                    className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                   />
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                      {process === 'haber' ? 'H₂ (Hydrogen)' : 'O₂ (Oxygen)'}
+                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                      {process === 'haber' ? 'H₂' : 'O₂'}
                     </label>
-                    <span className="text-xs font-black text-emerald-600">{concB.toFixed(1)} M</span>
+                    <span className="text-[10px] font-black text-emerald-600">{concB.toFixed(1)} M</span>
                   </div>
                   <input 
                     type="range" min="0.1" max="5" step="0.1" value={concB}
                     onChange={(e) => setConcB(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                    className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                   />
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                      {process === 'haber' ? 'NH₃ (Ammonia)' : 'SO₃ (Sulfur Trioxide)'}
+                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                      {process === 'haber' ? 'NH₃' : 'SO₃'}
                     </label>
-                    <span className="text-xs font-black text-emerald-600">{concP.toFixed(1)} M</span>
+                    <span className="text-[10px] font-black text-emerald-600">{concP.toFixed(1)} M</span>
                   </div>
                   <input 
                     type="range" min="0" max="5" step="0.1" value={concP}
                     onChange={(e) => setConcP(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                    className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                   />
                 </div>
               </div>
             </div>
 
             {/* Column 2: Pressure */}
-            <div className="space-y-6 bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-indigo-500 rounded-full" />
-                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">System Pressure</h5>
+            <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-3 bg-indigo-500 rounded-full" />
+                <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Pressure</h5>
               </div>
-              <div className="space-y-6">
-                <div className="space-y-3">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pressure</label>
-                    <span className="text-xs font-black text-indigo-600">{pressure} atm</span>
+                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">System Pressure</label>
+                    <span className="text-[10px] font-black text-indigo-600">{pressure} atm</span>
                   </div>
                   <input 
                     type="range" 
@@ -1496,47 +1496,63 @@ export default function App() {
                     step={process === 'haber' ? 10 : 0.5} 
                     value={pressure}
                     onChange={(e) => setPressure(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                   />
                 </div>
-                <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                  <p className="text-[10px] text-indigo-700 font-bold leading-relaxed">
-                    <span className="block mb-1 text-indigo-900 font-black uppercase tracking-tighter">Le Chatelier's Principle:</span>
-                    Increasing pressure favors the side with fewer gas moles. 
-                    {process === 'haber' ? ' (Reactants: 4 mol → Product: 2 mol)' : ' (Reactants: 3 mol → Product: 2 mol)'}
-                  </p>
+                <div className="pt-2 border-t border-gray-50">
+                   <div className="flex items-center gap-2">
+                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
+                       {process === 'haber' ? '4 mol → 2 mol' : '3 mol → 2 mol'}
+                     </span>
+                   </div>
                 </div>
               </div>
             </div>
 
             {/* Column 3: Temperature */}
-            <div className="space-y-6 bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-rose-500 rounded-full" />
+            <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-3 bg-rose-500 rounded-full" />
                 <h5 className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Temperature</h5>
               </div>
-              <div className="space-y-6">
-                <div className="space-y-3">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Temperature</label>
-                    <span className="text-xs font-black text-rose-600">{temp}°C</span>
+                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">System Temp</label>
+                    <span className="text-[10px] font-black text-rose-600">{temp}°C</span>
                   </div>
                   <input 
                     type="range" min="300" max="600" step="10" value={temp}
                     onChange={(e) => setTemp(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                    className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-rose-500"
                   />
                 </div>
-                <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100">
-                  <p className="text-[10px] text-rose-700 font-bold leading-relaxed">
-                    <span className="block mb-1 text-rose-900 font-black uppercase tracking-tighter">Thermal Effect:</span>
-                    Both processes are exothermic. Increasing temperature shifts equilibrium to the left, decreasing yield.
-                  </p>
+                <div className="pt-2 border-t border-gray-50">
+                   <div className="flex items-center gap-2">
+                     <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
+                       Exothermic (ΔH &lt; 0)
+                     </span>
+                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* System Status Indicator */}
+        {(() => {
+          const isEq = timeData.length > 0 ? timeData[timeData.length - 1].isEquilibrium : true;
+          return (
+            <div className={`w-full py-6 rounded-[2rem] flex items-center justify-center gap-4 transition-all duration-500 border-4 shadow-sm ${isEq ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-rose-50 border-rose-200 text-rose-600'}`}>
+              <div className={`w-4 h-4 rounded-full ${isEq ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+              <span className="text-lg font-black uppercase tracking-[0.2em]">
+                {isEq ? 'System at Equilibrium' : 'Equilibrium Shifting...'}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Graph */}
         <div className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]">
@@ -1713,6 +1729,268 @@ export default function App() {
             ))}
           </div>
         )}
+      </div>
+    );
+  };
+
+  const HomologousSeries = () => {
+    const [selectedSeries, setSelectedSeries] = useState<'alkane' | 'alkene' | 'alcohol' | 'acid'>('alkane');
+    const [carbons, setCarbons] = useState(1);
+
+    const seriesData = {
+      alkane: {
+        name: 'Alkanes',
+        formula: 'CₙH₂ₙ₊₂',
+        functional: 'None',
+        color: 'indigo',
+        icon: <Atom size={20} />,
+        desc: 'Saturated hydrocarbons with single C-C bonds.'
+      },
+      alkene: {
+        name: 'Alkenes',
+        formula: 'CₙH₂ₙ',
+        functional: 'C=C Double Bond',
+        color: 'emerald',
+        icon: <Zap size={20} />,
+        desc: 'Unsaturated hydrocarbons with at least one C=C bond.'
+      },
+      alcohol: {
+        name: 'Alcohols',
+        formula: 'CₙH₂ₙ₊₁OH',
+        functional: '-OH Hydroxyl Group',
+        color: 'sky',
+        icon: <Droplets size={20} />,
+        desc: 'Organic compounds containing a hydroxyl (-OH) group.'
+      },
+      acid: {
+        name: 'Carboxylic Acids',
+        formula: 'CₙH₂ₙ₊₁COOH',
+        functional: '-COOH Carboxyl Group',
+        color: 'rose',
+        icon: <Flame size={20} />,
+        desc: 'Organic acids containing a carboxyl (-COOH) group.'
+      }
+    };
+
+    const getPrefix = (n: number) => {
+      const prefixes = ['', 'meth', 'eth', 'prop', 'but', 'pent', 'hex'];
+      return prefixes[n] || '';
+    };
+
+    const getCompoundName = (series: string, n: number) => {
+      const prefix = getPrefix(n);
+      if (series === 'alkane') return prefix + 'ane';
+      if (series === 'alkene') return n < 2 ? 'N/A' : prefix + '-1-ene';
+      if (series === 'alcohol') return prefix + 'an-1-ol';
+      if (series === 'acid') return prefix + 'anoic acid';
+      return '';
+    };
+
+    const sub = (num: number) => num.toString().split('').map(d => '₀₁₂₃₄₅₆₇₈₉'[parseInt(d)]).join('');
+
+    const getMolecularFormula = (series: string, N: number) => {
+      if (series === 'alkane') return `C${sub(N)}H${sub(2 * N + 2)}`;
+      if (series === 'alkene') return N < 2 ? 'N/A' : `C${sub(N)}H${sub(2 * N)}`;
+      if (series === 'alcohol') return `C${sub(N)}H${sub(2 * N + 1)}OH`;
+      if (series === 'acid') {
+        const n = N - 1;
+        if (n === 0) return `HCOOH`;
+        return `C${sub(n)}H${sub(2 * n + 1)}COOH`;
+      }
+      return '';
+    };
+
+    const getCondensedFormula = (series: string, N: number) => {
+      if (series === 'alkane') {
+        if (N === 1) return 'CH₄';
+        if (N === 2) return 'CH₃CH₃';
+        return 'CH₃' + '(CH₂)'.repeat(N - 2) + 'CH₃';
+      }
+      if (series === 'alkene') {
+        if (N < 2) return 'N/A';
+        if (N === 2) return 'CH₂=CH₂';
+        if (N === 3) return 'CH₂=CHCH₃';
+        return 'CH₂=CH' + '(CH₂)'.repeat(N - 3) + 'CH₃';
+      }
+      if (series === 'alcohol') {
+        if (N === 1) return 'CH₃OH';
+        if (N === 2) return 'CH₃CH₂OH';
+        return 'CH₃' + '(CH₂)'.repeat(N - 1) + 'OH';
+      }
+      if (series === 'acid') {
+        if (N === 1) return 'HCOOH';
+        if (N === 2) return 'CH₃COOH';
+        return 'CH₃' + '(CH₂)'.repeat(N - 2) + 'COOH';
+      }
+      return '';
+    };
+
+    const renderMolecule = () => {
+      const spacing = 60;
+      const startX = 60;
+      const centerY = 100;
+      const N = carbons;
+
+      if (selectedSeries === 'alkene' && N < 2) {
+        return (
+          <div className="h-full flex items-center justify-center text-gray-400 font-bold italic">
+            Alkenes require at least 2 carbon atoms.
+          </div>
+        );
+      }
+
+      const atoms: any[] = [];
+      const bonds: any[] = [];
+
+      for (let i = 0; i < N; i++) {
+        const x = startX + i * spacing;
+        atoms.push({ x, y: centerY, label: 'C', color: 'text-gray-800' });
+
+        // Horizontal bonds
+        if (i < N - 1) {
+          const isDouble = selectedSeries === 'alkene' && i === 0;
+          if (isDouble) {
+            bonds.push({ x1: x + 12, y1: centerY - 3, x2: x + spacing - 12, y2: centerY - 3 });
+            bonds.push({ x1: x + 12, y1: centerY + 3, x2: x + spacing - 12, y2: centerY + 3 });
+          } else {
+            bonds.push({ x1: x + 12, y1: centerY, x2: x + spacing - 12, y2: centerY });
+          }
+        }
+
+        // Vertical bonds
+        const isFunctionalCarbon = (selectedSeries === 'acid' && i === N - 1);
+        
+        if (!isFunctionalCarbon) {
+          // Top H
+          bonds.push({ x1: x, y1: centerY - 12, x2: x, y2: centerY - 35 });
+          atoms.push({ x, y: centerY - 45, label: 'H', color: 'text-gray-400' });
+          // Bottom H
+          bonds.push({ x1: x, y1: centerY + 12, x2: x, y2: centerY + 35 });
+          atoms.push({ x, y: centerY + 45, label: 'H', color: 'text-gray-400' });
+        }
+
+        // Left-most H
+        if (i === 0) {
+          bonds.push({ x1: x - 12, y1: centerY, x2: x - 35, y2: centerY });
+          atoms.push({ x: x - 45, y: centerY, label: 'H', color: 'text-gray-400' });
+        }
+
+        // Right-most group
+        if (i === N - 1) {
+          if (selectedSeries === 'alkane' || selectedSeries === 'alkene') {
+            bonds.push({ x1: x + 12, y1: centerY, x2: x + 35, y2: centerY });
+            atoms.push({ x: x + 45, y: centerY, label: 'H', color: 'text-gray-400' });
+          } else if (selectedSeries === 'alcohol') {
+            bonds.push({ x1: x + 12, y1: centerY, x2: x + 35, y2: centerY });
+            atoms.push({ x: x + 45, y: centerY, label: 'O', color: 'text-sky-500' });
+            bonds.push({ x1: x + 57, y1: centerY, x2: x + 80, y2: centerY });
+            atoms.push({ x: x + 90, y: centerY, label: 'H', color: 'text-gray-400' });
+          } else if (selectedSeries === 'acid') {
+            // C=O
+            bonds.push({ x1: x + 8, y1: centerY - 8, x2: x + 25, y2: centerY - 25 });
+            bonds.push({ x1: x + 12, y1: centerY - 4, x2: x + 29, y2: centerY - 21 });
+            atoms.push({ x: x + 35, y: centerY - 35, label: 'O', color: 'text-rose-500' });
+            // C-O-H
+            bonds.push({ x1: x + 12, y1: centerY + 8, x2: x + 25, y2: centerY + 21 });
+            atoms.push({ x: x + 35, y: centerY + 35, label: 'O', color: 'text-rose-500' });
+            bonds.push({ x1: x + 47, y1: centerY + 35, x2: x + 70, y2: centerY + 35 });
+            atoms.push({ x: x + 80, y: centerY + 35, label: 'H', color: 'text-gray-400' });
+          }
+        }
+      }
+
+      return (
+        <svg viewBox={`0 0 ${startX + N * spacing + 100} 200`} className="w-full h-full">
+          {bonds.map((b, i) => (
+            <line key={i} x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2} stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+          ))}
+          {atoms.map((a, i) => (
+            <g key={i}>
+              <circle cx={a.x} cy={a.y} r="12" fill="white" stroke="#f1f5f9" strokeWidth="1" />
+              <text 
+                x={a.x} y={a.y} 
+                textAnchor="middle" 
+                dominantBaseline="central" 
+                className={`text-xs font-black ${a.color}`}
+                style={{ fontSize: '14px' }}
+              >
+                {a.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      );
+    };
+
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-2 gap-4">
+          {(Object.entries(seriesData) as [keyof typeof seriesData, any][]).map(([key, data]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedSeries(key)}
+              className={`p-6 rounded-[2rem] border-2 transition-all text-left relative overflow-hidden group
+                ${selectedSeries === key ? `bg-${data.color}-50 border-${data.color}-200 ring-4 ring-${data.color}-50` : 'bg-white border-gray-100 hover:border-gray-200'}
+              `}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 rounded-xl ${selectedSeries === key ? `bg-${data.color}-500 text-white` : 'bg-gray-100 text-gray-400'}`}>
+                  {data.icon}
+                </div>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${selectedSeries === key ? `text-${data.color}-500` : 'text-gray-400'}`}>
+                  {data.name}
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-gray-800 mb-2">{data.formula}</h3>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Functional Group</p>
+                <p className={`text-xs font-black ${selectedSeries === key ? `text-${data.color}-600` : 'text-gray-600'}`}>{data.functional}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Eye size={20} className="text-gray-400" />
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Molecule Visualizer</h4>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Carbons: {carbons}</span>
+              <input 
+                type="range" min="1" max="6" step="1" value={carbons}
+                onChange={(e) => setCarbons(parseInt(e.target.value))}
+                className="w-32 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm overflow-hidden">
+            <div className="h-48 mb-8 bg-gray-50 rounded-3xl border border-dashed border-gray-200 relative">
+              {renderMolecule()}
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</p>
+                <p className="text-sm font-black text-gray-800 capitalize">{getCompoundName(selectedSeries, carbons)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Molecular</p>
+                <p className="text-sm font-black text-gray-800">{getMolecularFormula(selectedSeries, carbons)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Condensed</p>
+                <p className="text-sm font-black text-gray-800">{getCondensedFormula(selectedSeries, carbons)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Series</p>
+                <p className={`text-sm font-black text-${seriesData[selectedSeries].color}-600`}>{seriesData[selectedSeries].name}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -3331,6 +3609,24 @@ export default function App() {
             </div>
 
             <EquilibriumProcesses />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
+                  <Layers size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Homologous Series</h2>
+              </div>
+            </div>
+
+            <HomologousSeries />
           </motion.div>
 
           <motion.div
