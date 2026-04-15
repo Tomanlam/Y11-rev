@@ -2,8 +2,10 @@ export interface Question {
   id: string;
   text: string;
   textZh?: string;
+  textZhSimp?: string;
   options: string[];
   optionsZh?: string[];
+  optionsZhSimp?: string[];
   correctAnswer: string;
 }
 
@@ -18,11 +20,14 @@ export interface Unit {
   id: number;
   title: string;
   titleZh?: string;
+  titleZhSimp?: string;
   description: string;
   descriptionZh?: string;
+  descriptionZhSimp?: string;
   color: string;
   concepts: string[];
   conceptsZh?: string[];
+  conceptsZhSimp?: string[];
   vocab: Vocab[];
   questions: Question[];
 }
@@ -32,8 +37,10 @@ export const units: Unit[] = [
     id: 1,
     title: "States of matter",
     titleZh: "物態",
+    titleZhSimp: "物态",
     description: "Understanding solids, liquids, gases and their changes of state.",
     descriptionZh: "了解固體、液體、氣體及其物態變化。",
+    descriptionZhSimp: "了解固体、液体、气体及其物态变化。",
     color: "bg-emerald-500",
     concepts: [
       "Matter exists in three common states: [[solid|emerald]] (s), [[liquid|blue]] (l), [[gas|orange]] (g). The same substance can exist in different states under different conditions.",
@@ -62,6 +69,20 @@ export const units: Unit[] = [
       "[[擴散|emerald]]：微粒從高濃度向低濃度的淨移動。它發生在液體和氣體中，但不發生在固體中。",
       "影響擴散的因素：速率隨[[溫度|amber]]升高（更多動能）和[[相對分子質量|blue]]降低（較輕的微粒移動更快）而增加。",
       "NH3 和 HCl 實驗：[[NH3|emerald]] (Mr=17) 比 [[HCl|rose]] (Mr=36.5) 擴散得更快，因此白色氯化銨環形成的更靠近 HCl 端。"
+    ],
+    conceptsZhSimp: [
+      "物质以三种常见状态存在：[[固体|emerald]] (s)、[[液体|blue]] (l)、[[气体|orange]] (g)。同一种物质在不同条件下可以以不同状态存在。",
+      "微粒模型比较：[[固体|emerald]]（紧密堆积，规则排列，振动），[[液体|blue]]（靠近，随机排列，移动/滑动），[[气体|orange]]（相距较远，随机，快速运动）。",
+      "物态变化通过输入能量（[[加热|rose]] - 吸热）或取出能量（[[冷却|blue]] - 放热）发生。",
+      "物态变化的名称：[[熔化|rose]] (s→l)，[[凝固|blue]] (l→s)，[[沸腾|rose]]/蒸发 (l→g)，[[凝结|blue]] (g→l)，[[升华|rose]] (s→g)，[[凝华|blue]] (g→s)。",
+      "[[温度|amber]]是微粒平均[[动能|orange]] (KE) 的度量。温度越高意味着微粒运动越快。",
+      "[[加热|rose]]/[[冷却|blue]]曲线：在物态变化（[[熔化|rose]]/[[沸腾|rose]]）期间，温度保持不变，因为能量被用于克服微粒之间的吸引力。",
+      "预测状态：物质在熔点以下为[[固体|emerald]]，在熔点和沸点之间为[[液体|blue]]，在沸点以上为[[气体|orange]]。",
+      "[[分子动力论|amber]] (KMT)：气体微粒处于不断的随机运动中；[[压力|rose]]是由与容器壁的碰撞引起的。",
+      "气体行为：减小[[体积|blue]]或增加[[温度|amber]]会增加碰撞频率，从而增加[[压力|rose]]。",
+      "[[扩散|emerald]]：微粒从高浓度向低浓度的净移动。它发生在液体和气体中，但不发生在固体中。",
+      "影响扩散的因素：速率随[[温度|amber]]升高（更多动能）和[[相对分子质量|blue]]降低（较轻的微粒移动更快）而增加。",
+      "NH3 和 HCl 实验：[[NH3|emerald]] (Mr=17) 比 [[HCl|rose]] (Mr=36.5) 扩散得更快，因此白色氯化铵环形成的更靠近 HCl 端。"
     ],
     vocab: [
       { term: "Matter", traditional: "物質", simplified: "物质", definition: "Anything that has mass and occupies space." },
@@ -105,40 +126,50 @@ export const units: Unit[] = [
         id: "1-1", 
         text: "Which statement best describes particles in a [[solid|emerald]]?", 
         textZh: "哪項陳述最能描述[[固體|emerald]]中的微粒？",
+        textZhSimp: "哪项陈述最能描述[[固体|emerald]]中的微粒？",
         options: ["Far apart and move rapidly in random motion", "Close together, regular arrangement, vibrate about fixed positions", "Close together, random arrangement, move past each other freely", "Far apart, fixed arrangement, do not move"], 
         optionsZh: ["相距較遠且在隨機運動中快速移動", "靠近，規則排列，在固定位置附近振動", "靠近，隨機排列，自由地相互移動", "相距較遠，固定排列，不移動"],
+        optionsZhSimp: ["相距较远且在随机运动中快速移动", "靠近，规则排列，在固定位置附近振动", "靠近，随机排列，自由地相互移动", "相距较远，固定排列，不移动"],
         correctAnswer: "Close together, regular arrangement, vibrate about fixed positions" 
       },
       { 
         id: "1-2", 
         text: "Which state has a [[fixed volume|blue]] but a [[variable shape|amber]]?", 
         textZh: "哪種狀態具有[[固定體積|blue]]但[[形狀可變|amber]]？",
+        textZhSimp: "哪种状态具有[[固定体积|blue]]但[[形状可变|amber]]？",
         options: ["Solid", "Liquid", "Gas", "Plasma"], 
         optionsZh: ["固體", "液體", "氣體", "等離子體"],
+        optionsZhSimp: ["固体", "液体", "气体", "等离子体"],
         correctAnswer: "Liquid" 
       },
       { 
         id: "1-3", 
         text: "Which state has both [[variable shape|amber]] and [[variable volume|blue]]?", 
         textZh: "哪種狀態同時具有[[形狀可變|amber]]和[[體積可變|blue]]？",
+        textZhSimp: "哪种状态同时具有[[形状可变|amber]]和[[体积可变|blue]]？",
         options: ["Solid", "Liquid", "Gas", "Crystal"], 
         optionsZh: ["固體", "液體", "氣體", "晶體"],
+        optionsZhSimp: ["固体", "液体", "气体", "晶体"],
         correctAnswer: "Gas" 
       },
       { 
         id: "1-4", 
         text: "In which state are particles [[closest together|emerald]]?", 
         textZh: "在哪些狀態下微粒[[最靠近|emerald]]？",
+        textZhSimp: "在哪些状态下微粒[[最靠近|emerald]]？",
         options: ["Gas", "Liquid", "Solid", "All are equally close"], 
         optionsZh: ["氣體", "液體", "固體", "所有都同樣靠近"],
+        optionsZhSimp: ["气体", "液体", "固体", "所有都同样靠近"],
         correctAnswer: "Solid" 
       },
       { 
         id: "1-5", 
         text: "In which state are particles in [[constant, random motion|orange]] and [[far apart|blue]]?", 
         textZh: "在哪些狀態下微粒處於[[恆定、隨機運動|orange]]且[[相距較遠|blue]]？",
+        textZhSimp: "在哪些状态下微粒处于[[恒定、随机运动|orange]]且[[相距较远|blue]]？",
         options: ["Solid", "Liquid", "Gas", "Solid and liquid"], 
         optionsZh: ["固體", "液體", "氣體", "固體和液體"],
+        optionsZhSimp: ["固体", "液体", "气体", "固体和液体"],
         correctAnswer: "Gas" 
       },
       { id: "1-6", text: "Melting is the change from:", options: ["Gas to liquid", "Liquid to gas", "Solid to liquid", "Liquid to solid"], correctAnswer: "Solid to liquid" },
@@ -192,8 +223,10 @@ export const units: Unit[] = [
     id: 2,
     title: "Atoms, elements and compounds",
     titleZh: "原子、元素和化合物",
+    titleZhSimp: "原子、元素和化合物",
     description: "The building blocks of matter and how they combine.",
     descriptionZh: "物質的組成部分及其結合方式。",
+    descriptionZhSimp: "物质的组成部分及其结合方式。",
     color: "bg-blue-500",
     concepts: [
       "Everything can be classified as an [[element|blue]] (one type of atom), [[compound|orange]] (two or more types of atoms chemically combined), or [[mixture|slate]] (substances physically mixed but not bonded).",
@@ -239,6 +272,28 @@ export const units: Unit[] = [
       "[[金屬鍵|amber]]是正金屬離子與[[離域電子|blue]]「海」之間的吸引力。金屬具有[[延展性|emerald]]，因為離子層可以滑動。",
       "分類：僅金屬 → [[巨型金屬|amber]]；金屬 + 非金屬 → [[巨型離子|orange]]；僅非金屬 → [[簡單分子|blue]] 或 [[巨型共價|emerald]]。"
     ],
+    conceptsZhSimp: [
+      "一切都可以分类为[[元素|blue]]（一种原子）、[[化合物|orange]]（两种或多种化学结合的原子）或[[混合物|slate]]（物理混合但未结合的物质）。",
+      "[[原子|amber]]是保留其性质的元素的最小单位。“原子”一词来自“atomos”，意为不可分割。",
+      "原子包含三种亚原子微粒：[[质子|rose]]（p+，正电，在原子核中）、[[中子|slate]]（n，中性，在原子核中）和[[电子|blue]]（e–，负电，在电子层中）。",
+      "原子几乎所有的质量都在中央的[[原子核|rose]]中；原子的大部分是真空空间。",
+      "[[质子数|rose]] / [[原子序数|rose]] (Z) 是质子的数量。在电中性原子中，电子数 = Z。",
+      "[[质量数|slate]] / [[核子数|slate]] (A) = 质子 + 中子。中子数 = A − Z。",
+      "[[AXZ 符号|amber]]：A（顶部）是质量数，Z（底部）是原子序数，X 是元素符号。",
+      "[[电子|blue]]排列在[[电子层|blue]]中（Z=1-20 为 2, 8, 8），从最靠近原子核的电子层开始填充。",
+      "[[周期表|emerald]]：族号（列）与[[价电子|blue]]有关；周期号（行）等于占用的[[电子层|blue]]数。",
+      "[[同位素|purple]]是具有相同[[质子|rose]]数但[[中子|slate]]数不同的同一种元素的原子。它们具有相同的化学性质，但物理性质不同。",
+      "[[物理性质|slate]]可以在不形成新物质的情况下观察到；[[化学性质|rose]]描述物质如何反应。",
+      "[[相对原子质量|amber]] (Ar) 是元素同位素的加权平均质量，按同位素丰度加权。",
+      "[[离子|blue]]是带电微粒。[[阳离子|rose]]带正电（失去电子）；[[阴离子|blue]]带负电（得到电子）。",
+      "[[离子键|orange]]是带相反电荷的离子之间的强静电引力，由金属向非金属的电子转移形成。",
+      "[[离子化合物|orange]]形成具有高熔点的[[巨型离子晶格|orange]]，并在熔融或水溶液状态下导电。它们很[[脆|rose]]，因为层可以滑动且同性电荷相互排斥。",
+      "[[共价键|blue]]在非金属原子共享电子对以实现惰性气体配置时形成。点叉图仅显示外层电子。",
+      "[[简单分子物质|blue]]由于微弱的[[分子间作用力|slate]]而具有低熔点，且导电性差。",
+      "[[巨型共价结构|emerald]]（金刚石、石墨、SiO2）具有高熔点。[[石墨|slate]]由于[[离域电子|blue]]而导电。",
+      "[[金属键|amber]]是正金属离子与[[离域电子|blue]]“海”之间的吸引力。金属具有[[延展性|emerald]]，因为离子层可以滑动。",
+      "分类：仅金属 → [[巨型金属|amber]]；金属 + 非金属 → [[巨型离子|orange]]；仅非金属 → [[简单分子|blue]] 或 [[巨型共价|emerald]]。"
+    ],
     vocab: [
       { term: "Element", traditional: "元素", simplified: "元素", definition: "A pure substance made of only one type of atom." },
       { term: "Compound", traditional: "化合物", simplified: "化合物", definition: "A pure substance containing two or more different types of atoms chemically combined." },
@@ -269,16 +324,20 @@ export const units: Unit[] = [
         id: "2-1", 
         text: "What is a substance made of only [[one type of atom|blue]]?", 
         textZh: "什麼是僅由[[一種原子|blue]]組成的物質？",
+        textZhSimp: "什么是仅由[[一种原子|blue]]组成的物质？",
         options: ["Compound", "Mixture", "Element", "Isotope"], 
         optionsZh: ["化合物", "混合物", "元素", "同位素"],
+        optionsZhSimp: ["化合物", "混合物", "元素", "同位素"],
         correctAnswer: "Element" 
       },
       { 
         id: "2-2", 
         text: "Which sub-atomic particles are found in the [[nucleus|rose]]?", 
         textZh: "哪些亞原子微粒存在於[[原子核|rose]]中？",
+        textZhSimp: "哪些亚原子微粒存在于[[原子核|rose]]中？",
         options: ["Protons and electrons", "Electrons and neutrons", "Protons and neutrons", "Only neutrons"], 
         optionsZh: ["質子和電子", "電子和中子", "質子和中子", "僅中子"],
+        optionsZhSimp: ["质子和电子", "电子和中子", "质子和中子", "仅中子"],
         correctAnswer: "Protons and neutrons" 
       },
       { id: "2-3", text: "The atomic number (Z) represents the number of:", options: ["Neutrons", "Protons", "Nucleons", "Shells"], correctAnswer: "Protons" },
@@ -305,8 +364,10 @@ export const units: Unit[] = [
     id: 3,
     title: "Stoichiometry",
     titleZh: "化學計量學",
+    titleZhSimp: "化学计量学",
     description: "Chemical formulas, equations, and calculations.",
     descriptionZh: "化學式、方程式和計算。",
+    descriptionZhSimp: "化学式、方程式和计算。",
     color: "bg-orange-500",
     concepts: [
       "[[Chemical formulas|amber]] represent the ratio of atoms in a compound.",
@@ -332,6 +393,18 @@ export const units: Unit[] = [
       "[[百分純度|emerald]] = (純物質質量 / 總質量) x 100%。",
       "在室溫和室壓 (r.t.p.) 下，氣體的[[摩爾體積|blue]]為[[24 dm³|blue]]。"
     ],
+    conceptsZhSimp: [
+      "[[化学式|amber]]表示化合物中原子的比例。",
+      "[[相对原子质量|amber]] (Ar) 和[[相对分子质量|orange]] (Mr) 用于计算。",
+      "[[摩尔|rose]]是物质的量的单位。",
+      "一摩尔包含[[6.02 x 10^23|blue]]个微粒（[[阿佛加德罗常数|blue]]）。",
+      "[[平衡方程式|emerald]]显示反应物和生成物的摩尔比。",
+      "[[实验式|slate]]是原子最简单的整数比。",
+      "[[分子式|slate]]是分子中原子的实际数量。",
+      "[[百分产率|rose]] = (实际产量 / 理论产量) x 100%。",
+      "[[百分纯度|emerald]] = (纯物质质量 / 总质量) x 100%。",
+      "在室温和室压 (r.t.p.) 下，气体的[[摩尔体积|blue]]为[[24 dm³|blue]]。"
+    ],
     vocab: [
       { term: "Mole", traditional: "摩爾", simplified: "摩尔", definition: "The unit for amount of substance." },
       { term: "Relative Atomic Mass", traditional: "相對原子質量", simplified: "相对原子质量", definition: "The average mass of an atom relative to 1/12th of carbon-12." },
@@ -342,8 +415,10 @@ export const units: Unit[] = [
         id: "3-1", 
         text: "What is the unit for the [[amount of a substance|rose]]?", 
         textZh: "[[物質的量|rose]]的單位是什麼？",
+        textZhSimp: "[[物质的量|rose]]的单位是什么？",
         options: ["Gram", "Mole", "Liter", "Pascal"], 
         optionsZh: ["克", "摩爾", "升", "帕斯卡"],
+        optionsZhSimp: ["克", "摩尔", "升", "帕斯卡"],
         correctAnswer: "Mole" 
       }
     ]
@@ -352,8 +427,10 @@ export const units: Unit[] = [
     id: 4,
     title: "Electrochemistry",
     titleZh: "電化學",
+    titleZhSimp: "电化学",
     description: "Electricity and chemical changes.",
     descriptionZh: "電與化學變化。",
+    descriptionZhSimp: "电与化学变化。",
     color: "bg-yellow-500",
     concepts: [
       "[[Electrolysis|amber]] is the breakdown of an ionic compound by electricity.",
@@ -379,6 +456,18 @@ export const units: Unit[] = [
       "在電解過程中，[[離子|amber]]向帶相反電荷的電極移動。",
       "[[精煉銅|rose]]使用不純的銅陽極和純銅陰極。"
     ],
+    conceptsZhSimp: [
+      "[[电解|amber]]是利用电分解离子化合物的过程。",
+      "[[电解质|blue]]是导电的液体（熔融或水溶液）。",
+      "[[阳极|rose]]是正极；[[阴极|blue]]是负极。",
+      "[[氧化|rose]]发生在阳极；[[还原|blue]]发生在阴极（[[OIL RIG|amber]]：氧化是失去，还原是得到）。",
+      "[[电镀|emerald]]是利用电解在物体表面镀上一层金属。",
+      "在[[食盐水|blue]]的电解中，氯气在阳极形成，氢气在阴极形成。",
+      "[[氢燃料电池|emerald]]通过氢气和氧气的反应产生电能。",
+      "[[导体|slate]]允许电流通过；[[绝缘体|slate]]则不允许。",
+      "在电解过程中，[[离子|amber]]向带相反电荷的电极移动。",
+      "[[精炼铜|rose]]使用不纯的铜阳极和纯铜阴极。"
+    ],
     vocab: [
       { term: "Electrolysis", traditional: "電解", simplified: "电解", definition: "Breaking down a substance using electricity." },
       { term: "Electrode", traditional: "電極", simplified: "电极", definition: "A conductor through which electricity enters or leaves an electrolyte." }
@@ -388,8 +477,10 @@ export const units: Unit[] = [
         id: "4-1", 
         text: "Which electrode is the [[negative|blue]] one in electrolysis?", 
         textZh: "在電解中，哪個電極是[[負極|blue]]？",
+        textZhSimp: "在电解中，哪个电极是[[负极|blue]]？",
         options: ["Anode", "Cathode", "Electrolyte", "Battery"], 
         optionsZh: ["陽極", "陰極", "電解質", "電池"],
+        optionsZhSimp: ["阳极", "阴极", "电解质", "电池"],
         correctAnswer: "Cathode" 
       }
     ]
@@ -398,8 +489,10 @@ export const units: Unit[] = [
     id: 5,
     title: "Chemical energetics",
     titleZh: "化學能量學",
+    titleZhSimp: "化学能量学",
     description: "Energy changes in chemical reactions.",
     descriptionZh: "化學反應中的能量變化。",
+    descriptionZhSimp: "化学反应中的能量变化。",
     color: "bg-red-500",
     concepts: [
       "[[Exothermic|rose]] reactions release heat energy to the surroundings (ΔH is negative).",
@@ -425,6 +518,18 @@ export const units: Unit[] = [
       "[[光合作用|emerald]]和[[熱分解|blue]]通常是吸熱的。",
       "[[鍵能|amber]]是斷開 1 摩爾共價鍵所需的能量。"
     ],
+    conceptsZhSimp: [
+      "[[放热|rose]]反应向环境释放热能（ΔH 为负）。",
+      "[[吸热|blue]]反应从环境吸收热能（ΔH 为正）。",
+      "[[焓变|amber]] (ΔH) 是反应过程中的能量变化。",
+      "[[断键|blue]]是吸热过程；[[成键|rose]]是放热过程。",
+      "[[活化能|orange]]是反应开始所需的最低能量。",
+      "[[能量图|emerald]]显示反应物和生成物的相对能量。",
+      "[[反应途径图|emerald]]包含活化能峰值。",
+      "[[燃烧|rose]]和[[中和反应|emerald]]通常是放热的。",
+      "[[光合作用|emerald]]和[[热分解|blue]]通常是吸热的。",
+      "[[键能|amber]]是断开 1 摩尔共价键所需的能量。"
+    ],
     vocab: [
       { term: "Exothermic", traditional: "放熱", simplified: "放热", definition: "A reaction that releases heat." },
       { term: "Endothermic", traditional: "吸熱", simplified: "吸热", definition: "A reaction that absorbs heat." }
@@ -434,8 +539,10 @@ export const units: Unit[] = [
         id: "5-1", 
         text: "In an [[exothermic|rose]] reaction, the temperature of the surroundings:", 
         textZh: "在[[放熱|rose]]反應中，環境溫度會：",
+        textZhSimp: "在[[放热|rose]]反应中，环境温度会：",
         options: ["Increases", "Decreases", "Stays the same", "Becomes zero"], 
         optionsZh: ["升高", "降低", "保持不變", "變為零"],
+        optionsZhSimp: ["升高", "降低", "保持不变", "变为零"],
         correctAnswer: "Increases" 
       }
     ]
@@ -444,8 +551,10 @@ export const units: Unit[] = [
     id: 6,
     title: "Chemical reactions",
     titleZh: "化學反應",
+    titleZhSimp: "化学反应",
     description: "Rates of reaction and reversible reactions.",
     descriptionZh: "反應速率和可逆反應。",
+    descriptionZhSimp: "反应速率和可逆反应。",
     color: "bg-purple-500",
     concepts: [
       "[[Rate of reaction|amber]] depends on [[concentration|blue]], [[temperature|rose]], [[surface area|emerald]], and [[catalysts|orange]].",
@@ -471,6 +580,18 @@ export const units: Unit[] = [
       "[[催化劑|orange]]通過提供具有較低活化能的替代途徑來加速反應。",
       "[[酶|emerald]]是生物催化劑。"
     ],
+    conceptsZhSimp: [
+      "[[反应速率|amber]]取决于[[浓度|blue]]、[[温度|rose]]、[[表面积|emerald]]和[[催化剂|orange]]。",
+      "[[碰撞理论|slate]]：微粒必须以足够的能量（[[活化能|orange]]）碰撞才能发生反应。",
+      "[[可逆反应|purple]]可以双向进行 (A + B ⇌ C + D)。",
+      "在封闭体系中，当正向和逆向速率相等时达到[[平衡|emerald]]。",
+      "[[勒夏特列原理|amber]]：改变条件会使平衡向减弱这种改变的方向移动。",
+      "[[氧化还原|rose]]反应同时涉及[[还原|blue]]（得到电子）和[[氧化|rose]]（失去电子）。",
+      "[[氧化剂|rose]]被还原；[[还原剂|blue]]被氧化。",
+      "[[光化学反应|emerald]]（如光合作用）由光能引发。",
+      "[[催化剂|orange]]通过提供具有较低活化能的替代途径来加速反应。",
+      "[[酶|emerald]]是生物催化剂。"
+    ],
     vocab: [
       { term: "Catalyst", traditional: "催化劑", simplified: "催化剂", definition: "A substance that speeds up a reaction without being used up." },
       { term: "Equilibrium", traditional: "平衡", simplified: "平衡", definition: "A state where forward and backward reactions happen at the same rate." }
@@ -480,8 +601,10 @@ export const units: Unit[] = [
         id: "6-1", 
         text: "What does a [[catalyst|orange]] do to the rate of reaction?", 
         textZh: "[[催化劑|orange]]對反應速率有什麼作用？",
+        textZhSimp: "[[催化剂|orange]]对反应速率有什么作用？",
         options: ["Speeds it up", "Slows it down", "Stops it", "Has no effect"], 
         optionsZh: ["加速", "減慢", "停止", "沒有影響"],
+        optionsZhSimp: ["加速", "减慢", "停止", "没有影响"],
         correctAnswer: "Speeds it up" 
       }
     ]
@@ -490,8 +613,10 @@ export const units: Unit[] = [
     id: 7,
     title: "Acids, bases and salts",
     titleZh: "酸、鹼和鹽",
+    titleZhSimp: "酸、碱和盐",
     description: "Properties and reactions of acids and bases.",
     descriptionZh: "酸和鹼的性質與反應。",
+    descriptionZhSimp: "酸和碱的性质与反应。",
     color: "bg-indigo-500",
     concepts: [
       "[[Acids|rose]] have a pH less than 7 and turn litmus [[red|rose]].",
@@ -517,6 +642,18 @@ export const units: Unit[] = [
       "[[溶解性規則|slate]]：所有硝酸鹽都可溶；大多數碳酸鹽不溶。",
       "[[滴定|amber]]用於測定酸或鹼的濃度。"
     ],
+    conceptsZhSimp: [
+      "[[酸|rose]]的 pH 值小于 7，能使石蕊变[[红|rose]]。",
+      "[[碱|blue]]（碱液）的 pH 值大于 7，能使石蕊变[[蓝|blue]]。",
+      "[[中和反应|emerald]]：酸 + 碱 → 盐 + 水。",
+      "[[指示剂|amber]]（如酚酞和甲基橙）显示 pH 值的变化。",
+      "[[强酸|rose]]在水中完全电离；[[弱酸|orange]]仅部分电离。",
+      "[[两性氧化物|slate]]（如 Al2O3）既能与酸反应也能与碱反应。",
+      "[[酸性氧化物|rose]]是非金属氧化物；[[碱性氧化物|blue]]是金属氧化物。",
+      "当酸中的氢被金属或铵离子取代时，就形成了[[盐|emerald]]。",
+      "[[溶解性规则|slate]]：所有硝酸盐都可溶；大多数碳酸盐不溶。",
+      "[[滴定|amber]]用于测定酸或碱的浓度。"
+    ],
     vocab: [
       { term: "Acid", traditional: "酸", simplified: "酸", definition: "A substance with a pH less than 7." },
       { term: "Alkali", traditional: "鹼", simplified: "碱", definition: "A soluble base with a pH greater than 7." }
@@ -526,8 +663,10 @@ export const units: Unit[] = [
         id: "7-1", 
         text: "What is the pH of a [[neutral|emerald]] solution?", 
         textZh: "[[中性|emerald]]溶液的 pH 值是多少？",
+        textZhSimp: "[[中性|emerald]]溶液的 pH 值是多少？",
         options: ["0", "7", "14", "1"], 
         optionsZh: ["0", "7", "14", "1"],
+        optionsZhSimp: ["0", "7", "14", "1"],
         correctAnswer: "7" 
       }
     ]
@@ -536,8 +675,10 @@ export const units: Unit[] = [
     id: 8,
     title: "The Periodic Table",
     titleZh: "週期表",
+    titleZhSimp: "周期表",
     description: "Trends and patterns in the elements.",
     descriptionZh: "元素的趨勢和規律。",
+    descriptionZhSimp: "元素的趋势和规律。",
     color: "bg-cyan-500",
     concepts: [
       "Elements are arranged by increasing [[atomic number|rose]].",
@@ -563,6 +704,18 @@ export const units: Unit[] = [
       "[[惰性氣體|blue]]用於燈具（氬氣）和氣球（氦氣）。",
       "[[鹵素|rose]]根據其反應性發生置換反應。"
     ],
+    conceptsZhSimp: [
+      "元素按[[原子序数|rose]]递增排列。",
+      "[[族|slate]]是垂直列；[[周期|slate]]是水平行。",
+      "[[第一族|amber]]（碱金属）具有反应性且质软，反应性随族序向下递增。",
+      "[[第七族|rose]]（卤素）是双原子非金属，反应性随族序向下递减。",
+      "[[第八族|blue]]（惰性气体）由于具有完整的外层电子层而不具反应性（单原子）。",
+      "[[过渡元素|emerald]]具有高密度、高熔点，并形成有色化合物。",
+      "[[金属性|amber]]沿周期向右递减，沿族向下递增。",
+      "[[价电子|blue]]决定元素的化学性质。",
+      "[[惰性气体|blue]]用于灯具（氩气）和气球（氦气）。",
+      "[[卤素|rose]]根据其反应性发生置换反应。"
+    ],
     vocab: [
       { term: "Group", traditional: "族", simplified: "族", definition: "A vertical column in the periodic table." },
       { term: "Period", traditional: "週期", simplified: "周期", definition: "A horizontal row in the periodic table." }
@@ -572,8 +725,10 @@ export const units: Unit[] = [
         id: "8-1", 
         text: "Which group contains the [[Noble Gases|blue]]?", 
         textZh: "哪一族包含[[惰性氣體|blue]]？",
+        textZhSimp: "哪一族包含[[惰性气体|blue]]？",
         options: ["Group I", "Group VII", "Group VIII", "Group II"], 
         optionsZh: ["第一族", "第七族", "第八族", "第二族"],
+        optionsZhSimp: ["第一族", "第七族", "第八族", "第二族"],
         correctAnswer: "Group VIII" 
       }
     ]
@@ -582,8 +737,10 @@ export const units: Unit[] = [
     id: 9,
     title: "Metals",
     titleZh: "金屬",
+    titleZhSimp: "金属",
     description: "Properties, extraction, and uses of metals.",
     descriptionZh: "金屬的性質、提取和用途。",
+    descriptionZhSimp: "金属的性质、提取和用途。",
     color: "bg-slate-500",
     concepts: [
       "[[Metals|slate]] are typically shiny, conduct heat/electricity, and are [[malleable|emerald]].",
@@ -605,9 +762,21 @@ export const units: Unit[] = [
       "[[鋁|blue]]是通過電解從[[鋁土礦|blue]]中提取的。",
       "[[鐵|slate]]是在[[高爐|orange]]中利用赤鐵礦、焦炭和石灰石提取的。",
       "鐵的[[生鏽|rose]]需要氧氣和水。",
-      "[[防鏽|emerald]]：噴漆、塗油、鍍鋅或犧牲性保護。",
+      "[[防鏽|emerald]]：噴漆、塗油、鍍鋅或犧議性保護。",
       "[[金屬的用途|slate]]：鋁用於飛機（低密度）；銅用於電線（導電性）。",
       "[[犧牲性保護|emerald]]涉及使用更活潑的金屬（如鋅）來保護鐵。"
+    ],
+    conceptsZhSimp: [
+      "[[金属|slate]]通常具有光泽、导热/导电，且具有[[延展性|emerald]]。",
+      "[[合金|amber]]是金属与其他元素的混合物；它们比纯金属更硬。",
+      "[[反应性序列|rose]]按反应性从强到弱排列金属 (K > Na > Ca > Mg > Al > Zn > Fe > Pb > Cu > Ag > Au)。",
+      "[[提取|orange]]：碳以下的金属通过碳还原法提取。",
+      "[[铝|blue]]是通过电解从[[铝土矿|blue]]中提取的。",
+      "[[铁|slate]]是在[[高炉|orange]]中利用赤铁矿、焦炭和石灰石提取的。",
+      "铁的[[生锈|rose]]需要氧气和水。",
+      "[[防锈|emerald]]：喷漆、涂油、镀锌或牺牲性保护。",
+      "[[金属的用途|slate]]：铝用于飞机（低密度）；铜用于电线（导电性）。",
+      "[[牺牲性保护|emerald]]涉及使用更活泼的金属（如锌）来保护铁。"
     ],
     vocab: [
       { term: "Alloy", traditional: "合金", simplified: "合金", definition: "A mixture of two or more elements, where at least one is a metal." },
@@ -618,8 +787,10 @@ export const units: Unit[] = [
         id: "9-1", 
         text: "Which metal is the [[most reactive|rose]] in this list?", 
         textZh: "在此列表中，哪種金屬的[[反應性最強|rose]]？",
+        textZhSimp: "在此列表中，哪种金属的[[反应性最强|rose]]？",
         options: ["Gold", "Iron", "Potassium", "Copper"], 
         optionsZh: ["金", "鐵", "鉀", "銅"],
+        optionsZhSimp: ["金", "铁", "钾", "铜"],
         correctAnswer: "Potassium" 
       }
     ]
@@ -628,8 +799,10 @@ export const units: Unit[] = [
     id: 10,
     title: "Chemistry of the environment",
     titleZh: "環境化學",
+    titleZhSimp: "环境化学",
     description: "Water, air, and pollution.",
     descriptionZh: "水、空氣和污染。",
+    descriptionZhSimp: "水、空气和污染。",
     color: "bg-teal-500",
     concepts: [
       "[[Clean air|blue]] is 78% nitrogen, 21% oxygen, and small amounts of other gases.",
@@ -655,6 +828,18 @@ export const units: Unit[] = [
       "[[全球變暖|rose]]導致氣候變化和海平面上升。",
       "[[海水淡化|blue]]是從海水中去除鹽分以生產飲用水的過程。"
     ],
+    conceptsZhSimp: [
+      "[[洁净空气|blue]]包含 78% 的氮气、21% 的氧气和少量其他气体。",
+      "[[空气污染物|rose]]：CO（不完全燃烧）、SO2（化石燃料）、NOx（汽车引擎）。",
+      "[[温室气体|amber]]（CO2、CH4）导致[[全球变暖|rose]]。",
+      "[[水处理|emerald]]涉及过滤和氯化。",
+      "[[肥料|orange]]含有氮 (N)、磷 (P) 和钾 (K)，用于植物生长。",
+      "[[酸雨|rose]]是由 SO2 和 NOx 溶解在雨水中引起的。",
+      "汽车中的[[催化转换器|emerald]]可去除 CO、NOx 和未燃烧的碳氢化合物。",
+      "[[碳循环|slate]]涉及光合作用、呼吸作用和燃烧。",
+      "[[全球变暖|rose]]导致气候变化和海平面上升。",
+      "[[海水淡化|blue]]是从海水中去除盐分以生产饮用水的过程。"
+    ],
     vocab: [
       { term: "Pollution", traditional: "污染", simplified: "污染", definition: "Harmful substances introduced into the environment." },
       { term: "Greenhouse Gas", traditional: "溫室氣體", simplified: "温室气体", definition: "Gases that trap heat in the atmosphere." }
@@ -664,8 +849,10 @@ export const units: Unit[] = [
         id: "10-1", 
         text: "What is the [[most abundant gas|blue]] in the Earth's atmosphere?", 
         textZh: "地球大氣中[[含量最高的氣體|blue]]是什麼？",
+        textZhSimp: "地球大气中[[含量最高的气体|blue]]是什么？",
         options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Argon"], 
         optionsZh: ["氧氣", "氮氣", "二氧化碳", "氬氣"],
+        optionsZhSimp: ["氧气", "氮气", "二氧化碳", "氩气"],
         correctAnswer: "Nitrogen" 
       }
     ]
@@ -674,8 +861,10 @@ export const units: Unit[] = [
     id: 11,
     title: "Organic chemistry",
     titleZh: "有機化學",
+    titleZhSimp: "有机化学",
     description: "Carbon compounds and fuels.",
     descriptionZh: "碳化合物和燃料。",
+    descriptionZhSimp: "碳化合物和燃料。",
     color: "bg-orange-700",
     concepts: [
       "[[Hydrocarbons|amber]] contain only carbon and hydrogen.",
@@ -701,6 +890,18 @@ export const units: Unit[] = [
       "[[加成反應|emerald]]發生在烯烴中（例如與溴水反應）。",
       "[[取代反應|blue]]發生在烷烴中（例如在紫外光下與氯氣反應）。"
     ],
+    conceptsZhSimp: [
+      "[[烃|amber]]仅包含碳和氢。",
+      "[[烷烃|blue]]是饱和的（单键）；[[烯烃|rose]]是不饱和的（双键）。",
+      "[[分馏|emerald]]将石油分离成有用的馏分。",
+      "[[醇类|orange]]含有 [[-OH 官能团|orange]]。",
+      "[[羧酸|rose]]含有 [[-COOH 官能团|rose]]。",
+      "[[聚合物|slate]]是由许多[[单体|slate]]组成的大分子。",
+      "[[同系列|amber]]具有相同的官能团和通式。",
+      "[[裂化|orange]]将长链烷烃分解成较小的烷烃和烯烃。",
+      "[[加成反应|emerald]]发生在烯烃中（例如与溴水反应）。",
+      "[[取代反应|blue]]发生在烷烃中（例如在紫外光下与氯气反应）。"
+    ],
     vocab: [
       { term: "Hydrocarbon", traditional: "烴", simplified: "烃", definition: "A compound made of only hydrogen and carbon." },
       { term: "Polymer", traditional: "聚合物", simplified: "聚合物", definition: "A large molecule made of repeating units." }
@@ -710,8 +911,10 @@ export const units: Unit[] = [
         id: "11-1", 
         text: "Which of these is a [[saturated hydrocarbon|blue]]?", 
         textZh: "以下哪項是[[飽和烴|blue]]？",
+        textZhSimp: "以下哪项是[[饱和烃|blue]]？",
         options: ["Ethene", "Ethane", "Ethanol", "Ethanoic acid"], 
         optionsZh: ["乙烯", "乙烷", "乙醇", "乙酸"],
+        optionsZhSimp: ["乙烯", "乙烷", "乙醇", "乙酸"],
         correctAnswer: "Ethane" 
       }
     ]
@@ -720,8 +923,10 @@ export const units: Unit[] = [
     id: 12,
     title: "Experimental techniques and chemical analysis",
     titleZh: "實驗技術和化學分析",
+    titleZhSimp: "实验技术和化学分析",
     description: "Laboratory methods and testing for ions.",
     descriptionZh: "實驗室方法和離子測試。",
+    descriptionZhSimp: "实验室方法和离子测试。",
     color: "bg-pink-500",
     concepts: [
       "[[Apparatus|slate]] for measuring volume: [[measuring cylinder|amber]], [[pipette|emerald]], [[burette|blue]].",
@@ -736,7 +941,7 @@ export const units: Unit[] = [
       "[[Rf value|amber]] = distance moved by substance / distance moved by solvent."
     ],
     conceptsZh: [
-      "用於測量體積的[[儀器|slate]]：[[量筒|amber]]、[[移液管|emerald]]、[[滴定管|blue]]。",
+      "用於測量體體積的[[儀器|slate]]：[[量筒|amber]]、[[移液管|emerald]]、[[滴定管|blue]]。",
       "[[分離技術|orange]]：[[過濾|blue]]、[[結晶|emerald]]、[[蒸餾|rose]]、[[層析法|purple]]。",
       "[[陰離子測試|rose]]：碳酸鹽、氯化物、碘化物、硝酸鹽、硫酸鹽。",
       "[[陽離子測試|blue]]：使用氫氧化鈉水溶液和氨水。",
@@ -747,6 +952,18 @@ export const units: Unit[] = [
       "[[沉澱反應|emerald]]用於識別水溶液中的離子。",
       "[[Rf 值|amber]] = 物質移動距離 / 溶劑移動距離。"
     ],
+    conceptsZhSimp: [
+      "用于测量体积的[[仪器|slate]]：[[量筒|amber]]、[[移液管|emerald]]、[[滴定管|blue]]。",
+      "[[分离技术|orange]]：[[过滤|blue]]、[[结晶|emerald]]、[[蒸馏|rose]]、[[层析法|purple]]。",
+      "[[阴离子测试|rose]]：碳酸盐、氯化物、碘化物、硝酸盐、硫酸盐。",
+      "[[阳离子测试|blue]]：使用氢氧化钠水溶液和氨水。",
+      "[[气体测试|emerald]]：氢气、氧气、二氧化碳、氨气、氯气。",
+      "可以通过测量熔点和沸点来检查[[纯度|slate]]。",
+      "[[层析法|purple]]利用溶剂根据溶解度分离色素。",
+      "[[焰色反应|rose]]识别金属离子（例如：锂为红色，铜为蓝绿色）。",
+      "[[沉淀反应|emerald]]用于识别水溶液中的离子。",
+      "[[Rf 值|amber]] = 物质移动距离 / 溶剂移动距离。"
+    ],
     vocab: [
       { term: "Titration", traditional: "滴定", simplified: "滴定", definition: "A technique to find the concentration of a solution." },
       { term: "Distillation", traditional: "蒸餾", simplified: "蒸馏", definition: "Separating liquids based on boiling points." }
@@ -756,8 +973,10 @@ export const units: Unit[] = [
         id: "12-1", 
         text: "Which piece of apparatus is [[most accurate|emerald]] for measuring 25.0 cm³ of liquid?", 
         textZh: "哪種儀器測量 25.0 cm³ 液體[[最準確|emerald]]？",
+        textZhSimp: "哪种仪器测量 25.0 cm³ 液体[[最准确|emerald]]？",
         options: ["Beaker", "Measuring cylinder", "Pipette", "Conical flask"], 
         optionsZh: ["燒杯", "量筒", "移液管", "錐形瓶"],
+        optionsZhSimp: ["烧杯", "量筒", "移液管", "锥形瓶"],
         correctAnswer: "Pipette" 
       }
     ]

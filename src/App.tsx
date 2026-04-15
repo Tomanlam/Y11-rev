@@ -74,6 +74,7 @@ export default function App() {
   const [sessionStats, setSessionStats] = useState<SessionStats>({});
 
   const [isAssistMode, setIsAssistMode] = useState(false);
+  const [isSimplified, setIsSimplified] = useState(false);
   const [columns, setColumns] = useState(1);
 
   const toggleColumns = () => {
@@ -580,6 +581,537 @@ export default function App() {
       </svg>
     </div>
   );
+
+  const StatesOfMatterAnimation = () => {
+    const [state, setState] = useState<'solid' | 'liquid' | 'gas'>('solid');
+    
+    return (
+      <div className="space-y-4 mt-4">
+        <div className="flex justify-center gap-2">
+          {(['solid', 'liquid', 'gas'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setState(s)}
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all
+                ${state === s ? 'bg-emerald-500 text-white shadow-md' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}
+              `}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <div className="relative w-full h-32 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+          {state === 'solid' && (
+            <div className="grid grid-cols-8 grid-rows-4 gap-1 p-2 h-full">
+              {[...Array(32)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ x: [0, 0.5, -0.5, 0], y: [0, -0.5, 0.5, 0] }}
+                  transition={{ duration: 0.1, repeat: Infinity }}
+                  className="w-full h-full bg-emerald-400/60 rounded-full"
+                />
+              ))}
+            </div>
+          )}
+          {state === 'liquid' && (
+            <div className="relative w-full h-full p-2">
+              {[...Array(24)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ 
+                    x: [Math.random() * 5, -Math.random() * 5],
+                    y: [Math.random() * 5, -Math.random() * 5]
+                  }}
+                  transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
+                  className="absolute w-4 h-4 bg-blue-400/60 rounded-full shadow-sm"
+                  style={{ left: `${(i % 6) * 15 + 5}%`, bottom: `${Math.floor(i / 6) * 15 + 5}%` }}
+                />
+              ))}
+            </div>
+          )}
+          {state === 'gas' && (
+            <div className="relative w-full h-full">
+              {[...Array(10)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ 
+                    x: [Math.random() * 280, Math.random() * 280],
+                    y: [Math.random() * 100, Math.random() * 100]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
+                  className="absolute w-3 h-3 bg-orange-400/60 rounded-full shadow-sm"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const DiffusionAnimation = () => {
+    const [isPartitionRemoved, setIsPartitionRemoved] = useState(false);
+    
+    return (
+      <div className="space-y-4 mt-4">
+        <div className="flex justify-center">
+          <button
+            onClick={() => setIsPartitionRemoved(!isPartitionRemoved)}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border-2
+              ${isPartitionRemoved 
+                ? 'bg-emerald-500 text-white border-emerald-500 shadow-[0_2px_0_0_#059669]' 
+                : 'bg-white text-emerald-500 border-emerald-100 hover:border-emerald-200 shadow-[0_2px_0_0_#ecfdf5]'
+              }
+            `}
+          >
+            {isPartitionRemoved ? 'Reset Partition' : 'Remove Partition'}
+          </button>
+        </div>
+        <div className="relative w-full h-32 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 p-2">
+          <AnimatePresence>
+            {!isPartitionRemoved && (
+              <motion.div 
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                exit={{ opacity: 0, scaleY: 0 }}
+                className="absolute inset-y-0 left-1/2 w-1 bg-gray-300 z-20 origin-top"
+              />
+            )}
+          </AnimatePresence>
+          
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ 
+                x: Math.random() * 40, 
+                y: Math.random() * 100 
+              }}
+              animate={isPartitionRemoved ? { 
+                x: [null, Math.random() * 280],
+                y: [null, Math.random() * 100]
+              } : {
+                x: [null, Math.random() * 130],
+                y: [null, Math.random() * 100]
+              }}
+              transition={{ 
+                duration: 5 + Math.random() * 5, 
+                repeat: Infinity, 
+                repeatType: "reverse",
+                ease: "linear"
+              }}
+              className="absolute w-2 h-2 bg-emerald-500 rounded-full shadow-sm z-10"
+            />
+          ))}
+          <div className="absolute top-2 left-2 text-[8px] font-black text-gray-400 uppercase tracking-widest">High Conc.</div>
+          <div className="absolute top-2 right-2 text-[8px] font-black text-gray-400 uppercase tracking-widest">Low Conc.</div>
+        </div>
+      </div>
+    );
+  };
+
+  const AtomicStructureDrawing = () => (
+    <div className="relative w-full h-40 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center mt-4">
+      {/* Nucleus */}
+      <div className="relative w-8 h-8 flex items-center justify-center z-20">
+        <div className="absolute w-4 h-4 bg-rose-500 rounded-full blur-[0.5px] shadow-sm" />
+        <div className="absolute w-4 h-4 bg-slate-400 rounded-full translate-x-1 blur-[0.5px] shadow-sm" />
+        <div className="absolute w-4 h-4 bg-rose-500 rounded-full -translate-y-1 blur-[0.5px] shadow-sm" />
+      </div>
+      
+      {/* Shells */}
+      <div className="absolute w-20 h-20 border border-blue-200 rounded-full z-10" />
+      <div className="absolute w-32 h-32 border border-blue-100 rounded-full z-10" />
+      
+      {/* Electrons */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="absolute w-20 h-20 z-30"
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full shadow-sm" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full shadow-sm" />
+      </motion.div>
+      
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        className="absolute w-32 h-32 z-30"
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full shadow-sm" />
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-400 rounded-full shadow-sm" />
+      </motion.div>
+    </div>
+  );
+
+  const IonicBondingAnimation = () => (
+    <div className="relative w-full h-40 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-around p-4 mt-4">
+      <div className="flex flex-col items-center gap-2">
+        <div className="relative w-16 h-16 border-2 border-rose-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-rose-500 rounded-full flex items-center justify-center text-[10px] text-white font-black">Na</div>
+          <motion.div
+            animate={{ x: [0, 100], opacity: [1, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, times: [0, 0.8, 1] }}
+            className="absolute top-0 w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm"
+          />
+        </div>
+        <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Metal (Loses e⁻)</span>
+      </div>
+      
+      <ArrowRight className="text-gray-300" />
+      
+      <div className="flex flex-col items-center gap-2">
+        <div className="relative w-16 h-16 border-2 border-blue-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-[10px] text-white font-black">Cl</div>
+          <motion.div
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: [-100, 0], opacity: [0, 1, 1] }}
+            transition={{ duration: 2, repeat: Infinity, times: [0, 0.2, 1] }}
+            className="absolute top-0 w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm"
+          />
+        </div>
+        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Non-metal (Gains e⁻)</span>
+      </div>
+    </div>
+  );
+
+  const CovalentBondingAnimation = () => (
+    <div className="relative w-full h-40 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center p-4 mt-4">
+      <div className="relative flex items-center">
+        <div className="w-24 h-24 border-2 border-emerald-100 rounded-full flex items-center justify-start pl-4">
+          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] text-white font-black">H</div>
+        </div>
+        <div className="w-24 h-24 border-2 border-emerald-100 rounded-full -ml-8 flex items-center justify-end pr-4">
+          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] text-white font-black">H</div>
+        </div>
+        {/* Shared electrons */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-1 z-10">
+          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm" />
+          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.5 }} className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm" />
+        </div>
+      </div>
+      <div className="absolute bottom-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest">Shared Electron Pair</div>
+    </div>
+  );
+
+  const DiffusionExperimentAnimation = () => {
+    const [temp, setTemp] = useState(1); // 1: Low, 2: Medium, 3: High
+    
+    return (
+      <div className="space-y-4 mt-4">
+        <div className="flex justify-center gap-2">
+          {[
+            { val: 1, label: 'Low T', color: 'bg-blue-500' },
+            { val: 2, label: 'Med T', color: 'bg-orange-500' },
+            { val: 3, label: 'High T', color: 'bg-rose-500' }
+          ].map((t) => (
+            <button
+              key={t.val}
+              onClick={() => setTemp(t.val)}
+              className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border-2
+                ${temp === t.val 
+                  ? `${t.color} text-white border-transparent shadow-md` 
+                  : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                }
+              `}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 p-4 flex items-center">
+          <div className="w-full h-8 bg-white border-2 border-gray-200 rounded-lg relative flex items-center">
+            <div className="absolute left-2 w-4 h-4 bg-emerald-100 rounded-sm flex items-center justify-center text-[6px] font-black text-emerald-600">NH₃</div>
+            <div className="absolute right-2 w-4 h-4 bg-rose-100 rounded-sm flex items-center justify-center text-[6px] font-black text-rose-600">HCl</div>
+            
+            {/* NH3 particles moving fast */}
+            <motion.div
+              key={`nh3-${temp}`}
+              animate={{ x: [0, 160], opacity: [0, 1, 0] }}
+              transition={{ duration: 2 / temp, repeat: Infinity, ease: "linear" }}
+              className="absolute left-6 w-1.5 h-1.5 bg-emerald-400 rounded-full"
+            />
+            
+            {/* HCl particles moving slow */}
+            <motion.div
+              key={`hcl-${temp}`}
+              animate={{ x: [0, -60], opacity: [0, 1, 0] }}
+              transition={{ duration: 4 / temp, repeat: Infinity, ease: "linear" }}
+              className="absolute right-6 w-1.5 h-1.5 bg-rose-400 rounded-full"
+            />
+            
+            {/* White ring formation */}
+            <motion.div
+              key={`ring-${temp}`}
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ duration: 2 / temp, repeat: Infinity, delay: 1.5 / temp }}
+              className="absolute right-16 w-1 h-6 bg-white border border-gray-300 shadow-sm z-10"
+            />
+          </div>
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-black text-gray-400 uppercase tracking-widest">
+            NH₃ diffuses faster than HCl
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const AXZNotationDrawing = () => (
+    <div className="relative w-full h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center mt-4">
+      <div className="flex items-center gap-4">
+        <div className="flex flex-col items-end">
+          <span className="text-2xl font-black text-slate-500">12</span>
+          <span className="text-2xl font-black text-rose-500">6</span>
+        </div>
+        <span className="text-6xl font-black text-gray-800">C</span>
+        <div className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-slate-500 rounded-full" />
+            <span className="text-slate-500">Mass Number (A)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-rose-500 rounded-full" />
+            <span className="text-rose-500">Atomic Number (Z)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const EquationBalancerAnimation = () => {
+    const [h2, setH2] = useState(1);
+    const [o2, setO2] = useState(1);
+    const [h2o, setH2o] = useState(1);
+    
+    const isBalanced = h2 * 2 === h2o * 2 && o2 * 2 === h2o * 1;
+    
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex items-center justify-center gap-4 text-xl font-black">
+          <div className="flex flex-col items-center">
+            <input type="number" min="1" max="5" value={h2} onChange={e => setH2(parseInt(e.target.value) || 1)} className="w-12 text-center border-2 border-blue-200 rounded-lg text-blue-600" />
+            <span className="text-xs uppercase text-gray-400">H₂</span>
+          </div>
+          <span>+</span>
+          <div className="flex flex-col items-center">
+            <input type="number" min="1" max="5" value={o2} onChange={e => setO2(parseInt(e.target.value) || 1)} className="w-12 text-center border-2 border-rose-200 rounded-lg text-rose-600" />
+            <span className="text-xs uppercase text-gray-400">O₂</span>
+          </div>
+          <span>→</span>
+          <div className="flex flex-col items-center">
+            <input type="number" min="1" max="5" value={h2o} onChange={e => setH2o(parseInt(e.target.value) || 1)} className="w-12 text-center border-2 border-emerald-200 rounded-lg text-emerald-600" />
+            <span className="text-xs uppercase text-gray-400">H₂O</span>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-3 rounded-lg border-2 border-gray-100">
+            <div className="text-[10px] font-black uppercase text-gray-400 mb-2">Reactants</div>
+            <div className="flex flex-wrap gap-1">
+              {[...Array(h2 * 2)].map((_, i) => <div key={`h-${i}`} className="w-3 h-3 bg-blue-400 rounded-full" />)}
+              {[...Array(o2 * 2)].map((_, i) => <div key={`o-${i}`} className="w-3 h-3 bg-rose-400 rounded-full" />)}
+            </div>
+          </div>
+          <div className="bg-white p-3 rounded-lg border-2 border-gray-100">
+            <div className="text-[10px] font-black uppercase text-gray-400 mb-2">Products</div>
+            <div className="flex flex-wrap gap-1">
+              {[...Array(h2o * 2)].map((_, i) => <div key={`ph-${i}`} className="w-3 h-3 bg-blue-400 rounded-full" />)}
+              {[...Array(h2o * 1)].map((_, i) => <div key={`po-${i}`} className="w-3 h-3 bg-rose-400 rounded-full" />)}
+            </div>
+          </div>
+        </div>
+        
+        {isBalanced ? (
+          <div className="text-center text-emerald-500 font-black text-xs uppercase tracking-widest animate-bounce">✨ Equation Balanced! ✨</div>
+        ) : (
+          <div className="text-center text-gray-400 text-[10px] font-bold uppercase">Adjust coefficients to balance atoms</div>
+        )}
+      </div>
+    );
+  };
+
+  const MolarVolumeAnimation = () => {
+    const [gas, setGas] = useState<'He' | 'O2' | 'CO2'>('He');
+    
+    const gasData = {
+      He: { color: 'bg-blue-400', size: 'w-2 h-2', label: 'Helium (Ar=4)' },
+      O2: { color: 'bg-rose-400', size: 'w-4 h-4', label: 'Oxygen (Mr=32)' },
+      CO2: { color: 'bg-slate-400', size: 'w-5 h-5', label: 'Carbon Dioxide (Mr=44)' }
+    };
+
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex justify-center gap-2">
+          {(['He', 'O2', 'CO2'] as const).map(g => (
+            <button
+              key={g}
+              onClick={() => setGas(g)}
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all
+                ${gas === g ? 'bg-indigo-500 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100'}
+              `}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+        <div className="relative w-full h-32 bg-white border-2 border-dashed border-indigo-200 rounded-xl flex items-center justify-center">
+          <div className="absolute inset-0 flex flex-wrap p-4 gap-4 items-center justify-center">
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={`${gas}-${i}`}
+                animate={{ 
+                  x: [Math.random() * 20, -Math.random() * 20],
+                  y: [Math.random() * 20, -Math.random() * 20]
+                }}
+                transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                className={`${gasData[gas].size} ${gasData[gas].color} rounded-full shadow-sm`}
+              />
+            ))}
+          </div>
+          <div className="absolute bottom-2 bg-indigo-50 px-3 py-1 rounded-full text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+            Volume = 24 dm³ (1 mole at r.t.p.)
+          </div>
+        </div>
+        <div className="text-center text-[10px] font-bold text-gray-400 uppercase">{gasData[gas].label}</div>
+      </div>
+    );
+  };
+
+  const InteractiveElectrolysisAnimation = () => {
+    const [isOn, setIsOn] = useState(false);
+    
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex justify-center">
+          <button
+            onClick={() => setIsOn(!isOn)}
+            className={`px-6 py-2 rounded-full font-black uppercase tracking-widest transition-all border-2
+              ${isOn 
+                ? 'bg-yellow-400 text-gray-800 border-yellow-500 shadow-[0_4px_0_0_#ca8a04]' 
+                : 'bg-white text-gray-400 border-gray-200 shadow-[0_4px_0_0_#e5e7eb]'
+              }
+            `}
+          >
+            Power: {isOn ? 'ON' : 'OFF'}
+          </button>
+        </div>
+        
+        <div className="relative w-full h-40 bg-white border-2 border-gray-200 rounded-xl overflow-hidden p-4">
+          {/* Electrodes */}
+          <div className="absolute top-0 left-1/4 w-4 h-32 bg-slate-700 rounded-b-lg shadow-md flex items-end justify-center pb-2">
+            <span className="text-[8px] text-white font-black">+</span>
+          </div>
+          <div className="absolute top-0 right-1/4 w-4 h-32 bg-slate-700 rounded-b-lg shadow-md flex items-end justify-center pb-2">
+            <span className="text-[8px] text-white font-black">-</span>
+          </div>
+          
+          {/* Electrolyte */}
+          <div className="absolute bottom-0 inset-x-0 h-24 bg-blue-100/50 border-t-2 border-blue-200" />
+          
+          {/* Ions */}
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              animate={isOn ? {
+                x: i % 2 === 0 ? [0, -40] : [0, 40],
+                opacity: [1, 1, 0]
+              } : {
+                x: [0, Math.random() * 5, -Math.random() * 5, 0],
+                y: [0, Math.random() * 5, -Math.random() * 5, 0]
+              }}
+              transition={{ 
+                duration: isOn ? 2 : 1, 
+                repeat: Infinity,
+                delay: i * 0.2
+              }}
+              className={`absolute w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-sm
+                ${i % 2 === 0 ? 'bg-rose-500 left-1/2' : 'bg-blue-500 right-1/2'}
+              `}
+              style={{ bottom: `${20 + (i % 4) * 15}%` }}
+            >
+              {i % 2 === 0 ? '-' : '+'}
+            </motion.div>
+          ))}
+          
+          {/* Bubbles at Anode */}
+          {isOn && [...Array(5)].map((_, i) => (
+            <motion.div
+              key={`b-${i}`}
+              animate={{ y: [0, -40], opacity: [0, 1, 0] }}
+              transition={{ duration: 1, repeat: Infinity, delay: i * 0.3 }}
+              className="absolute left-[24%] bottom-24 w-2 h-2 border border-blue-300 rounded-full"
+            />
+          ))}
+          
+          <div className="absolute top-2 left-1/4 -translate-x-1/2 text-[8px] font-black text-rose-500 uppercase">Anode (+)</div>
+          <div className="absolute top-2 right-1/4 translate-x-1/2 text-[8px] font-black text-blue-500 uppercase">Cathode (-)</div>
+        </div>
+      </div>
+    );
+  };
+
+  const ElectroplatingAnimation = () => {
+    const [isPlating, setIsPlating] = useState(false);
+    
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex justify-center">
+          <button
+            onClick={() => setIsPlating(!isPlating)}
+            className={`px-6 py-2 rounded-full font-black uppercase tracking-widest transition-all border-2
+              ${isPlating 
+                ? 'bg-emerald-500 text-white border-emerald-600 shadow-[0_4px_0_0_#059669]' 
+                : 'bg-white text-gray-400 border-gray-200 shadow-[0_4px_0_0_#e5e7eb]'
+              }
+            `}
+          >
+            {isPlating ? 'Stop Plating' : 'Start Electroplating'}
+          </button>
+        </div>
+        
+        <div className="relative w-full h-40 bg-white border-2 border-gray-200 rounded-xl overflow-hidden p-4">
+          {/* Silver Anode */}
+          <div className="absolute top-0 left-1/4 w-6 h-32 bg-slate-300 rounded-b-lg shadow-md flex items-end justify-center pb-2">
+            <span className="text-[8px] text-gray-600 font-black">Ag</span>
+          </div>
+          
+          {/* Object to plate (Key) */}
+          <div className="absolute top-8 right-1/4 w-12 h-20 flex flex-col items-center">
+            <div className="w-8 h-8 border-4 border-amber-700 rounded-full" />
+            <div className="w-2 h-12 bg-amber-700 -mt-1 relative">
+              <div className="absolute bottom-0 right-0 w-4 h-1 bg-amber-700" />
+              <div className="absolute bottom-3 right-0 w-4 h-1 bg-amber-700" />
+              
+              {/* Plating layer */}
+              <motion.div
+                animate={isPlating ? { opacity: 1 } : { opacity: 0 }}
+                className="absolute inset-0 bg-slate-200 opacity-0 transition-opacity duration-5000"
+              />
+            </div>
+          </div>
+          
+          {/* Electrolyte */}
+          <div className="absolute bottom-0 inset-x-0 h-24 bg-sky-50/50 border-t-2 border-sky-100" />
+          
+          {/* Ag+ Ions */}
+          {isPlating && [...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              animate={{
+                x: [0, 100],
+                y: [0, Math.random() * 20 - 10],
+                opacity: [0, 1, 0]
+              }}
+              transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
+              className="absolute left-1/4 bottom-16 w-3 h-3 bg-slate-200 rounded-full border border-slate-300 flex items-center justify-center text-[6px] font-black text-slate-500"
+            >
+              +
+            </motion.div>
+          ))}
+        </div>
+        <div className="text-center text-[10px] font-bold text-gray-400 uppercase">Plating a Copper Key with Silver</div>
+      </div>
+    );
+  };
 
   const ElectrolyteDrawing = ({ state }: { state: 'solid' | 'molten' | 'aqueous' }) => {
     const ions = [...Array(12)].map((_, i) => ({
@@ -3934,18 +4466,6 @@ export default function App() {
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   {quizSubMode === 'time-attack' ? 'Time Attack' : quizSubMode === 'marathon' ? 'Marathon' : 'Quick Mode'}
                 </span>
-                <button
-                  onClick={() => setIsAssistMode(!isAssistMode)}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border-2
-                    ${isAssistMode 
-                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_2px_0_0_#4338ca]' 
-                      : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_2px_0_0_#e0e7ff]'
-                    }
-                  `}
-                >
-                  <Languages size={12} />
-                  Assist: {isAssistMode ? 'ON' : 'OFF'}
-                </button>
               </div>
               {(quizSubMode === 'quick' || quizSubMode === 'marathon') && (
                 <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
@@ -3973,22 +4493,14 @@ export default function App() {
           </div>
         </header>
 
-        <main className={`flex-1 ${isAssistMode ? 'max-w-6xl' : 'max-w-2xl'} mx-auto w-full p-6 flex flex-col transition-all duration-300`}>
-          <div className={`grid ${isAssistMode ? 'grid-cols-2 gap-8' : 'grid-cols-1'} mb-8`}>
+        <main className="flex-1 max-w-2xl mx-auto w-full p-6 flex flex-col transition-all duration-300">
+          <div className="grid grid-cols-1 mb-8">
             <div>
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">English</p>
               <h2 className="text-2xl font-black text-gray-800">
                 <HighlightedText text={currentQuestion.text} />
               </h2>
             </div>
-            {isAssistMode && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Chinese (Assist)</p>
-                <h2 className="text-2xl font-black text-gray-800">
-                  <HighlightedText text={currentQuestion.textZh || currentQuestion.text} />
-                </h2>
-              </motion.div>
-            )}
           </div>
           
           <div className="space-y-4 flex-1">
@@ -4007,13 +4519,8 @@ export default function App() {
                 `}
               >
                 <div className="flex items-center justify-between">
-                  <div className={`grid ${isAssistMode ? 'grid-cols-2 gap-8' : 'grid-cols-1'} w-full`}>
+                  <div className="grid grid-cols-1 w-full">
                     <HighlightedText text={option} />
-                    {isAssistMode && (
-                      <span className="text-indigo-500/80 font-medium">
-                        <HighlightedText text={currentQuestion.optionsZh?.[idx] || option} />
-                      </span>
-                    )}
                   </div>
                   {isAnswerChecked && option === currentQuestion.correctAnswer && <CheckCircle2 size={24} className="shrink-0 ml-4" />}
                   {isAnswerChecked && selectedOption === option && !isCorrect && <XCircle size={24} className="shrink-0 ml-4" />}
@@ -4113,18 +4620,28 @@ export default function App() {
             </button>
             <h1 className="text-xl font-black text-gray-800 uppercase tracking-tight">{selectedUnit?.title} Notes</h1>
           </div>
-          <button
-            onClick={() => setIsAssistMode(!isAssistMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all border-2
-              ${isAssistMode 
-                ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_4px_0_0_#4338ca]' 
-                : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_4px_0_0_#e0e7ff]'
-              }
-            `}
-          >
-            <Languages size={14} />
-            Assist Mode: {isAssistMode ? 'ON' : 'OFF'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAssistMode(!isAssistMode)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all border-2
+                ${isAssistMode 
+                  ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_4px_0_0_#4338ca]' 
+                  : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_4px_0_0_#e0e7ff]'
+                }
+              `}
+            >
+              <Languages size={14} />
+              Assist Mode: {isAssistMode ? 'ON' : 'OFF'}
+            </button>
+            {isAssistMode && (
+              <button
+                onClick={() => setIsSimplified(!isSimplified)}
+                className="bg-white text-indigo-500 border-2 border-indigo-100 px-3 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:border-indigo-200 shadow-[0_4px_0_0_#e0e7ff] active:shadow-none active:translate-y-1 transition-all"
+              >
+                {isSimplified ? 'Traditional' : 'Simplified'}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -4137,8 +4654,12 @@ export default function App() {
             </div>
             {isAssistMode && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <h2 className="text-3xl font-black mb-2">{selectedUnit?.titleZh || selectedUnit?.title}</h2>
-                <p className="text-white/90 text-lg">{selectedUnit?.descriptionZh || selectedUnit?.description}</p>
+                <h2 className="text-3xl font-black mb-2">
+                  {isSimplified ? (selectedUnit?.titleZhSimp || selectedUnit?.title) : (selectedUnit?.titleZh || selectedUnit?.title)}
+                </h2>
+                <p className="text-white/90 text-lg">
+                  {isSimplified ? (selectedUnit?.descriptionZhSimp || selectedUnit?.description) : (selectedUnit?.descriptionZh || selectedUnit?.description)}
+                </p>
               </motion.div>
             )}
           </div>
@@ -4169,11 +4690,30 @@ export default function App() {
                       <Languages size={20} />
                     </div>
                     <p className="text-gray-700 text-lg font-medium leading-relaxed">
-                      <HighlightedText text={selectedUnit?.conceptsZh?.[i] || concept} />
+                      <HighlightedText text={(isSimplified ? selectedUnit?.conceptsZhSimp?.[i] : selectedUnit?.conceptsZh?.[i]) || concept} />
                     </p>
                   </motion.div>
                 )}
               </div>
+              
+              {/* Relevant Graphics/Animations */}
+              {selectedUnit?.id === 1 && i === 1 && <StatesOfMatterAnimation />}
+              {selectedUnit?.id === 1 && i === 9 && <DiffusionAnimation />}
+              {selectedUnit?.id === 1 && i === 11 && <DiffusionExperimentAnimation />}
+              
+              {selectedUnit?.id === 2 && i === 2 && <AtomicStructureDrawing />}
+              {selectedUnit?.id === 2 && i === 6 && <AXZNotationDrawing />}
+              {selectedUnit?.id === 2 && i === 13 && <IonicBondingAnimation />}
+              {selectedUnit?.id === 2 && i === 14 && <GiantIonicDrawing />}
+              {selectedUnit?.id === 2 && i === 15 && <CovalentBondingAnimation />}
+              {selectedUnit?.id === 2 && i === 17 && <GiantCovalentDrawing />}
+              {selectedUnit?.id === 2 && i === 18 && <GiantMetallicDrawing />}
+
+              {selectedUnit?.id === 3 && i === 5 && <EquationBalancerAnimation />}
+              {selectedUnit?.id === 3 && i === 10 && <MolarVolumeAnimation />}
+
+              {selectedUnit?.id === 4 && i === 0 && <InteractiveElectrolysisAnimation />}
+              {selectedUnit?.id === 4 && i === 4 && <ElectroplatingAnimation />}
             </motion.div>
           ))}
         </div>
