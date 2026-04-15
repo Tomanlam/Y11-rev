@@ -1124,7 +1124,7 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white p-6 rounded-3xl border-2 border-gray-100">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Reaction Type</p>
             <p className={`text-xl font-black uppercase tracking-tight ${type === 'substitution' ? 'text-orange-500' : 'text-emerald-500'}`}>
@@ -1327,7 +1327,7 @@ export default function App() {
     return (
       <div className="space-y-8">
         {/* Comparison Header */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             onClick={() => {
               setProcess('haber');
@@ -1427,7 +1427,7 @@ export default function App() {
             </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {/* Column 1: Concentration */}
             <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
@@ -2003,6 +2003,7 @@ export default function App() {
   };
 
   const QuickFacts = () => {
+    const [isTiled, setIsTiled] = useState(false);
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
     const [hoveredMoleEq, setHoveredMoleEq] = useState<number | null>(null);
@@ -2150,18 +2151,37 @@ export default function App() {
         className="min-h-screen bg-gray-50 pb-32"
       >
         <header className="bg-white border-b-2 border-gray-200 p-6 sticky top-0 z-10">
-          <div className="max-w-2xl mx-auto flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter">Quick Facts</h1>
-              <p className="text-emerald-500 font-bold text-xs uppercase tracking-widest">Essential Chemistry Knowledge</p>
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <div className="flex items-center gap-6">
+              <button 
+                onClick={() => setMode('dashboard')}
+                className="p-3 rounded-2xl bg-gray-50 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <div>
+                <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter">Quick Facts</h1>
+                <p className="text-emerald-500 font-bold text-xs uppercase tracking-widest">Essential Chemistry Knowledge</p>
+              </div>
             </div>
-            <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl">
-              <BookOpen size={28} />
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsTiled(!isTiled)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all
+                  ${isTiled ? 'bg-emerald-500 text-white shadow-[0_4px_0_0_#059669]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+                `}
+              >
+                {isTiled ? <List size={16} /> : <LayoutGrid size={16} />}
+                {isTiled ? 'List View' : 'Tile Cards'}
+              </button>
+              <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl hidden sm:block">
+                <BookOpen size={28} />
+              </div>
             </div>
           </div>
         </header>
 
-        <main className="max-w-2xl mx-auto p-6 space-y-8">
+        <main className={`mx-auto p-6 transition-all duration-500 ${isTiled ? 'max-w-7xl grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 space-y-0' : 'max-w-2xl space-y-8'}`}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3178,7 +3198,7 @@ export default function App() {
 
                 <GiantSubstanceDrawing />
 
-                <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                   {/* Giant Ionic */}
                   <div className={`p-4 rounded-2xl border-2 transition-all ${
                     selectedBondingSubstance === 'NaCl' 
@@ -3271,7 +3291,7 @@ export default function App() {
             <div className="space-y-6">
               <ElectrolyteDrawing state={electrolyteState} />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className={`p-4 rounded-2xl border-2 transition-all ${electrolyteState === 'solid' ? 'bg-rose-50 border-rose-200' : 'bg-gray-50 border-gray-100 opacity-40'}`}>
                   <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Solid State</p>
                   <p className="text-xs font-bold text-gray-700">Ions are in fixed positions. They cannot move.</p>
