@@ -1253,7 +1253,7 @@ export default function App() {
         const p = 2;
 
         // Reaction Quotient Q = [P]^p / ([A]^a * [B]^b)
-        const Q = (Math.pow(lastData.P, p) + 0.001) / (Math.pow(lastData.A, a) * Math.pow(lastData.B, b) + 0.001);
+        const Q = (Math.pow(lastData.P, p) + 1e-9) / (Math.pow(lastData.A, a) * Math.pow(lastData.B, b) + 1e-9);
         const targetQ = K;
         
         // The "force" is based on the difference between current Q and target K
@@ -1275,7 +1275,7 @@ export default function App() {
         const nextP = Math.max(0, lastData.P + shift * p);
 
         // Equilibrium is reached when the shift becomes negligible
-        const isEq = Math.abs(shift) < 0.0002;
+        const isEq = Math.abs(shift) < 0.001;
 
         const newData = [
           ...currentDataRef.current.slice(1),
@@ -1861,12 +1861,19 @@ export default function App() {
         const isFunctionalCarbon = (selectedSeries === 'acid' && i === N - 1);
         
         if (!isFunctionalCarbon) {
+          const isAlkeneC1 = selectedSeries === 'alkene' && i === 0;
+          const isAlkeneC2 = selectedSeries === 'alkene' && i === 1;
+
           // Top H
-          bonds.push({ x1: x, y1: centerY - 12, x2: x, y2: centerY - 35 });
-          atoms.push({ x, y: centerY - 45, label: 'H', color: 'text-gray-400' });
+          if (!isAlkeneC2) {
+            bonds.push({ x1: x, y1: centerY - 12, x2: x, y2: centerY - 35 });
+            atoms.push({ x, y: centerY - 45, label: 'H', color: 'text-gray-400' });
+          }
           // Bottom H
-          bonds.push({ x1: x, y1: centerY + 12, x2: x, y2: centerY + 35 });
-          atoms.push({ x, y: centerY + 45, label: 'H', color: 'text-gray-400' });
+          if (!isAlkeneC1) {
+            bonds.push({ x1: x, y1: centerY + 12, x2: x, y2: centerY + 35 });
+            atoms.push({ x, y: centerY + 45, label: 'H', color: 'text-gray-400' });
+          }
         }
 
         // Left-most H
@@ -1971,7 +1978,7 @@ export default function App() {
               {renderMolecule()}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</p>
                 <p className="text-sm font-black text-gray-800 capitalize">{getCompoundName(selectedSeries, carbons)}</p>
