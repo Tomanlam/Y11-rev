@@ -73,6 +73,45 @@ export default function App() {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [sessionStats, setSessionStats] = useState<SessionStats>({});
 
+  const [isAssistMode, setIsAssistMode] = useState(false);
+
+  const HighlightedText = ({ text, className = "" }: { text: string, className?: string }) => {
+    if (!text) return null;
+    
+    // Pattern: [[text|color]]
+    const parts = text.split(/(\[\[.*?\|.*?\]\])/g);
+    
+    return (
+      <span className={className}>
+        {parts.map((part, i) => {
+          const match = part.match(/^\[\[(.*?)\|(.*?)\]\]$/);
+          if (match) {
+            const [_, content, color] = match;
+            const colorClasses: { [key: string]: string } = {
+              emerald: 'text-emerald-500 bg-emerald-50 px-1 rounded',
+              rose: 'text-rose-500 bg-rose-50 px-1 rounded',
+              blue: 'text-blue-500 bg-blue-50 px-1 rounded',
+              amber: 'text-amber-500 bg-amber-50 px-1 rounded',
+              orange: 'text-orange-500 bg-orange-50 px-1 rounded',
+              indigo: 'text-indigo-500 bg-indigo-50 px-1 rounded',
+              purple: 'text-purple-500 bg-purple-50 px-1 rounded',
+              cyan: 'text-cyan-500 bg-cyan-50 px-1 rounded',
+              slate: 'text-slate-500 bg-slate-50 px-1 rounded',
+              teal: 'text-teal-500 bg-teal-50 px-1 rounded',
+              pink: 'text-pink-500 bg-pink-50 px-1 rounded',
+            };
+            return (
+              <span key={i} className={`font-black ${colorClasses[color] || 'text-indigo-500'}`}>
+                {content}
+              </span>
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </span>
+    );
+  };
+
   const allConcepts = useMemo(() => units.flatMap(unit => unit.concepts), []);
   const [randomConcept, setRandomConcept] = useState(() => 
     allConcepts[Math.floor(Math.random() * allConcepts.length)]
@@ -3879,16 +3918,26 @@ export default function App() {
 
     return (
       <div className="min-h-screen bg-white flex flex-col">
-        <header className="p-4 flex items-center gap-4 max-w-2xl mx-auto w-full">
+        <header className="p-4 flex items-center gap-4 max-w-4xl mx-auto w-full">
           <button onClick={() => setMode('dashboard')} className="text-gray-400 hover:text-gray-600">
             <XCircle size={32} />
           </button>
           
           <div className="flex-1 flex flex-col gap-1">
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                {quizSubMode === 'time-attack' ? 'Time Attack' : quizSubMode === 'marathon' ? 'Marathon' : 'Quick Mode'}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  {quizSubMode === 'time-attack' ? 'Time Attack' : quizSubMode === 'marathon' ? 'Marathon' : 'Quick Mode'}
+                </span>
+                <button
+                  onClick={() => setIsAssistMode(!isAssistMode)}
+                  className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest transition-all border-2
+                    ${isAssistMode ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200'}
+                  `}
+                >
+                  Assist: {isAssistMode ? 'ON' : 'OFF'}
+                </button>
+              </div>
               {(quizSubMode === 'quick' || quizSubMode === 'marathon') && (
                 <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
                   Question {currentQuestionIndex + 1}
@@ -3915,11 +3964,26 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 max-w-2xl mx-auto w-full p-6 flex flex-col">
-          <h2 className="text-2xl font-black text-gray-800 mb-8">{currentQuestion.text}</h2>
+        <main className={`flex-1 ${isAssistMode ? 'max-w-6xl' : 'max-w-2xl'} mx-auto w-full p-6 flex flex-col transition-all duration-300`}>
+          <div className={`grid ${isAssistMode ? 'grid-cols-2 gap-8' : 'grid-cols-1'} mb-8`}>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">English</p>
+              <h2 className="text-2xl font-black text-gray-800">
+                <HighlightedText text={currentQuestion.text} />
+              </h2>
+            </div>
+            {isAssistMode && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Chinese (Assist)</p>
+                <h2 className="text-2xl font-black text-gray-800">
+                  <HighlightedText text={currentQuestion.textZh || currentQuestion.text} />
+                </h2>
+              </motion.div>
+            )}
+          </div>
           
           <div className="space-y-4 flex-1">
-            {currentQuestion.options.map((option) => (
+            {currentQuestion.options.map((option, idx) => (
               <button
                 key={option}
                 disabled={isAnswerChecked}
@@ -3934,9 +3998,16 @@ export default function App() {
                 `}
               >
                 <div className="flex items-center justify-between">
-                  <span>{option}</span>
-                  {isAnswerChecked && option === currentQuestion.correctAnswer && <CheckCircle2 size={24} />}
-                  {isAnswerChecked && selectedOption === option && !isCorrect && <XCircle size={24} />}
+                  <div className={`grid ${isAssistMode ? 'grid-cols-2 gap-8' : 'grid-cols-1'} w-full`}>
+                    <HighlightedText text={option} />
+                    {isAssistMode && (
+                      <span className="text-indigo-500/80 font-medium">
+                        <HighlightedText text={currentQuestion.optionsZh?.[idx] || option} />
+                      </span>
+                    )}
+                  </div>
+                  {isAnswerChecked && option === currentQuestion.correctAnswer && <CheckCircle2 size={24} className="shrink-0 ml-4" />}
+                  {isAnswerChecked && selectedOption === option && !isCorrect && <XCircle size={24} className="shrink-0 ml-4" />}
                 </div>
               </button>
             ))}
@@ -4026,18 +4097,38 @@ export default function App() {
   const RevisionView = () => (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <button onClick={() => setMode('dashboard')} className="text-gray-400 hover:text-gray-600">
-            <ChevronLeft size={32} />
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setMode('dashboard')} className="text-gray-400 hover:text-gray-600">
+              <ChevronLeft size={32} />
+            </button>
+            <h1 className="text-xl font-black text-gray-800 uppercase tracking-tight">{selectedUnit?.title} Notes</h1>
+          </div>
+          <button
+            onClick={() => setIsAssistMode(!isAssistMode)}
+            className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all border-2
+              ${isAssistMode ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_4px_0_0_#4338ca]' : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_4px_0_0_#e0e7ff]'}
+            `}
+          >
+            Assist Mode: {isAssistMode ? 'ON' : 'OFF'}
           </button>
-          <h1 className="text-xl font-black text-gray-800 uppercase tracking-tight">{selectedUnit?.title} Notes</h1>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto p-6 space-y-6">
+      <main className={`${isAssistMode ? 'max-w-6xl' : 'max-w-2xl'} mx-auto p-6 space-y-6 transition-all duration-300`}>
         <div className={`${selectedUnit?.color} rounded-3xl p-8 text-white shadow-lg`}>
-          <h2 className="text-3xl font-black mb-2">{selectedUnit?.title}</h2>
-          <p className="text-white/90 text-lg">{selectedUnit?.description}</p>
+          <div className={`grid ${isAssistMode ? 'grid-cols-2 gap-8' : 'grid-cols-1'}`}>
+            <div>
+              <h2 className="text-3xl font-black mb-2">{selectedUnit?.title}</h2>
+              <p className="text-white/90 text-lg">{selectedUnit?.description}</p>
+            </div>
+            {isAssistMode && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <h2 className="text-3xl font-black mb-2">{selectedUnit?.titleZh || selectedUnit?.title}</h2>
+                <p className="text-white/90 text-lg">{selectedUnit?.descriptionZh || selectedUnit?.description}</p>
+              </motion.div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -4048,21 +4139,28 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.1 }}
               key={i} 
-              className="bg-white border-2 border-gray-200 rounded-2xl p-5 flex gap-4 items-start shadow-[0_4px_0_0_rgba(0,0,0,0.05)]"
+              className="bg-white border-2 border-gray-200 rounded-2xl p-5 shadow-[0_4px_0_0_rgba(0,0,0,0.05)]"
             >
-              <div className="bg-blue-100 text-blue-600 p-2 rounded-lg mt-1">
-                <CheckCircle2 size={20} />
-              </div>
-              <p className="text-gray-700 text-lg font-medium leading-relaxed">
-                {concept.includes(': ') ? (
-                  <>
-                    <span className="font-black text-gray-900">{concept.split(': ')[0]}:</span>
-                    {concept.substring(concept.indexOf(': ') + 1)}
-                  </>
-                ) : (
-                  concept
+              <div className={`grid ${isAssistMode ? 'grid-cols-2 gap-8' : 'grid-cols-1'}`}>
+                <div className="flex gap-4 items-start">
+                  <div className="bg-blue-100 text-blue-600 p-2 rounded-lg mt-1 shrink-0">
+                    <CheckCircle2 size={20} />
+                  </div>
+                  <p className="text-gray-700 text-lg font-medium leading-relaxed">
+                    <HighlightedText text={concept} />
+                  </p>
+                </div>
+                {isAssistMode && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-4 items-start border-l-2 border-indigo-50 pl-8">
+                    <div className="bg-indigo-100 text-indigo-600 p-2 rounded-lg mt-1 shrink-0">
+                      <Languages size={20} />
+                    </div>
+                    <p className="text-gray-700 text-lg font-medium leading-relaxed">
+                      <HighlightedText text={selectedUnit?.conceptsZh?.[i] || concept} />
+                    </p>
+                  </motion.div>
                 )}
-              </p>
+              </div>
             </motion.div>
           ))}
         </div>
