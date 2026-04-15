@@ -304,14 +304,33 @@ export const units: Unit[] = [
   {
     id: 3,
     title: "Stoichiometry",
+    titleZh: "化學計量學",
     description: "Chemical formulas, equations, and calculations.",
+    descriptionZh: "化學式、方程式和計算。",
     color: "bg-orange-500",
     concepts: [
-      "Chemical formulas represent the ratio of atoms in a compound.",
-      "Relative atomic mass (Ar) and relative molecular mass (Mr) are used in calculations.",
-      "The mole is the unit for amount of substance.",
-      "One mole contains 6.02 x 10^23 particles (Avogadro constant).",
-      "Balanced equations show the mole ratio of reactants and products."
+      "[[Chemical formulas|amber]] represent the ratio of atoms in a compound.",
+      "[[Relative atomic mass|amber]] (Ar) and [[relative molecular mass|orange]] (Mr) are used in calculations.",
+      "The [[mole|rose]] is the unit for amount of substance.",
+      "One mole contains [[6.02 x 10^23|blue]] particles ([[Avogadro constant|blue]]).",
+      "[[Balanced equations|emerald]] show the mole ratio of reactants and products.",
+      "[[Empirical formula|slate]] is the simplest whole-number ratio of atoms.",
+      "[[Molecular formula|slate]] is the actual number of atoms in a molecule.",
+      "[[Percentage yield|rose]] = (actual yield / theoretical yield) x 100%.",
+      "[[Percentage purity|emerald]] = (mass of pure substance / total mass) x 100%.",
+      "[[Molar volume|blue]] of a gas is [[24 dm³|blue]] at room temperature and pressure (r.t.p.)."
+    ],
+    conceptsZh: [
+      "[[化學式|amber]]表示化合物中原子的比例。",
+      "[[相對原子質量|amber]] (Ar) 和[[相對分子質量|orange]] (Mr) 用於計算。",
+      "[[摩爾|rose]]是物質的量的單位。",
+      "一摩爾包含[[6.02 x 10^23|blue]]個微粒（[[阿佛加德羅常數|blue]]）。",
+      "[[平衡方程式|emerald]]顯示反應物和生成物的摩爾比。",
+      "[[實驗式|slate]]是原子最簡單的整數比。",
+      "[[分子式|slate]]是分子中原子的實際數量。",
+      "[[百分產率|rose]] = (實際產量 / 理論產量) x 100%。",
+      "[[百分純度|emerald]] = (純物質質量 / 總質量) x 100%。",
+      "在室溫和室壓 (r.t.p.) 下，氣體的[[摩爾體積|blue]]為[[24 dm³|blue]]。"
     ],
     vocab: [
       { term: "Mole", traditional: "摩爾", simplified: "摩尔", definition: "The unit for amount of substance." },
@@ -319,188 +338,428 @@ export const units: Unit[] = [
       { term: "Empirical Formula", traditional: "實驗式", simplified: "实验式", definition: "The simplest whole-number ratio of atoms in a compound." }
     ],
     questions: [
-      { id: "3-1", text: "What is the unit for the amount of a substance?", options: ["Gram", "Mole", "Liter", "Pascal"], correctAnswer: "Mole" }
+      { 
+        id: "3-1", 
+        text: "What is the unit for the [[amount of a substance|rose]]?", 
+        textZh: "[[物質的量|rose]]的單位是什麼？",
+        options: ["Gram", "Mole", "Liter", "Pascal"], 
+        optionsZh: ["克", "摩爾", "升", "帕斯卡"],
+        correctAnswer: "Mole" 
+      }
     ]
   },
   {
     id: 4,
     title: "Electrochemistry",
+    titleZh: "電化學",
     description: "Electricity and chemical changes.",
+    descriptionZh: "電與化學變化。",
     color: "bg-yellow-500",
     concepts: [
-      "Electrolysis is the breakdown of an ionic compound by electricity.",
-      "The electrolyte is the liquid that conducts electricity.",
-      "Anode is the positive electrode; Cathode is the negative electrode.",
-      "Oxidation occurs at the anode; Reduction occurs at the cathode (OIL RIG).",
-      "Electroplating is using electrolysis to coat an object with a metal."
+      "[[Electrolysis|amber]] is the breakdown of an ionic compound by electricity.",
+      "The [[electrolyte|blue]] is the liquid (molten or aqueous) that conducts electricity.",
+      "[[Anode|rose]] is the positive electrode; [[Cathode|blue]] is the negative electrode.",
+      "[[Oxidation|rose]] occurs at the anode; [[Reduction|blue]] occurs at the cathode ([[OIL RIG|amber]]).",
+      "[[Electroplating|emerald]] is using electrolysis to coat an object with a metal.",
+      "In the electrolysis of [[brine|blue]], chlorine gas forms at the anode and hydrogen gas at the cathode.",
+      "[[Hydrogen fuel cells|emerald]] produce electricity from the reaction between hydrogen and oxygen.",
+      "[[Conductors|slate]] allow electricity to pass; [[insulators|slate]] do not.",
+      "During electrolysis, [[ions|amber]] move towards the electrodes of opposite charge.",
+      "[[Refining copper|rose]] uses an impure copper anode and a pure copper cathode."
+    ],
+    conceptsZh: [
+      "[[電解|amber]]是利用電分解離子化合物的過程。",
+      "[[電解質|blue]]是導電的液體（熔融或水溶液）。",
+      "[[陽極|rose]]是正極；[[陰極|blue]]是負極。",
+      "[[氧化|rose]]發生在陽極；[[還原|blue]]發生在陰極（[[OIL RIG|amber]]：氧化是失去，還原是得到）。",
+      "[[電鍍|emerald]]是利用電解在物體表面鍍上一層金屬。",
+      "在[[食鹽水|blue]]的電解中，氯氣在陽極形成，氫氣在陰極形成。",
+      "[[氫燃料電池|emerald]]通過氫氣和氧氣的反應產生電能。",
+      "[[導體|slate]]允許電流通過；[[絕緣體|slate]]則不允許。",
+      "在電解過程中，[[離子|amber]]向帶相反電荷的電極移動。",
+      "[[精煉銅|rose]]使用不純的銅陽極和純銅陰極。"
     ],
     vocab: [
       { term: "Electrolysis", traditional: "電解", simplified: "电解", definition: "Breaking down a substance using electricity." },
       { term: "Electrode", traditional: "電極", simplified: "电极", definition: "A conductor through which electricity enters or leaves an electrolyte." }
     ],
     questions: [
-      { id: "4-1", text: "Which electrode is the negative one in electrolysis?", options: ["Anode", "Cathode", "Electrolyte", "Battery"], correctAnswer: "Cathode" }
+      { 
+        id: "4-1", 
+        text: "Which electrode is the [[negative|blue]] one in electrolysis?", 
+        textZh: "在電解中，哪個電極是[[負極|blue]]？",
+        options: ["Anode", "Cathode", "Electrolyte", "Battery"], 
+        optionsZh: ["陽極", "陰極", "電解質", "電池"],
+        correctAnswer: "Cathode" 
+      }
     ]
   },
   {
     id: 5,
     title: "Chemical energetics",
+    titleZh: "化學能量學",
     description: "Energy changes in chemical reactions.",
+    descriptionZh: "化學反應中的能量變化。",
     color: "bg-red-500",
     concepts: [
-      "Exothermic reactions release heat energy to the surroundings.",
-      "Endothermic reactions absorb heat energy from the surroundings.",
-      "Enthalpy change (ΔH) is negative for exothermic and positive for endothermic.",
-      "Bond breaking is endothermic; bond making is exothermic.",
-      "Activation energy is the minimum energy needed for a reaction to start."
+      "[[Exothermic|rose]] reactions release heat energy to the surroundings (ΔH is negative).",
+      "[[Endothermic|blue]] reactions absorb heat energy from the surroundings (ΔH is positive).",
+      "[[Enthalpy change|amber]] (ΔH) is the energy change during a reaction.",
+      "[[Bond breaking|blue]] is endothermic; [[bond making|rose]] is exothermic.",
+      "[[Activation energy|orange]] is the minimum energy needed for a reaction to start.",
+      "[[Energy level diagrams|emerald]] show the relative energies of reactants and products.",
+      "[[Reaction pathway diagrams|emerald]] include the activation energy peak.",
+      "[[Combustion|rose]] and [[neutralization|emerald]] are typically exothermic.",
+      "[[Photosynthesis|emerald]] and [[thermal decomposition|blue]] are typically endothermic.",
+      "[[Bond energy|amber]] is the energy required to break 1 mole of a covalent bond."
+    ],
+    conceptsZh: [
+      "[[放熱|rose]]反應向環境釋放熱能（ΔH 為負）。",
+      "[[吸熱|blue]]反應從環境吸收熱能（ΔH 為正）。",
+      "[[焓變|amber]] (ΔH) 是反應過程中的能量變化。",
+      "[[斷鍵|blue]]是吸熱過程；[[成鍵|rose]]是放熱過程。",
+      "[[活化能|orange]]是反應開始所需的最低能量。",
+      "[[能量圖|emerald]]顯示反應物和生成物的相對能量。",
+      "[[反應途徑圖|emerald]]包含活化能峰值。",
+      "[[燃燒|rose]]和[[中和反應|emerald]]通常是放熱的。",
+      "[[光合作用|emerald]]和[[熱分解|blue]]通常是吸熱的。",
+      "[[鍵能|amber]]是斷開 1 摩爾共價鍵所需的能量。"
     ],
     vocab: [
       { term: "Exothermic", traditional: "放熱", simplified: "放热", definition: "A reaction that releases heat." },
       { term: "Endothermic", traditional: "吸熱", simplified: "吸热", definition: "A reaction that absorbs heat." }
     ],
     questions: [
-      { id: "5-1", text: "In an exothermic reaction, the temperature of the surroundings:", options: ["Increases", "Decreases", "Stays the same", "Becomes zero"], correctAnswer: "Increases" }
+      { 
+        id: "5-1", 
+        text: "In an [[exothermic|rose]] reaction, the temperature of the surroundings:", 
+        textZh: "在[[放熱|rose]]反應中，環境溫度會：",
+        options: ["Increases", "Decreases", "Stays the same", "Becomes zero"], 
+        optionsZh: ["升高", "降低", "保持不變", "變為零"],
+        correctAnswer: "Increases" 
+      }
     ]
   },
   {
     id: 6,
     title: "Chemical reactions",
+    titleZh: "化學反應",
     description: "Rates of reaction and reversible reactions.",
+    descriptionZh: "反應速率和可逆反應。",
     color: "bg-purple-500",
     concepts: [
-      "Rate of reaction depends on concentration, temperature, surface area, and catalysts.",
-      "Collision theory: particles must collide with enough energy to react.",
-      "Reversible reactions can go both ways (A + B ⇌ C + D).",
-      "Equilibrium is reached when the forward and backward rates are equal.",
-      "Redox reactions involve both reduction and oxidation."
+      "[[Rate of reaction|amber]] depends on [[concentration|blue]], [[temperature|rose]], [[surface area|emerald]], and [[catalysts|orange]].",
+      "[[Collision theory|slate]]: particles must collide with enough energy ([[activation energy|orange]]) to react.",
+      "[[Reversible reactions|purple]] can go both ways (A + B ⇌ C + D).",
+      "[[Equilibrium|emerald]] is reached when forward and backward rates are equal in a closed system.",
+      "[[Le Chatelier's principle|amber]]: changing conditions shifts equilibrium to oppose the change.",
+      "[[Redox|rose]] reactions involve both [[reduction|blue]] (gain of e-) and [[oxidation|rose]] (loss of e-).",
+      "[[Oxidizing agents|rose]] get reduced; [[reducing agents|blue]] get oxidized.",
+      "[[Photochemical reactions|emerald]] (e.g., photosynthesis) are started by light energy.",
+      "[[Catalysts|orange]] speed up reactions by providing an alternative pathway with lower activation energy.",
+      "[[Enzymes|emerald]] are biological catalysts."
+    ],
+    conceptsZh: [
+      "[[反應速率|amber]]取決於[[濃度|blue]]、[[溫度|rose]]、[[表面積|emerald]]和[[催化劑|orange]]。",
+      "[[碰撞理論|slate]]：微粒必須以足夠的能量（[[活化能|orange]]）碰撞才能發生反應。",
+      "[[可逆反應|purple]]可以雙向進行 (A + B ⇌ C + D)。",
+      "在封閉體系中，當正向和逆向速率相等時達到[[平衡|emerald]]。",
+      "[[勒夏特列原理|amber]]：改變條件會使平衡向減弱這種改變的方向移動。",
+      "[[氧化還原|rose]]反應同時涉及[[還原|blue]]（得到電子）和[[氧化|rose]]（失去電子）。",
+      "[[氧化劑|rose]]被還原；[[還原劑|blue]]被氧化。",
+      "[[光化學反應|emerald]]（如光合作用）由光能引發。",
+      "[[催化劑|orange]]通過提供具有較低活化能的替代途徑來加速反應。",
+      "[[酶|emerald]]是生物催化劑。"
     ],
     vocab: [
       { term: "Catalyst", traditional: "催化劑", simplified: "催化剂", definition: "A substance that speeds up a reaction without being used up." },
       { term: "Equilibrium", traditional: "平衡", simplified: "平衡", definition: "A state where forward and backward reactions happen at the same rate." }
     ],
     questions: [
-      { id: "6-1", text: "What does a catalyst do to the rate of reaction?", options: ["Speeds it up", "Slows it down", "Stops it", "Has no effect"], correctAnswer: "Speeds it up" }
+      { 
+        id: "6-1", 
+        text: "What does a [[catalyst|orange]] do to the rate of reaction?", 
+        textZh: "[[催化劑|orange]]對反應速率有什麼作用？",
+        options: ["Speeds it up", "Slows it down", "Stops it", "Has no effect"], 
+        optionsZh: ["加速", "減慢", "停止", "沒有影響"],
+        correctAnswer: "Speeds it up" 
+      }
     ]
   },
   {
     id: 7,
     title: "Acids, bases and salts",
+    titleZh: "酸、鹼和鹽",
     description: "Properties and reactions of acids and bases.",
+    descriptionZh: "酸和鹼的性質與反應。",
     color: "bg-indigo-500",
     concepts: [
-      "Acids have a pH less than 7 and turn litmus red.",
-      "Bases (alkalis) have a pH greater than 7 and turn litmus blue.",
-      "Neutralization: Acid + Base → Salt + Water.",
-      "Indicators like phenolphthalein and methyl orange show pH changes.",
-      "Strong acids fully ionize in water; weak acids only partially ionize."
+      "[[Acids|rose]] have a pH less than 7 and turn litmus [[red|rose]].",
+      "[[Bases|blue]] (alkalis) have a pH greater than 7 and turn litmus [[blue|blue]].",
+      "[[Neutralization|emerald]]: Acid + Base → Salt + Water.",
+      "[[Indicators|amber]] like phenolphthalein and methyl orange show pH changes.",
+      "[[Strong acids|rose]] fully ionize in water; [[weak acids|orange]] only partially ionize.",
+      "[[Amphoteric oxides|slate]] (e.g., Al2O3) react with both acids and bases.",
+      "[[Acidic oxides|rose]] are non-metal oxides; [[basic oxides|blue]] are metal oxides.",
+      "[[Salts|emerald]] are formed when the hydrogen of an acid is replaced by a metal or ammonium ion.",
+      "[[Solubility rules|slate]]: All nitrates are soluble; most carbonates are insoluble.",
+      "[[Titration|amber]] is used to find the concentration of an acid or alkali."
+    ],
+    conceptsZh: [
+      "[[酸|rose]]的 pH 值小於 7，能使石蕊變[[紅|rose]]。",
+      "[[鹼|blue]]（鹼液）的 pH 值大於 7，能使石蕊變[[藍|blue]]。",
+      "[[中和反應|emerald]]：酸 + 鹼 → 鹽 + 水。",
+      "[[指示劑|amber]]（如酚酞和甲基橙）顯示 pH 值的變化。",
+      "[[強酸|rose]]在水中完全電離；[[弱酸|orange]]僅部分電離。",
+      "[[兩性氧化物|slate]]（如 Al2O3）既能與酸反應也能與鹼反應。",
+      "[[酸性氧化物|rose]]是非金屬氧化物；[[鹼性氧化物|blue]]是金屬氧化物。",
+      "當酸中的氫被金屬或銨離子取代時，就形成了[[鹽|emerald]]。",
+      "[[溶解性規則|slate]]：所有硝酸鹽都可溶；大多數碳酸鹽不溶。",
+      "[[滴定|amber]]用於測定酸或鹼的濃度。"
     ],
     vocab: [
       { term: "Acid", traditional: "酸", simplified: "酸", definition: "A substance with a pH less than 7." },
       { term: "Alkali", traditional: "鹼", simplified: "碱", definition: "A soluble base with a pH greater than 7." }
     ],
     questions: [
-      { id: "7-1", text: "What is the pH of a neutral solution?", options: ["0", "7", "14", "1"], correctAnswer: "7" }
+      { 
+        id: "7-1", 
+        text: "What is the pH of a [[neutral|emerald]] solution?", 
+        textZh: "[[中性|emerald]]溶液的 pH 值是多少？",
+        options: ["0", "7", "14", "1"], 
+        optionsZh: ["0", "7", "14", "1"],
+        correctAnswer: "7" 
+      }
     ]
   },
   {
     id: 8,
     title: "The Periodic Table",
+    titleZh: "週期表",
     description: "Trends and patterns in the elements.",
+    descriptionZh: "元素的趨勢和規律。",
     color: "bg-cyan-500",
     concepts: [
-      "Elements are arranged by increasing atomic number.",
-      "Groups are vertical columns; Periods are horizontal rows.",
-      "Group I (Alkali metals) are reactive and soft.",
-      "Group VII (Halogens) are reactive non-metals.",
-      "Group VIII/0 (Noble gases) are unreactive.",
-      "Transition elements are metals with high densities and colored compounds."
+      "Elements are arranged by increasing [[atomic number|rose]].",
+      "[[Groups|slate]] are vertical columns; [[Periods|slate]] are horizontal rows.",
+      "[[Group I|amber]] (Alkali metals) are reactive, soft, and reactivity increases down the group.",
+      "[[Group VII|rose]] (Halogens) are diatomic non-metals; reactivity decreases down the group.",
+      "[[Group VIII|blue]] (Noble gases) are unreactive (monatomic) due to full outer shells.",
+      "[[Transition elements|emerald]] have high densities, high melting points, and form colored compounds.",
+      "[[Metallic character|amber]] decreases across a period and increases down a group.",
+      "[[Valence electrons|blue]] determine the chemical properties of an element.",
+      "[[Noble gases|blue]] are used in lamps (Argon) and balloons (Helium).",
+      "[[Halogens|rose]] undergo displacement reactions based on their reactivity."
+    ],
+    conceptsZh: [
+      "元素按[[原子序數|rose]]遞增排列。",
+      "[[族|slate]]是垂直列；[[週期|slate]]是水平行。",
+      "[[第一族|amber]]（鹼金屬）具有反應性且質軟，反應性隨族序向下遞增。",
+      "[[第七族|rose]]（鹵素）是雙原子非金屬，反應性隨族序向下遞減。",
+      "[[第八族|blue]]（惰性氣體）由於具有完整的外層電子層而不具反應性（單原子）。",
+      "[[過渡元素|emerald]]具有高密度、高熔點，並形成有色化合物。",
+      "[[金屬性|amber]]沿週期向右遞減，沿族向下遞增。",
+      "[[價電子|blue]]決定元素的化學性質。",
+      "[[惰性氣體|blue]]用於燈具（氬氣）和氣球（氦氣）。",
+      "[[鹵素|rose]]根據其反應性發生置換反應。"
     ],
     vocab: [
       { term: "Group", traditional: "族", simplified: "族", definition: "A vertical column in the periodic table." },
       { term: "Period", traditional: "週期", simplified: "周期", definition: "A horizontal row in the periodic table." }
     ],
     questions: [
-      { id: "8-1", text: "Which group contains the Noble Gases?", options: ["Group I", "Group VII", "Group VIII", "Group II"], correctAnswer: "Group VIII" }
+      { 
+        id: "8-1", 
+        text: "Which group contains the [[Noble Gases|blue]]?", 
+        textZh: "哪一族包含[[惰性氣體|blue]]？",
+        options: ["Group I", "Group VII", "Group VIII", "Group II"], 
+        optionsZh: ["第一族", "第七族", "第八族", "第二族"],
+        correctAnswer: "Group VIII" 
+      }
     ]
   },
   {
     id: 9,
     title: "Metals",
+    titleZh: "金屬",
     description: "Properties, extraction, and uses of metals.",
+    descriptionZh: "金屬的性質、提取和用途。",
     color: "bg-slate-500",
     concepts: [
-      "Metals are shiny, malleable, and conduct heat/electricity.",
-      "Alloys are mixtures of a metal with other elements.",
-      "Reactivity series: K > Na > Ca > Mg > Al > Zn > Fe > Pb > Cu > Ag > Au.",
-      "Extraction of iron occurs in the Blast Furnace.",
-      "Aluminum is extracted by electrolysis of bauxite."
+      "[[Metals|slate]] are typically shiny, conduct heat/electricity, and are [[malleable|emerald]].",
+      "[[Alloys|amber]] are mixtures of a metal with other elements; they are harder than pure metals.",
+      "The [[reactivity series|rose]] lists metals from most to least reactive (K > Na > Ca > Mg > Al > Zn > Fe > Pb > Cu > Ag > Au).",
+      "[[Extraction|orange]]: Metals below carbon are extracted by reduction with carbon.",
+      "[[Aluminium|blue]] is extracted from [[bauxite|blue]] by electrolysis.",
+      "[[Iron|slate]] is extracted in a [[blast furnace|orange]] using hematite, coke, and limestone.",
+      "[[Rusting|rose]] of iron requires both oxygen and water.",
+      "[[Prevention of rust|emerald]]: painting, oiling, galvanizing, or sacrificial protection.",
+      "[[Uses of metals|slate]]: Aluminium for aircraft (low density); Copper for wiring (conductivity).",
+      "[[Sacrificial protection|emerald]] involves using a more reactive metal (e.g., Zinc) to protect Iron."
+    ],
+    conceptsZh: [
+      "[[金屬|slate]]通常具有光澤、導熱/導電，且具有[[延展性|emerald]]。",
+      "[[合金|amber]]是金屬與其他元素的混合物；它們比純金屬更硬。",
+      "[[反應性序列|rose]]按反應性從強到弱排列金屬 (K > Na > Ca > Mg > Al > Zn > Fe > Pb > Cu > Ag > Au)。",
+      "[[提取|orange]]：碳以下的金屬通過碳還原法提取。",
+      "[[鋁|blue]]是通過電解從[[鋁土礦|blue]]中提取的。",
+      "[[鐵|slate]]是在[[高爐|orange]]中利用赤鐵礦、焦炭和石灰石提取的。",
+      "鐵的[[生鏽|rose]]需要氧氣和水。",
+      "[[防鏽|emerald]]：噴漆、塗油、鍍鋅或犧牲性保護。",
+      "[[金屬的用途|slate]]：鋁用於飛機（低密度）；銅用於電線（導電性）。",
+      "[[犧牲性保護|emerald]]涉及使用更活潑的金屬（如鋅）來保護鐵。"
     ],
     vocab: [
       { term: "Alloy", traditional: "合金", simplified: "合金", definition: "A mixture of two or more elements, where at least one is a metal." },
       { term: "Corrosion", traditional: "腐蝕", simplified: "腐蚀", definition: "The gradual destruction of materials by chemical reaction." }
     ],
     questions: [
-      { id: "9-1", text: "Which metal is the most reactive in this list?", options: ["Gold", "Iron", "Potassium", "Copper"], correctAnswer: "Potassium" }
+      { 
+        id: "9-1", 
+        text: "Which metal is the [[most reactive|rose]] in this list?", 
+        textZh: "在此列表中，哪種金屬的[[反應性最強|rose]]？",
+        options: ["Gold", "Iron", "Potassium", "Copper"], 
+        optionsZh: ["金", "鐵", "鉀", "銅"],
+        correctAnswer: "Potassium" 
+      }
     ]
   },
   {
     id: 10,
     title: "Chemistry of the environment",
+    titleZh: "環境化學",
     description: "Water, air, and pollution.",
+    descriptionZh: "水、空氣和污染。",
     color: "bg-teal-500",
     concepts: [
-      "Water treatment involves filtration and chlorination.",
-      "Air is 78% nitrogen, 21% oxygen, and 1% other gases.",
-      "Pollutants include carbon monoxide, sulfur dioxide, and nitrogen oxides.",
-      "The greenhouse effect is caused by CO2 and methane.",
-      "Global warming leads to climate change."
+      "[[Clean air|blue]] is 78% nitrogen, 21% oxygen, and small amounts of other gases.",
+      "[[Air pollutants|rose]]: CO (incomplete combustion), SO2 (fossil fuels), NOx (car engines).",
+      "[[Greenhouse gases|amber]] (CO2, CH4) contribute to [[global warming|rose]].",
+      "[[Water treatment|emerald]] involves filtration and chlorination.",
+      "[[Fertilizers|orange]] contain Nitrogen (N), Phosphorus (P), and Potassium (K) for plant growth.",
+      "[[Acid rain|rose]] is caused by SO2 and NOx dissolving in rainwater.",
+      "[[Catalytic converters|emerald]] in cars remove CO, NOx, and unburnt hydrocarbons.",
+      "[[Carbon cycle|slate]] involves photosynthesis, respiration, and combustion.",
+      "[[Global warming|rose]] leads to climate change and rising sea levels.",
+      "[[Desalination|blue]] is the removal of salt from seawater to produce drinking water."
+    ],
+    conceptsZh: [
+      "[[潔淨空氣|blue]]包含 78% 的氮氣、21% 的氧氣和少量其他氣體。",
+      "[[空氣污染物|rose]]：CO（不完全燃燒）、SO2（化石燃料）、NOx（汽車引擎）。",
+      "[[溫室氣體|amber]]（CO2、CH4）導致[[全球變暖|rose]]。",
+      "[[水處理|emerald]]涉及過濾和氯化。",
+      "[[肥料|orange]]含有氮 (N)、磷 (P) 和鉀 (K)，用於植物生長。",
+      "[[酸雨|rose]]是由 SO2 和 NOx 溶解在雨水中引起的。",
+      "汽車中的[[催化轉換器|emerald]]可去除 CO、NOx 和未燃燒的碳氫化合物。",
+      "[[碳循環|slate]]涉及光合作用、呼吸作用和燃燒。",
+      "[[全球變暖|rose]]導致氣候變化和海平面上升。",
+      "[[海水淡化|blue]]是從海水中去除鹽分以生產飲用水的過程。"
     ],
     vocab: [
       { term: "Pollution", traditional: "污染", simplified: "污染", definition: "Harmful substances introduced into the environment." },
       { term: "Greenhouse Gas", traditional: "溫室氣體", simplified: "温室气体", definition: "Gases that trap heat in the atmosphere." }
     ],
     questions: [
-      { id: "10-1", text: "What is the most abundant gas in the Earth's atmosphere?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Argon"], correctAnswer: "Nitrogen" }
+      { 
+        id: "10-1", 
+        text: "What is the [[most abundant gas|blue]] in the Earth's atmosphere?", 
+        textZh: "地球大氣中[[含量最高的氣體|blue]]是什麼？",
+        options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Argon"], 
+        optionsZh: ["氧氣", "氮氣", "二氧化碳", "氬氣"],
+        correctAnswer: "Nitrogen" 
+      }
     ]
   },
   {
     id: 11,
     title: "Organic chemistry",
+    titleZh: "有機化學",
     description: "Carbon compounds and fuels.",
+    descriptionZh: "碳化合物和燃料。",
     color: "bg-orange-700",
     concepts: [
-      "Hydrocarbons contain only carbon and hydrogen.",
-      "Alkanes are saturated (single bonds); Alkenes are unsaturated (double bonds).",
-      "Fractional distillation separates petroleum into useful fractions.",
-      "Alcohols contain the -OH functional group.",
-      "Polymers are large molecules made of many monomers."
+      "[[Hydrocarbons|amber]] contain only carbon and hydrogen.",
+      "[[Alkanes|blue]] are saturated (single bonds); [[Alkenes|rose]] are unsaturated (double bonds).",
+      "[[Fractional distillation|emerald]] separates petroleum into useful fractions.",
+      "[[Alcohols|orange]] contain the [[-OH functional group|orange]].",
+      "[[Carboxylic acids|rose]] contain the [[-COOH functional group|rose]].",
+      "[[Polymers|slate]] are large molecules made of many [[monomers|slate]].",
+      "[[Homologous series|amber]] have the same functional group and general formula.",
+      "[[Cracking|orange]] breaks long-chain alkanes into smaller alkanes and alkenes.",
+      "[[Addition reactions|emerald]] occur in alkenes (e.g., with bromine water).",
+      "[[Substitution reactions|blue]] occur in alkanes (e.g., with chlorine in UV light)."
+    ],
+    conceptsZh: [
+      "[[烴|amber]]僅包含碳和氫。",
+      "[[烷烴|blue]]是飽和的（單鍵）；[[烯烴|rose]]是不飽和的（雙鍵）。",
+      "[[分餾|emerald]]將石油分離成有用的餾分。",
+      "[[醇類|orange]]含有 [[-OH 官能團|orange]]。",
+      "[[羧酸|rose]]含有 [[-COOH 官能團|rose]]。",
+      "[[聚合物|slate]]是由許多[[單體|slate]]組成的大分子。",
+      "[[同系列|amber]]具有相同的官能團和通式。",
+      "[[裂化|orange]]將長鏈烷烴分解成較小的烷烴和烯烴。",
+      "[[加成反應|emerald]]發生在烯烴中（例如與溴水反應）。",
+      "[[取代反應|blue]]發生在烷烴中（例如在紫外光下與氯氣反應）。"
     ],
     vocab: [
       { term: "Hydrocarbon", traditional: "烴", simplified: "烃", definition: "A compound made of only hydrogen and carbon." },
       { term: "Polymer", traditional: "聚合物", simplified: "聚合物", definition: "A large molecule made of repeating units." }
     ],
     questions: [
-      { id: "11-1", text: "Which of these is a saturated hydrocarbon?", options: ["Ethene", "Ethane", "Ethanol", "Ethanoic acid"], correctAnswer: "Ethane" }
+      { 
+        id: "11-1", 
+        text: "Which of these is a [[saturated hydrocarbon|blue]]?", 
+        textZh: "以下哪項是[[飽和烴|blue]]？",
+        options: ["Ethene", "Ethane", "Ethanol", "Ethanoic acid"], 
+        optionsZh: ["乙烯", "乙烷", "乙醇", "乙酸"],
+        correctAnswer: "Ethane" 
+      }
     ]
   },
   {
     id: 12,
     title: "Experimental techniques and chemical analysis",
+    titleZh: "實驗技術和化學分析",
     description: "Laboratory methods and testing for ions.",
+    descriptionZh: "實驗室方法和離子測試。",
     color: "bg-pink-500",
     concepts: [
-      "Apparatus for measuring volume: measuring cylinder, pipette, burette.",
-      "Separation techniques: filtration, crystallization, distillation, chromatography.",
-      "Tests for anions: carbonate, chloride, iodide, nitrate, sulfate.",
-      "Tests for cations: using aqueous sodium hydroxide and ammonia.",
-      "Tests for gases: hydrogen, oxygen, carbon dioxide, ammonia, chlorine."
+      "[[Apparatus|slate]] for measuring volume: [[measuring cylinder|amber]], [[pipette|emerald]], [[burette|blue]].",
+      "[[Separation techniques|orange]]: [[filtration|blue]], [[crystallization|emerald]], [[distillation|rose]], [[chromatography|purple]].",
+      "[[Tests for anions|rose]]: carbonate, chloride, iodide, nitrate, sulfate.",
+      "[[Tests for cations|blue]]: using aqueous sodium hydroxide and ammonia.",
+      "[[Tests for gases|emerald]]: hydrogen, oxygen, carbon dioxide, ammonia, chlorine.",
+      "[[Purity|slate]] can be checked by measuring melting and boiling points.",
+      "[[Chromatography|purple]] uses a solvent to separate pigments based on solubility.",
+      "[[Flame tests|rose]] identify metal ions (e.g., Lithium is red, Copper is blue-green).",
+      "[[Precipitation reactions|emerald]] are used to identify aqueous ions.",
+      "[[Rf value|amber]] = distance moved by substance / distance moved by solvent."
+    ],
+    conceptsZh: [
+      "用於測量體積的[[儀器|slate]]：[[量筒|amber]]、[[移液管|emerald]]、[[滴定管|blue]]。",
+      "[[分離技術|orange]]：[[過濾|blue]]、[[結晶|emerald]]、[[蒸餾|rose]]、[[層析法|purple]]。",
+      "[[陰離子測試|rose]]：碳酸鹽、氯化物、碘化物、硝酸鹽、硫酸鹽。",
+      "[[陽離子測試|blue]]：使用氫氧化鈉水溶液和氨水。",
+      "[[氣體測試|emerald]]：氫氣、氧氣、二氧化碳、氨氣、氯氣。",
+      "可以通過測量熔點和沸點來檢查[[純度|slate]]。",
+      "[[層析法|purple]]利用溶劑根據溶解度分離色素。",
+      "[[焰色反應|rose]]識別金屬離子（例如：鋰為紅色，銅為藍綠色）。",
+      "[[沉澱反應|emerald]]用於識別水溶液中的離子。",
+      "[[Rf 值|amber]] = 物質移動距離 / 溶劑移動距離。"
     ],
     vocab: [
       { term: "Titration", traditional: "滴定", simplified: "滴定", definition: "A technique to find the concentration of a solution." },
       { term: "Distillation", traditional: "蒸餾", simplified: "蒸馏", definition: "Separating liquids based on boiling points." }
     ],
     questions: [
-      { id: "12-1", text: "Which piece of apparatus is most accurate for measuring 25.0 cm³ of liquid?", options: ["Beaker", "Measuring cylinder", "Pipette", "Conical flask"], correctAnswer: "Pipette" }
+      { 
+        id: "12-1", 
+        text: "Which piece of apparatus is [[most accurate|emerald]] for measuring 25.0 cm³ of liquid?", 
+        textZh: "哪種儀器測量 25.0 cm³ 液體[[最準確|emerald]]？",
+        options: ["Beaker", "Measuring cylinder", "Pipette", "Conical flask"], 
+        optionsZh: ["燒杯", "量筒", "移液管", "錐形瓶"],
+        correctAnswer: "Pipette" 
+      }
     ]
   }
 ];

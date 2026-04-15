@@ -74,6 +74,11 @@ export default function App() {
   const [sessionStats, setSessionStats] = useState<SessionStats>({});
 
   const [isAssistMode, setIsAssistMode] = useState(false);
+  const [columns, setColumns] = useState(1);
+
+  const toggleColumns = () => {
+    setColumns(prev => (prev % 3) + 1);
+  };
 
   const HighlightedText = ({ text, className = "" }: { text: string, className?: string }) => {
     if (!text) return null;
@@ -3724,12 +3729,19 @@ export default function App() {
       </AnimatePresence>
 
       <header className="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto flex justify-between items-center">
+        <div className={`transition-all duration-300 ${columns === 1 ? 'max-w-2xl' : columns === 2 ? 'max-w-4xl' : 'max-w-7xl'} mx-auto flex justify-between items-center`}>
           <div className="flex flex-col">
             <h1 className="text-2xl font-black text-emerald-500 tracking-tight leading-none">IGCSE CIE Chemistry</h1>
             <p className="text-[10px] font-bold text-black uppercase tracking-widest mt-1">An App by Toman</p>
           </div>
           <div className="flex items-center gap-2">
+            <button 
+              onClick={toggleColumns}
+              className="bg-gray-100 text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-all"
+              title="Toggle Layout"
+            >
+              {columns === 1 ? <List size={20} /> : columns === 2 ? <LayoutGrid size={20} /> : <Layers size={20} />}
+            </button>
             <button 
               onClick={() => setIsQRModalOpen(true)}
               className="bg-gray-100 text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-all"
@@ -3773,7 +3785,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <main className="max-w-2xl mx-auto p-4 space-y-6 mt-4">
+      <main className={`transition-all duration-300 ${columns === 1 ? 'max-w-2xl' : columns === 2 ? 'max-w-4xl' : 'max-w-7xl'} mx-auto p-4 space-y-6 mt-4`}>
         <div className="bg-emerald-100 border-2 border-emerald-200 rounded-2xl p-6 flex items-center gap-6">
           <div className="bg-emerald-500 p-4 rounded-full text-white">
             <GraduationCap size={40} />
@@ -3791,19 +3803,12 @@ export default function App() {
               </motion.button>
             </div>
             <p className="text-emerald-700 font-medium leading-tight mt-1">
-              {randomConcept.includes(': ') ? (
-                <>
-                  <span className="font-bold">{randomConcept.split(': ')[0]}:</span>
-                  {randomConcept.substring(randomConcept.indexOf(': ') + 1)}
-                </>
-              ) : (
-                randomConcept
-              )}
+              <HighlightedText text={randomConcept} />
             </p>
           </div>
         </div>
 
-        <div className="grid gap-4">
+        <div className={`grid gap-4 ${columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-1'}`}>
           {units.map((unit) => (
             <motion.div 
               key={unit.id}
@@ -3931,10 +3936,14 @@ export default function App() {
                 </span>
                 <button
                   onClick={() => setIsAssistMode(!isAssistMode)}
-                  className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest transition-all border-2
-                    ${isAssistMode ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200'}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border-2
+                    ${isAssistMode 
+                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_2px_0_0_#4338ca]' 
+                      : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_2px_0_0_#e0e7ff]'
+                    }
                   `}
                 >
+                  <Languages size={12} />
                   Assist: {isAssistMode ? 'ON' : 'OFF'}
                 </button>
               </div>
@@ -4106,10 +4115,14 @@ export default function App() {
           </div>
           <button
             onClick={() => setIsAssistMode(!isAssistMode)}
-            className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all border-2
-              ${isAssistMode ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_4px_0_0_#4338ca]' : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_4px_0_0_#e0e7ff]'}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all border-2
+              ${isAssistMode 
+                ? 'bg-indigo-500 text-white border-indigo-500 shadow-[0_4px_0_0_#4338ca]' 
+                : 'bg-white text-indigo-500 border-indigo-100 hover:border-indigo-200 shadow-[0_4px_0_0_#e0e7ff]'
+              }
             `}
           >
+            <Languages size={14} />
             Assist Mode: {isAssistMode ? 'ON' : 'OFF'}
           </button>
         </div>
