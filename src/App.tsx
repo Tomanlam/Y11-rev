@@ -18,6 +18,9 @@ import {
   ArrowRight,
   ArrowRightLeft,
   ArrowDown,
+  ArrowUp,
+  Palette,
+  Factory,
   Home,
   RefreshCw,
   Thermometer,
@@ -45,7 +48,7 @@ import {
   Activity,
   Hash
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { units, Unit, Question, Vocab } from './data';
 
 type AppMode = 'splash' | 'dashboard' | 'quiz' | 'quiz-select' | 'revision' | 'vocab' | 'result' | 'user-stats' | 'about' | 'playground' | 'facts';
@@ -1662,6 +1665,394 @@ export default function App() {
                   Base in Burette / Acid in Flask
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const FractionalDistillation = () => {
+    const [isFurnaceOn, setIsFurnaceOn] = useState(false);
+    const [activeTrend, setActiveTrend] = useState<string | null>('Boiling Point');
+    const [showAllTrends, setShowAllTrends] = useState(false);
+
+    const fractions = [
+      { name: 'Refinery Gas', temp: '20°C', use: 'Bottled gas', color: 'bg-sky-100', textColor: 'text-sky-600', height: 0, bp: 1, visc: 1, vol: 8, flam: 8, col: 1 },
+      { name: 'Gasoline/Petrol', temp: '70°C', use: 'Car fuel', color: 'bg-blue-100', textColor: 'text-blue-600', height: 12, bp: 2, visc: 2, vol: 7, flam: 7, col: 2 },
+      { name: 'Naphtha', temp: '120°C', use: 'Chemicals', color: 'bg-indigo-100', textColor: 'text-indigo-600', height: 24, bp: 3, visc: 3, vol: 6, flam: 6, col: 3 },
+      { name: 'Kerosene/Paraffin', temp: '170°C', use: 'Jet fuel', color: 'bg-violet-100', textColor: 'text-violet-600', height: 36, bp: 4, visc: 4, vol: 5, flam: 5, col: 4 },
+      { name: 'Diesel/Gas Oil', temp: '270°C', use: 'Truck fuel', color: 'bg-purple-100', textColor: 'text-purple-600', height: 48, bp: 5, visc: 5, vol: 4, flam: 4, col: 5 },
+      { name: 'Fuel Oil', temp: '350°C', use: 'Ship fuel', color: 'bg-fuchsia-100', textColor: 'text-fuchsia-600', height: 60, bp: 6, visc: 6, vol: 3, flam: 3, col: 6 },
+      { name: 'Lubricating Oil', temp: '450°C', use: 'Waxes/Polishes', color: 'bg-pink-100', textColor: 'text-pink-600', height: 72, bp: 7, visc: 7, vol: 2, flam: 2, col: 7 },
+      { name: 'Bitumen', temp: '500°C', use: 'Roads/Roofs', color: 'bg-gray-200', textColor: 'text-gray-600', height: 84, bp: 8, visc: 8, vol: 1, flam: 1, col: 8 },
+    ];
+
+    const chartData = fractions.map(f => ({
+      name: f.name,
+      'Boiling Point': f.bp,
+      'Viscosity': f.visc,
+      'Volatility': f.vol,
+      'Flammability': f.flam,
+      'Color': f.col,
+    }));
+
+    const molecules = [
+      { id: 1, size: 2, color: 'bg-red-500', label: 'Ethane (C2H6)', stopAt: 0, name: 'Red', carbons: 2 },
+      { id: 2, size: 4, color: 'bg-yellow-400', label: 'Octane (C8H18)', stopAt: 12, name: 'Yellow', carbons: 8 },
+      { id: 3, size: 8, color: 'bg-blue-500', label: 'Icosane (C20H42)', stopAt: 48, name: 'Blue', carbons: 20 },
+      { id: 4, size: 12, color: 'bg-green-500', label: 'Pentacontane (C50H102)', stopAt: 84, name: 'Green', carbons: 50 },
+    ];
+
+    const trends = [
+      { label: 'Boiling Point', color: '#ef4444', bgColor: 'bg-red-50', icon: <Thermometer size={14} />, direction: 'down', desc: 'Temp where liquid turns to gas.' },
+      { label: 'Viscosity', color: '#facc15', bgColor: 'bg-yellow-50', icon: <Droplets size={14} />, direction: 'down', desc: 'Resistance to flow (thickness).' },
+      { label: 'Volatility', color: '#3b82f6', bgColor: 'bg-blue-50', icon: <Wind size={14} />, direction: 'up', desc: 'Ease of evaporation.' },
+      { label: 'Flammability', color: '#22c55e', bgColor: 'bg-green-50', icon: <Flame size={14} />, direction: 'up', desc: 'Ease of catching fire.' },
+      { label: 'Color', color: '#a855f7', bgColor: 'bg-purple-50', icon: <Palette size={14} />, direction: 'down', desc: 'Darkness of the fraction.' },
+    ];
+
+    const ViscosityVolatilitySim = () => {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          {/* Viscosity Sim */}
+          <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-100 shadow-sm">
+            <h4 className="text-sm font-black text-gray-800 uppercase tracking-tight mb-4 flex items-center gap-2">
+              <Droplets className="text-yellow-500" size={16} />
+              Viscosity Simulation
+            </h4>
+            <div className="flex gap-4 h-40">
+              <div className="flex-1 bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-between border border-gray-100">
+                <span className="text-[8px] font-black text-gray-400 uppercase">Low Viscosity (Runny)</span>
+                <div className="relative w-full flex-1 flex items-center justify-center">
+                  <motion.div
+                    animate={{ y: [0, 40, 0] }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="text-blue-400"
+                  >
+                    <Droplets size={24} />
+                  </motion.div>
+                </div>
+                <span className="text-[7px] font-bold text-gray-500">Small Molecules</span>
+              </div>
+              <div className="flex-1 bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-between border border-gray-100">
+                <span className="text-[8px] font-black text-gray-400 uppercase">High Viscosity (Thick)</span>
+                <div className="relative w-full flex-1 flex items-center justify-center">
+                  <motion.div
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    className="text-orange-600"
+                  >
+                    <Droplets size={24} />
+                  </motion.div>
+                </div>
+                <span className="text-[7px] font-bold text-gray-500">Large Molecules</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Volatility Sim */}
+          <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-100 shadow-sm">
+            <h4 className="text-sm font-black text-gray-800 uppercase tracking-tight mb-4 flex items-center gap-2">
+              <Wind className="text-blue-500" size={16} />
+              Volatility Simulation
+            </h4>
+            <div className="flex gap-4 h-40">
+              <div className="flex-1 bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-between border border-gray-100">
+                <span className="text-[8px] font-black text-gray-400 uppercase">High Volatility</span>
+                <div className="relative w-full flex-1 overflow-hidden">
+                  <div className="absolute bottom-0 w-full h-4 bg-blue-200" />
+                  {[...Array(5)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: -20, opacity: [0, 1, 0] }}
+                      transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                      className="absolute left-1/2 -translate-x-1/2 text-blue-400"
+                      style={{ left: `${20 + i * 15}%` }}
+                    >
+                      <Wind size={12} />
+                    </motion.div>
+                  ))}
+                </div>
+                <span className="text-[7px] font-bold text-gray-500">Easily Vaporizes</span>
+              </div>
+              <div className="flex-1 bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-between border border-gray-100">
+                <span className="text-[8px] font-black text-gray-400 uppercase">Low Volatility</span>
+                <div className="relative w-full flex-1 overflow-hidden">
+                  <div className="absolute bottom-0 w-full h-4 bg-orange-200" />
+                  <motion.div
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: -5, opacity: [0, 1, 0] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    className="absolute left-1/2 -translate-x-1/2 text-orange-400"
+                  >
+                    <Wind size={12} />
+                  </motion.div>
+                </div>
+                <span className="text-[7px] font-bold text-gray-500">Hard to Vaporize</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const CondensedFormula = ({ carbons, color }: { carbons: number, color: string }) => {
+      const textColor = color.replace('bg-', 'text-');
+      if (carbons === 1) return <span className={textColor}>CH<sub>4</sub></span>;
+      if (carbons === 2) return <span className={textColor}>CH<sub>3</sub>CH<sub>3</sub></span>;
+      return (
+        <span className={textColor}>
+          CH<sub>3</sub>(CH<sub>2</sub>)<sub>{carbons - 2}</sub>CH<sub>3</sub>
+        </span>
+      );
+    };
+
+    return (
+      <div className="space-y-8">
+        <div className="bg-gray-50 rounded-3xl p-6 border-2 border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fractionating Column Simulator</p>
+              <p className="text-[10px] font-bold text-orange-500">Molecules enter at the bottom and rise</p>
+            </div>
+            <button
+              onClick={() => setIsFurnaceOn(!isFurnaceOn)}
+              className={`px-6 py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all
+                ${isFurnaceOn ? 'bg-red-500 text-white shadow-[0_4px_0_0_#b91c1c]' : 'bg-orange-500 text-white shadow-[0_4px_0_0_#c2410c]'}
+              `}
+            >
+              {isFurnaceOn ? 'Stop Furnace' : 'Start Furnace'}
+            </button>
+          </div>
+
+          {/* Molecular Structure Bar */}
+          <div className="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {molecules.map(m => (
+              <div key={m.id} className="bg-white p-4 rounded-[1.5rem] border border-gray-100 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full ${m.color} shadow-inner`} />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-gray-800 uppercase leading-none mb-1">{m.name}</span>
+                    <span className="text-[8px] font-bold text-gray-400 italic leading-none">{m.label}</span>
+                  </div>
+                </div>
+                <div className="text-xs font-mono font-bold bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                  <CondensedFormula carbons={m.carbons} color={m.color} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative h-[600px] flex gap-4">
+            {/* Furnace & Pipe */}
+            <div className="relative w-32 flex flex-col justify-end">
+              <div className="absolute bottom-0 left-0 w-24 h-32 bg-gray-800 rounded-t-3xl flex flex-col items-center justify-center border-t-4 border-orange-500 z-10">
+                <div className="text-[8px] font-black text-white uppercase mb-2">Furnace</div>
+                <div className="relative w-12 h-12">
+                  {isFurnaceOn && (
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 0.5, repeat: Infinity }}
+                      className="absolute inset-0 bg-orange-500 rounded-full blur-xl"
+                    />
+                  )}
+                  <Flame className={`w-12 h-12 transition-colors ${isFurnaceOn ? 'text-orange-500' : 'text-gray-600'}`} />
+                </div>
+              </div>
+              {/* Pipe to column */}
+              <div className="absolute bottom-10 left-20 w-12 h-8 bg-gray-700 z-0" />
+            </div>
+
+            {/* Column */}
+            <div className="flex-1 relative bg-white border-x-4 border-gray-200 rounded-t-[3rem] overflow-hidden shadow-inner">
+              {/* Temperature Gradient Background */}
+              <div className="absolute inset-0 bg-gradient-to-t from-orange-50 via-white to-sky-50 opacity-50" />
+              
+              {/* Fractions */}
+              <div className="absolute inset-0 flex flex-col">
+                {fractions.map((f, i) => (
+                  <div 
+                    key={f.name} 
+                    className={`flex-1 border-b border-gray-100 flex items-center justify-between px-6 relative z-10 ${f.color}/10`}
+                  >
+                    <div className="flex flex-col">
+                      <span className={`text-[10px] font-black uppercase tracking-tight ${f.textColor}`}>{f.name}</span>
+                      <span className="text-[8px] font-bold text-gray-400">{f.use}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-gray-300">{f.temp}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Molecules Animation */}
+              <AnimatePresence>
+                {isFurnaceOn && molecules.map((m) => (
+                  <motion.div
+                    key={m.id}
+                    initial={{ bottom: 40, left: -40, opacity: 0, scale: 0.5 }}
+                    animate={{ 
+                      left: ['-40px', '40px', '50%'],
+                      bottom: ['40px', '40px', `${100 - m.stopAt - 6}%`],
+                      opacity: [0, 1, 1],
+                      x: ['0%', '0%', '-50%'],
+                      scale: [0.5, 1, 1],
+                      rotate: [0, 0, 0]
+                    }}
+                    transition={{ 
+                      duration: 6 + m.id, 
+                      ease: "easeInOut",
+                      delay: m.id * 0.5,
+                      times: [0, 0.2, 1]
+                    }}
+                    className={`absolute z-20 rounded-full shadow-lg flex items-center justify-center border-2 border-white/50 ${m.color}`}
+                    style={{ width: m.size * 5, height: 12 }}
+                  >
+                    <div className="text-[6px] font-black text-white whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity absolute -top-4 bg-gray-800/80 px-1 rounded">
+                      {m.label}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Temperature Labels */}
+            <div className="w-16 flex flex-col justify-between py-8 text-[8px] font-black text-gray-400 uppercase tracking-widest text-center">
+              <span>Cooler</span>
+              <div className="h-full w-px bg-gradient-to-b from-sky-200 via-gray-200 to-orange-200 mx-auto my-2" />
+              <span>Hotter</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Trend Explorer */}
+        <div className="bg-white rounded-[2.5rem] p-8 border-2 border-gray-100 shadow-[0_8px_0_0_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="flex flex-col lg:flex-row gap-10">
+            {/* Left: Buttons */}
+            <div className="w-full lg:w-1/3 space-y-6">
+              <div>
+                <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
+                  <TrendingUp className="text-emerald-500" size={24} />
+                  Trend Explorer
+                </h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Select a property to visualize</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => { setShowAllTrends(true); setActiveTrend(null); }}
+                  className={`col-span-full flex flex-col items-start p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border-2
+                    ${showAllTrends ? 'bg-emerald-50 text-emerald-600 border-emerald-600 shadow-sm' : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'}
+                  `}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <LayoutGrid size={14} />
+                    Show All Trends
+                  </div>
+                  <span className="text-[8px] font-bold opacity-60 normal-case">Compare all properties at once</span>
+                </button>
+
+                {trends.map(t => (
+                  <button
+                    key={t.label}
+                    onClick={() => { setActiveTrend(t.label); setShowAllTrends(false); }}
+                    className={`flex flex-col items-start p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border-2
+                      ${activeTrend === t.label ? `bg-white border-current shadow-sm` : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'}
+                    `}
+                    style={{ color: activeTrend === t.label ? t.color : undefined }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {t.icon}
+                      {t.label}
+                    </div>
+                    <span className="text-[8px] font-bold opacity-60 normal-case leading-tight">{t.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {activeTrend && (
+                <div className={`p-6 rounded-3xl border-2 transition-all ${trends.find(t => t.label === activeTrend)?.bgColor} ${trends.find(t => t.label === activeTrend)?.color.replace('#', '')}`}>
+                  <h4 className="font-black uppercase tracking-tight mb-2" style={{ color: trends.find(t => t.label === activeTrend)?.color }}>{activeTrend}</h4>
+                  <p className="text-xs font-bold text-gray-600 leading-relaxed">
+                    {activeTrend === 'Boiling Point' && "The temperature at which the fraction turns into a gas. Larger molecules have stronger forces and higher boiling points."}
+                    {activeTrend === 'Viscosity' && "How 'thick' or 'runny' the liquid is. Larger molecules get tangled easily, making them more viscous (thicker)."}
+                    {activeTrend === 'Volatility' && "How easily a liquid turns into a gas. Smaller molecules escape the liquid surface more easily."}
+                    {activeTrend === 'Flammability' && "How easily the fraction catches fire. Smaller molecules mix better with oxygen and ignite more readily."}
+                    {activeTrend === 'Color' && "The visual appearance. Heavier fractions contain more impurities and larger molecules that absorb more light."}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Chart */}
+            <div className="flex-1 bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 min-h-[400px] flex flex-col">
+              <div className="flex-1 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      interval={0} 
+                      tick={{ fontSize: 10, fontWeight: 700, fill: '#6b7280' }} 
+                    />
+                    <YAxis hide />
+                    <Tooltip 
+                      cursor={{ fill: '#f3f4f6' }}
+                      contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    />
+                    <Legend verticalAlign="top" height={36}/>
+                    {showAllTrends ? (
+                      trends.map(t => (
+                        <Bar key={t.label} dataKey={t.label} fill={t.color} radius={[4, 4, 0, 0]} />
+                      ))
+                    ) : (
+                      <Bar 
+                        dataKey={activeTrend || 'Boiling Point'} 
+                        fill={trends.find(t => t.label === activeTrend)?.color || '#ef4444'} 
+                        radius={[8, 8, 0, 0]} 
+                      />
+                    )}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-4 flex justify-center gap-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2">
+                  <ArrowRight size={14} className="rotate-90" />
+                  Top of Column
+                </div>
+                <div className="flex items-center gap-2">
+                  Bottom of Column
+                  <ArrowRight size={14} className="-rotate-90" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Viscosity & Volatility Simulation */}
+          <ViscosityVolatilitySim />
+        </div>
+
+        <div className="bg-gray-800 rounded-3xl p-6 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <Factory size={120} />
+          </div>
+          <h3 className="text-sm font-black uppercase tracking-tight mb-4 relative z-10">Key Concept</h3>
+          <div className="space-y-4 relative z-10">
+            <p className="text-xs font-medium text-gray-300 leading-relaxed">
+              Crude oil is a <span className="text-orange-400 font-bold">mixture</span> of hydrocarbons. 
+              It is heated in a <span className="text-orange-400 font-bold">furnace</span> until it vaporizes.
+            </p>
+            <p className="text-xs font-medium text-gray-300 leading-relaxed">
+              The vapors rise up the column. As they cool, they <span className="text-sky-400 font-bold">condense</span> back into liquids at different heights based on their <span className="text-sky-400 font-bold">boiling points</span>.
+            </p>
+            <div className="pt-4 border-t border-gray-700">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Molecular Size Rule</p>
+              <p className="text-xs font-bold text-white">
+                Larger molecules = Stronger intermolecular forces = Higher Boiling Point = Condense at the bottom.
+              </p>
             </div>
           </div>
         </div>
@@ -4224,7 +4615,25 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.55 }}
+            className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-100 p-3 rounded-2xl text-orange-600">
+                  <Factory size={24} />
+                </div>
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Fractional Distillation</h2>
+              </div>
+            </div>
+
+            <FractionalDistillation />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.58 }}
             className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
           >
             <div className="flex items-center justify-between mb-8">
@@ -4242,7 +4651,7 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.58 }}
+            transition={{ delay: 0.6 }}
             className="bg-white border-2 border-gray-200 rounded-[2.5rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.05)]"
           >
             <div className="flex items-center justify-between mb-8">
