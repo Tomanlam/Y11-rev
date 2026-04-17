@@ -33,6 +33,7 @@ import {
   Eye,
   EyeOff,
   FlaskConical,
+  Search,
   Calculator,
   Atom,
   Variable,
@@ -3166,7 +3167,7 @@ export default function App() {
     const [alExtractionActive, setAlExtractionActive] = useState(false);
     const [feExtractionActive, setFeExtractionActive] = useState(false);
     const [hoveredExtractionMetal, setHoveredExtractionMetal] = useState<string | null>(null);
-    const [rateReaction, setRateReaction] = useState<'Mg' | 'CaCO3' | 'Haber'>('Mg');
+    const [rateReaction, setRateReaction] = useState<'Mg' | 'CaCO3' | 'H2O2'>('Mg');
     const [rateParams, setRateParams] = useState({
       concentration: 2,
       temperature: 2,
@@ -3186,6 +3187,8 @@ export default function App() {
     const [selectedSolubilitySalt, setSelectedSolubilitySalt] = useState<string | null>(null);
     const [electrolyteState, setElectrolyteState] = useState<'solid' | 'molten' | 'aqueous'>('solid');
     const [selectedElectrolyte, setSelectedElectrolyte] = useState<string | null>(null);
+    const [selectedReactivityOxide, setSelectedReactivityOxide] = useState<number>(7); // Iron
+    const [selectedReactivityAcid, setSelectedReactivityAcid] = useState<number>(3); // Magnesium
 
     const saltPrepData = {
       'NaCl': { soluble: true, group1: true, method: 'Titration' },
@@ -3576,83 +3579,359 @@ export default function App() {
               <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Reactivity Series</h2>
             </div>
 
-            <div className="relative">
-              <div className="flex items-end justify-between gap-1 pb-12 overflow-x-auto no-scrollbar">
-                {reactivityElements.map((el, i) => (
-                  <div key={el.symbol} className="flex flex-col items-center flex-1 min-w-[40px] relative">
-                    {/* Vertical Dotted Lines */}
-                    {(el.symbol === 'C' || el.symbol === 'H') && (
-                      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0 border-l-2 border-dashed border-gray-300 h-32 -z-0" />
-                    )}
-                    
-                    <motion.div
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Vertical Reactivity Bar */}
+              <div className="w-full lg:w-72 bg-gray-50 rounded-[2.5rem] p-6 border-2 border-gray-100">
+                <div className="flex flex-col items-center gap-2 mb-6">
+                  <TrendingUp size={20} className="text-emerald-500" />
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Reactivity Gradient</span>
+                  <div className="w-full h-1 bg-gradient-to-r from-emerald-400 via-gray-300 to-rose-400 rounded-full mt-2" />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {reactivityElements.map((el, i) => (
+                    <motion.button
+                      key={el.symbol}
                       onMouseEnter={() => setHoveredReactivity(i)}
                       onMouseLeave={() => setHoveredReactivity(null)}
-                      whileHover={{ y: -5, scale: 1.1 }}
-                      className={`z-10 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-sm border-2 transition-all cursor-help
+                      whileHover={{ x: 5 }}
+                      className={`relative w-full group overflow-hidden rounded-2xl border-2 transition-all p-3 flex items-center justify-between
                         ${el.symbol === 'C' ? 'bg-emerald-50 border-emerald-200' : 
                           el.symbol === 'H' ? 'bg-rose-50 border-rose-200' : 
-                          'bg-white border-gray-100 text-gray-700'}
-                        ${el.color || ''}
+                          'bg-white border-white'}
+                        ${i === selectedReactivityOxide ? 'ring-4 ring-emerald-500/20 border-emerald-500 z-10' : ''}
+                        ${i === selectedReactivityAcid ? 'ring-4 ring-rose-500/20 border-rose-500 z-10' : ''}
+                        hover:shadow-lg
                       `}
                     >
-                      {el.symbol}
-                    </motion.div>
-                    <span className="mt-2 text-[8px] font-bold text-gray-400 uppercase text-center leading-tight h-4">
-                      {el.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Hover Information Overlay */}
-              <div className="mt-4 min-h-[80px] bg-gray-50 rounded-3xl border-2 border-gray-100 p-4 flex flex-col justify-center gap-2">
-                <AnimatePresence mode="wait">
-                  {hoveredReactivity !== null ? (
-                    <motion.div
-                      key={hoveredReactivity}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      className="space-y-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${hoveredReactivity < 5 ? 'bg-blue-500' : hoveredReactivity > 5 ? 'bg-orange-500' : 'bg-gray-300'}`} />
-                        <p className="text-xs font-bold text-gray-700">
-                          {hoveredReactivity < 5 && "Extraction by electrolysis"}
-                          {hoveredReactivity > 5 && "Extraction by reacting the metal oxide with carbon (coke)"}
-                          {hoveredReactivity === 5 && "Reference element for extraction"}
-                        </p>
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg shadow-sm border-2 
+                          ${el.symbol === 'C' ? 'bg-emerald-500 text-white' : 
+                            el.symbol === 'H' ? 'bg-rose-500 text-white' : 
+                            'bg-gray-100 text-gray-700'}
+                          ${el.color?.includes('emerald') ? 'bg-emerald-500 text-white' : ''}
+                        `}>
+                          {el.symbol}
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-black text-gray-800 uppercase leading-none mb-1">{el.name}</p>
+                          <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+                            {i < 5 ? 'Electrolysis' : i > 5 ? 'C Reduction' : 'Benchmark'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${hoveredReactivity < 9 ? 'bg-emerald-500' : hoveredReactivity > 9 ? 'bg-rose-500' : 'bg-gray-300'}`} />
-                        <p className="text-xs font-bold text-gray-700">
-                          {hoveredReactivity < 9 && "Reaction with acids"}
-                          {hoveredReactivity > 9 && "DO NOT react with acids"}
-                          {hoveredReactivity === 9 && "Reference element for acid reactions"}
-                        </p>
+                      
+                      <div className="flex flex-col items-end gap-1">
+                        <div className={`w-1.5 h-1.5 rounded-full ${i < 5 ? 'bg-blue-500' : i > 5 ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${i < 9 ? 'bg-emerald-500' : i > 9 ? 'bg-rose-500' : 'bg-gray-300'}`} />
                       </div>
-                    </motion.div>
-                  ) : (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-xs font-bold text-gray-400 text-center uppercase tracking-widest"
-                    >
-                      Hover over an element to see its properties
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="mt-6 flex justify-between items-center px-2">
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={14} className="text-emerald-500" />
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Most Reactive</span>
+                    </motion.button>
+                  ))}
                 </div>
-                <div className="flex-1 mx-4 h-0.5 bg-gradient-to-r from-emerald-200 via-gray-200 to-rose-200 rounded-full" />
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Least Reactive</span>
+
+                <div className="mt-8 p-4 bg-white rounded-2xl border-2 border-gray-100">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Key Info</h4>
+                   <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                         <div className="w-3 h-3 rounded bg-blue-500" />
+                         <span className="text-[10px] font-bold text-gray-600">Active Extraction</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                         <div className="w-3 h-3 rounded bg-orange-500" />
+                         <span className="text-[10px] font-bold text-gray-600">Heat with Coke</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                         <div className="w-3 h-3 rounded bg-emerald-500" />
+                         <span className="text-[10px] font-bold text-gray-600">Acid Reactive</span>
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              {/* Main Display Area */}
+              <div className="flex-1 space-y-8">
+                {/* Information Callout */}
+                <div className="bg-gray-50 rounded-[2.5rem] p-6 border-2 border-gray-100 min-h-[100px] flex items-center justify-center relative overflow-hidden group">
+                  <AnimatePresence mode="wait">
+                    {hoveredReactivity !== null ? (
+                      <motion.div
+                        key={hoveredReactivity}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="text-center"
+                      >
+                         <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight mb-2">
+                           {reactivityElements[hoveredReactivity].name} ({reactivityElements[hoveredReactivity].symbol})
+                         </h3>
+                         <div className="flex gap-4 justify-center">
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${hoveredReactivity < 9 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                               {hoveredReactivity < 9 ? 'Reacts with Acid' : 'Unreactive with Acid'}
+                            </span>
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${hoveredReactivity < 5 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                               {hoveredReactivity < 5 ? 'Electrolysis Only' : 'C Reduction Possible'}
+                            </span>
+                         </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center">
+                        <Info className="text-gray-300 mb-2" size={32} />
+                        <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-[0.2em]">Select an element to simulate its reactions</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Stacked Simulators */}
+                <div className="flex flex-col gap-8">
+                  {/* Oxide Reduction Simulator */}
+                  <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-gray-200 pb-4 gap-4">
+                      <div>
+                        <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none mb-1">Metal Oxide Reduction</h3>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Test if Carbon (C) can remove Oxygen from Metal Oxides</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {reactivityElements.filter(el => el.symbol !== 'C' && el.symbol !== 'H').map((el, i) => {
+                          const elIdx = reactivityElements.findIndex(e => e.symbol === el.symbol);
+                          return (
+                            <button
+                              key={el.symbol}
+                              onClick={() => setSelectedReactivityOxide(elIdx)}
+                              className={`w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center
+                                ${selectedReactivityOxide === elIdx ? 'bg-emerald-500 text-white shadow-xl scale-110 ring-4 ring-emerald-500/20' : 'bg-white text-gray-400 border-2 border-gray-100 hover:border-emerald-300 hover:text-emerald-500'}
+                              `}
+                            >
+                              {el.symbol}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white rounded-[2rem] p-8 border-2 border-gray-100 shadow-inner overflow-hidden relative">
+                       <div className="flex flex-col items-center justify-center space-y-8 h-full">
+                          <div className="flex flex-col items-center gap-2">
+                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chemical Equation</span>
+                             <div className="flex items-center gap-3 font-mono text-lg font-black text-gray-800 bg-gray-50 px-6 py-3 rounded-2xl border-2 border-gray-100 shadow-sm">
+                                <span>{reactivityElements[selectedReactivityOxide].symbol}O</span>
+                                <span className="text-gray-300">+</span>
+                                <span className="text-emerald-600 bg-emerald-50 px-2 rounded-lg">C</span>
+                                <span className="text-gray-300">→</span>
+                                {selectedReactivityOxide > 5 ? (
+                                  <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right duration-500">
+                                    <span className="text-gray-900">{reactivityElements[selectedReactivityOxide].symbol}</span>
+                                    <span className="text-gray-300">+</span>
+                                    <span className="text-blue-600 font-black">CO₂</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-rose-500 font-black italic tracking-tighter opacity-50 px-4">No Reaction</span>
+                                )}
+                             </div>
+                          </div>
+
+                          <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4 w-full">
+                             <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                                <Search size={20} />
+                             </div>
+                             <div>
+                               <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Why?</p>
+                               <p className="text-[11px] font-bold text-gray-600 leading-tight">
+                                 {selectedReactivityOxide > 5 
+                                   ? `Carbon is more reactive than ${reactivityElements[selectedReactivityOxide].name}, so it displaces it.` 
+                                   : `${reactivityElements[selectedReactivityOxide].name} is too reactive for Carbon to displace.`}
+                               </p>
+                             </div>
+                          </div>
+                       </div>
+
+                       <div className="h-64 flex flex-col items-center justify-center relative bg-gray-50 rounded-[2rem] border-2 border-gray-200/50 shadow-inner">
+                          {/* Beaker / Crucible */}
+                          <div className="relative w-48 h-32 bg-gray-200 rounded-xl border-b-8 border-x-4 border-gray-300 flex items-center justify-center">
+                             {/* Carbon Mix */}
+                             <div className="absolute inset-0 bg-black opacity-10 rounded-lg m-1" />
+                             
+                             {/* Heating Flame */}
+                             <motion.div 
+                               animate={{ 
+                                 scaleY: [1, 1.3, 1], 
+                                 scaleX: [1, 1.1, 1],
+                                 opacity: [0.7, 1, 0.7],
+                                 y: [0, -2, 0]
+                               }}
+                               transition={{ repeat: Infinity, duration: 0.4 }}
+                               className="absolute -bottom-6 w-20 h-10 bg-gradient-to-t from-orange-600 via-orange-400 to-yellow-300 blur-md rounded-t-full z-0 translate-y-2"
+                             />
+
+                             <div className="relative z-10 flex flex-col items-center">
+                               {selectedReactivityOxide > 5 ? (
+                                  <div className="flex flex-col items-center">
+                                     <motion.div 
+                                       animate={{ 
+                                         scale: [0.8, 1],
+                                         rotate: [0, 5, -5, 0]
+                                       }}
+                                       className="w-20 h-8 bg-gray-500 rounded-lg shadow-2xl border-b-4 border-gray-600 flex items-center justify-center"
+                                     >
+                                        <span className="text-[8px] font-black text-white uppercase">{reactivityElements[selectedReactivityOxide].name}</span>
+                                     </motion.div>
+                                     <div className="flex gap-2 mt-4">
+                                        {[...Array(5)].map((_, i) => (
+                                          <motion.div 
+                                            key={i}
+                                            animate={{ 
+                                              y: [-10, -80],
+                                              x: [(i-2) * 20, (i-2) * 40],
+                                              opacity: [0, 1, 0],
+                                              scale: [0.5, 1.5, 0.5]
+                                            }}
+                                            transition={{ 
+                                              duration: 1.5 + Math.random(), 
+                                              repeat: Infinity, 
+                                              delay: i * 0.2 
+                                            }}
+                                            className="w-4 h-4 rounded-full border border-blue-400 bg-blue-100/30 blur-[1px]"
+                                          />
+                                        ))}
+                                     </div>
+                                  </div>
+                               ) : (
+                                  <div className="flex flex-col items-center opacity-40">
+                                     <div className="w-16 h-8 bg-orange-950 rounded-sm mb-2" />
+                                     <span className="text-[9px] font-black text-gray-400 uppercase">Unchanged Mixture</span>
+                                  </div>
+                               )}
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* Acid Reaction Simulator */}
+                  <div className="bg-gray-50 rounded-[2.5rem] p-8 border-2 border-gray-100 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-gray-200 pb-4 gap-4">
+                      <div>
+                        <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none mb-1">Reaction with Dilute Acid</h3>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Test Metal + 2HCl → Metal Chloride + H₂ (g)</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {reactivityElements.filter(el => el.symbol !== 'C' && el.symbol !== 'H').map((el, i) => {
+                          const elIdx = reactivityElements.findIndex(e => e.symbol === el.symbol);
+                          return (
+                            <button
+                              key={el.symbol}
+                              onClick={() => setSelectedReactivityAcid(elIdx)}
+                              className={`w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center
+                                ${selectedReactivityAcid === elIdx ? 'bg-rose-500 text-white shadow-xl scale-110 ring-4 ring-rose-500/20' : 'bg-white text-gray-400 border-2 border-gray-100 hover:border-rose-300 hover:text-rose-500'}
+                              `}
+                            >
+                              {el.symbol}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white rounded-[2rem] p-8 border-2 border-gray-100 shadow-inner overflow-hidden relative">
+                       <div className="flex flex-col items-center justify-center space-y-8 h-full order-last lg:order-first">
+                          <div className="flex flex-col items-center gap-2">
+                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reaction Equation</span>
+                             <div className="flex items-center gap-3 font-mono text-lg font-black text-gray-800 bg-gray-50 px-6 py-3 rounded-2xl border-2 border-gray-100 shadow-sm">
+                                <span>{reactivityElements[selectedReactivityAcid].symbol}(s)</span>
+                                <span className="text-gray-300">+</span>
+                                <span className="text-rose-600 bg-rose-50 px-2 rounded-lg">2HCl</span>
+                                <span className="text-gray-300">→</span>
+                                {selectedReactivityAcid < 9 ? (
+                                  <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right duration-500">
+                                    <span className="text-emerald-600">{reactivityElements[selectedReactivityAcid].symbol}Cl₂</span>
+                                    <span className="text-gray-300">+</span>
+                                    <span className="text-emerald-700 font-black underline decoration-emerald-200 decoration-4 underline-offset-4">H₂(g)</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-300 font-black italic tracking-widest px-4">No Reaction</span>
+                                )}
+                             </div>
+                          </div>
+
+                          <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100 flex items-center gap-4 w-full">
+                             <div className="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white">
+                                <FlaskConical size={20} />
+                             </div>
+                             <div>
+                               <p className="text-[10px] font-black text-rose-600 uppercase mb-1">Observation</p>
+                               <p className="text-[11px] font-bold text-gray-600 leading-tight">
+                                 {selectedReactivityAcid < 9 
+                                   ? `Vigorous effervescence. ${reactivityElements[selectedReactivityAcid].name} displaces Hydrogen from the acid.` 
+                                   : `The metal remains unchanged. ${reactivityElements[selectedReactivityAcid].name} is less reactive than Hydrogen.`}
+                               </p>
+                             </div>
+                          </div>
+                       </div>
+
+                       <div className="h-80 flex flex-col items-center justify-center relative bg-gray-50 rounded-[2rem] border-2 border-gray-200/50 shadow-inner">
+                          {/* Giant Test Tube */}
+                          <div className="relative w-24 h-56 border-x-8 border-b-8 border-gray-200 rounded-b-[3rem] overflow-hidden shadow-2xl bg-white/50">
+                             <div className="absolute top-0 w-full h-8 border-b-2 border-gray-200 bg-white/20" />
+                             
+                             {/* Acid Level */}
+                             <motion.div 
+                               animate={{ y: [0, -3, 0] }}
+                               transition={{ repeat: Infinity, duration: 4 }}
+                               className="absolute bottom-0 w-full h-[70%] bg-rose-100/40" 
+                             />
+
+                             {selectedReactivityAcid < 9 ? (
+                               <div className="relative h-full w-full">
+                                  {/* Metal Sample */}
+                                  <motion.div 
+                                    animate={{ 
+                                      scale: [1, 0.95, 1.05, 1],
+                                      rotate: [0, 2, -2, 0]
+                                    }}
+                                    transition={{ repeat: Infinity, duration: 2 }}
+                                    className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-6 bg-gray-400 rounded-lg shadow-xl z-20"
+                                  />
+                                  
+                                  {/* Effervescence Bubbles */}
+                                  {[...Array(15)].map((_, i) => {
+                                    const intensity = (10 - selectedReactivityAcid) * 0.5;
+                                    const delay = Math.random() * 2;
+                                    const duration = 0.5 + Math.random() * 1.5;
+
+                                    return (
+                                      <motion.div 
+                                        key={i}
+                                        initial={{ y: 200, x: 40, opacity: 0 }}
+                                        animate={{ 
+                                          y: -20, 
+                                          x: 20 + Math.random() * 40,
+                                          opacity: [0, 1, 1, 0],
+                                          scale: [0.5, 1.5]
+                                        }}
+                                        transition={{ 
+                                          duration, 
+                                          repeat: Infinity, 
+                                          delay,
+                                          ease: "easeOut"
+                                        }}
+                                        className="absolute bottom-8 w-2 h-2 rounded-full border border-rose-300 bg-white shadow-[0_0_8px_white]"
+                                      />
+                                    );
+                                  })}
+                               </div>
+                             ) : (
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-6 bg-gray-300 rounded border-2 border-gray-400 opacity-60" />
+                             )}
+                          </div>
+                          <div className="absolute top-8 right-8 flex flex-col items-center">
+                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${selectedReactivityAcid < 9 ? 'bg-emerald-500 text-white shadow-emerald-500/50' : 'bg-gray-200 text-gray-500'} shadow-lg mb-2`}>
+                                {selectedReactivityAcid < 9 ? 'YES' : 'NO'}
+                             </div>
+                             <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Reaction?</span>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -5924,21 +6203,29 @@ export default function App() {
                   <div className="w-full md:w-72 space-y-6">
                     <div>
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Select Reaction</label>
-                      <div className="grid grid-cols-1 gap-2">
+                      <div className="space-y-3">
                         {[
-                          { id: 'Mg', label: 'Mg + 2HCl', sub: 'H₂ Gas' },
-                          { id: 'CaCO3', label: 'CaCO₃ + 2HCl', sub: 'CO₂ Gas' },
-                          { id: 'Haber', label: 'N₂ + 3H₂ ⇌ 2NH₃', sub: 'NH₃ Yield' }
+                          { id: 'Mg', label: 'Mg + 2HCl → MgCl₂ + H₂', sub: 'Formation of H₂ Gas', color: 'border-blue-200' },
+                          { id: 'CaCO3', label: 'CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂', sub: 'Formation of CO₂ Gas', color: 'border-amber-200' },
+                          { id: 'H2O2', label: '2H₂O₂ → 2H₂O + O₂', sub: 'Catalytic Decomposition (MnO₂)', color: 'border-emerald-200' }
                         ].map((r) => (
                           <button
                             key={r.id}
                             onClick={() => setRateReaction(r.id as any)}
-                            className={`p-3 rounded-2xl border-2 text-left transition-all
-                              ${rateReaction === r.id ? 'bg-white border-emerald-500 shadow-md' : 'bg-gray-100 border-transparent opacity-60 hover:opacity-100'}
+                            className={`w-full p-4 rounded-3xl border-2 text-left transition-all relative overflow-hidden group
+                              ${rateReaction === r.id ? 'bg-white border-emerald-500 shadow-xl ring-4 ring-emerald-50' : 'bg-gray-100 border-transparent opacity-60 hover:opacity-100 hover:bg-white'}
                             `}
                           >
-                            <div className="text-xs font-black text-gray-800">{r.label}</div>
-                            <div className="text-[9px] font-bold text-gray-500">{r.sub}</div>
+                            <div className="relative z-10">
+                              <div className="text-[11px] font-black text-gray-800 font-mono mb-1">{r.label}</div>
+                              <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{r.sub}</div>
+                            </div>
+                            {rateReaction === r.id && (
+                              <motion.div 
+                                layoutId="active-reaction-glow"
+                                className="absolute top-0 right-0 w-2 h-full bg-emerald-500"
+                              />
+                            )}
                           </button>
                         ))}
                       </div>
@@ -5948,8 +6235,8 @@ export default function App() {
                       {[
                         { id: 'concentration', label: 'Concentration', min: 1, max: 5, step: 1, disabled: false },
                         { id: 'temperature', label: 'Temperature', min: 1, max: 5, step: 1, disabled: false },
-                        { id: 'surfaceArea', label: 'Surface Area', min: 1, max: 5, step: 1, disabled: rateReaction === 'Haber' },
-                        { id: 'pressure', label: 'Pressure', min: 1, max: 5, step: 1, disabled: rateReaction !== 'Haber' },
+                        { id: 'surfaceArea', label: 'Surface Area', min: 1, max: 5, step: 1, disabled: rateReaction === 'H2O2' },
+                        { id: 'pressure', label: 'Pressure', min: 1, max: 5, step: 1, disabled: true },
                       ].map((ctrl) => (
                         <div key={ctrl.id} className={ctrl.disabled ? 'opacity-30 grayscale pointer-events-none' : ''}>
                           <div className="flex justify-between items-center mb-1">
@@ -5968,14 +6255,14 @@ export default function App() {
                         </div>
                       ))}
 
-                      <div className={rateReaction === 'Mg' || rateReaction === 'CaCO3' ? 'opacity-30 grayscale pointer-events-none' : ''}>
+                      <div>
                         <button
                           onClick={() => setRateParams({...rateParams, catalyst: !rateParams.catalyst})}
                           className={`w-full p-3 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all
                             ${rateParams.catalyst ? 'bg-emerald-500 text-white border-emerald-600 shadow-[0_4px_0_0_#059669]' : 'bg-white text-gray-400 border-gray-200'}
                           `}
                         >
-                          {rateReaction === 'Haber' ? 'Fe Catalyst' : 'Catalyst (N/A)'}
+                          {rateReaction === 'H2O2' ? 'MnO₂ Catalyst' : 'Catalyst (General)'}
                         </button>
                       </div>
                     </div>
@@ -5985,16 +6272,12 @@ export default function App() {
                   <div className="flex-1 bg-white rounded-[2rem] p-6 border-2 border-gray-100 shadow-inner min-h-[300px]">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        {rateReaction === 'Haber' ? 'Yield of NH₃ vs Time' : `Volume of ${rateReaction === 'Mg' ? 'H₂' : 'CO₂'} vs Time`}
+                        Volume of {rateReaction === 'Mg' ? 'H₂' : rateReaction === 'CaCO3' ? 'CO₂' : 'O₂'} vs Time
                       </h4>
                       <div className="flex gap-4">
                         <div className="flex items-center gap-1.5">
                           <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="text-[8px] font-black text-gray-400 uppercase">Rate</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                          <span className="text-[8px] font-black text-gray-400 uppercase">Yield</span>
+                          <span className="text-[8px] font-black text-gray-400 uppercase">Product Volume</span>
                         </div>
                       </div>
                     </div>
@@ -6003,22 +6286,15 @@ export default function App() {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={useMemo(() => {
                           const data = [];
-                          // Simplified Rate Constant k
-                          let k = 0.05 * rateParams.concentration * (1 + (rateParams.temperature - 1) * 0.5);
-                          if (rateReaction !== 'Haber') {
+                          // Rate Constant k
+                          let k = 0.05 * rateParams.concentration * (1 + (rateParams.temperature - 1) * 0.4);
+                          if (rateReaction !== 'H2O2') {
                             k *= (1 + (rateParams.surfaceArea - 1) * 0.3);
-                          } else {
-                            k *= (1 + (rateParams.pressure - 1) * 0.2);
-                            if (rateParams.catalyst) k *= 2;
                           }
+                          if (rateParams.catalyst) k *= 2.5;
 
-                          // Simplified Equilibrium Yield Vmax
+                          // Final Yield (constant for these reactions as they go to completion)
                           let Vmax = 100;
-                          if (rateReaction === 'Haber') {
-                            // Haber is exothermic, higher temp = lower yield
-                            Vmax = 100 + (rateParams.pressure - 1) * 20 - (rateParams.temperature - 1) * 15;
-                            Vmax = Math.max(20, Vmax);
-                          }
 
                           for (let t = 0; t <= 100; t += 5) {
                             const v = Vmax * (1 - Math.exp(-k * t / 10));
@@ -6055,25 +6331,90 @@ export default function App() {
                       </ResponsiveContainer>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-4">
-                      <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-                        <p className="text-[8px] font-black text-emerald-600 uppercase mb-1">Observation: Rate</p>
+                    <div className="mt-6">
+                      <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                        <p className="text-[8px] font-black text-emerald-600 uppercase mb-1">Rate Analysis</p>
                         <p className="text-[10px] font-bold text-gray-700">
-                          {rateParams.concentration > 3 || rateParams.temperature > 3 || (rateReaction !== 'Haber' && rateParams.surfaceArea > 3) || (rateReaction === 'Haber' && (rateParams.pressure > 3 || rateParams.catalyst)) 
-                            ? "Steep initial gradient indicates a FAST reaction." 
-                            : "Gentle initial gradient indicates a SLOW reaction."}
-                        </p>
-                      </div>
-                      <div className="bg-blue-50 p-3 rounded-2xl border border-blue-100">
-                        <p className="text-[8px] font-black text-blue-600 uppercase mb-1">Observation: Yield</p>
-                        <p className="text-[10px] font-bold text-gray-700">
-                          {rateReaction === 'Haber' 
-                            ? `Equilibrium yield is ${rateParams.pressure > 3 ? 'HIGH' : rateParams.temperature > 3 ? 'LOW' : 'MODERATE'}.`
-                            : "Final yield is constant (limited by solid reactant)."}
+                          Steepest at t=0. The initial gradient represents the initial rate.
+                          {rateParams.catalyst ? " The catalyst lowers activation energy, significantly increasing the rate." : ""}
                         </p>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Reaction Visualizer */}
+                <div className="mt-8 pt-8 border-t-2 border-gray-100">
+                   <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-100 overflow-hidden relative min-h-[160px] flex flex-col items-center justify-center">
+                      <div className="absolute top-4 left-6">
+                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reaction Chamber</span>
+                      </div>
+                      
+                      {/* Beaker Container */}
+                      <div className="relative w-48 h-32 border-x-4 border-b-4 border-gray-200 rounded-b-3xl mt-4 bg-blue-50/30 overflow-hidden">
+                        {/* Liquid Level */}
+                        <div className="absolute bottom-0 w-full h-[70%] bg-blue-200 opacity-40" />
+                        
+                        {/* Bubbles */}
+                        {[...Array(20)].map((_, i) => {
+                          // Rate of bubble evolution based on params
+                          let rateFactor = rateParams.concentration * (1 + rateParams.temperature * 0.5);
+                          if (rateParams.catalyst) rateFactor *= 2;
+                          const duration = Math.max(0.5, 4 / (rateFactor / 2));
+                          
+                          return (
+                            <motion.div
+                              key={i}
+                              initial={{ y: 100, x: 20 + Math.random() * 160 }}
+                              animate={{ y: -20 }}
+                              transition={{ 
+                                duration, 
+                                repeat: Infinity, 
+                                delay: Math.random() * duration,
+                                ease: "linear"
+                              }}
+                              className="absolute w-2 h-2 rounded-full border border-gray-400/30 bg-white/40"
+                              style={{ left: `${10 + Math.random() * 80}%` }}
+                            />
+                          );
+                        })}
+
+                        {/* Solid Reactant (for Mg and CaCO3) */}
+                        {(rateReaction === 'Mg' || rateReaction === 'CaCO3') && (
+                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-4 flex gap-1 items-end justify-center">
+                             {[...Array(rateReaction === 'Mg' ? 1 : 4)].map((_, i) => (
+                               <motion.div 
+                                 key={i}
+                                 animate={rateParams.surfaceArea > 3 ? { scale: [1, 0.9, 1] } : {}}
+                                 className={`${rateReaction === 'Mg' ? 'w-16 h-2 bg-gray-400' : 'w-4 h-4 bg-gray-300'} rounded-sm`} 
+                               />
+                             ))}
+                          </div>
+                        )}
+
+                        {/* Catalyst Particles (for H2O2) */}
+                        {(rateReaction === 'H2O2' && rateParams.catalyst) && (
+                          <div className="absolute bottom-2 left-0 w-full flex justify-center gap-1">
+                            {[...Array(10)].map((_, i) => (
+                              <div key={i} className="w-1.5 h-1.5 bg-gray-800 rounded-full opacity-60" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Rate: {
+                            (rateParams.concentration * rateParams.temperature * (rateParams.catalyst ? 2 : 1) > 20) ? 'Very High' : 
+                            (rateParams.concentration * rateParams.temperature * (rateParams.catalyst ? 2 : 1) > 10) ? 'High' : 'Moderate'
+                          }</span>
+                        </div>
+                        <div className="text-[10px] font-bold text-gray-400 uppercase italic">
+                          {rateReaction === 'Mg' ? 'Effervescence: Hydrogen Gas' : rateReaction === 'CaCO3' ? 'Effervescence: Carbon Dioxide' : 'Effervescence: Oxygen Gas'}
+                        </div>
+                      </div>
+                   </div>
                 </div>
               </div>
             </div>
