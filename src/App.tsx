@@ -46,7 +46,9 @@ import {
   Layers,
   Settings,
   Activity,
-  Hash
+  Hash,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { units, Unit, Question, Vocab } from './data';
@@ -1845,12 +1847,12 @@ export default function App() {
             ))}
           </div>
 
-          <div className="relative h-[600px] flex gap-4">
+          <div className="relative h-[500px] sm:h-[600px] flex gap-2 sm:gap-4">
             {/* Furnace & Pipe */}
-            <div className="relative w-32 flex flex-col justify-end">
-              <div className="absolute bottom-0 left-0 w-24 h-32 bg-gray-800 rounded-t-3xl flex flex-col items-center justify-center border-t-4 border-orange-500 z-10">
+            <div className="relative w-24 sm:w-32 flex flex-col justify-end">
+              <div className="absolute bottom-0 left-0 w-20 sm:w-24 h-24 sm:h-32 bg-gray-800 rounded-t-3xl flex flex-col items-center justify-center border-t-4 border-orange-500 z-10">
                 <div className="text-[8px] font-black text-white uppercase mb-2">Furnace</div>
-                <div className="relative w-12 h-12">
+                <div className="relative w-8 h-8 sm:w-12 sm:h-12">
                   {isFurnaceOn && (
                     <motion.div
                       animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
@@ -1858,15 +1860,15 @@ export default function App() {
                       className="absolute inset-0 bg-orange-500 rounded-full blur-xl"
                     />
                   )}
-                  <Flame className={`w-12 h-12 transition-colors ${isFurnaceOn ? 'text-orange-500' : 'text-gray-600'}`} />
+                  <Flame className={`w-8 h-8 sm:w-12 sm:h-12 transition-colors ${isFurnaceOn ? 'text-orange-500' : 'text-gray-600'}`} />
                 </div>
               </div>
               {/* Pipe to column */}
-              <div className="absolute bottom-10 left-20 w-12 h-8 bg-gray-700 z-0" />
+              <div className="absolute bottom-10 left-16 sm:left-20 w-8 sm:w-12 h-6 sm:h-8 bg-gray-700 z-0" />
             </div>
 
             {/* Column */}
-            <div className="flex-1 relative bg-white border-x-4 border-gray-200 rounded-t-[3rem] overflow-hidden shadow-inner">
+            <div className="flex-1 relative bg-white border-x-4 border-gray-200 rounded-t-[2rem] sm:rounded-t-[3rem] overflow-hidden shadow-inner">
               {/* Temperature Gradient Background */}
               <div className="absolute inset-0 bg-gradient-to-t from-orange-50 via-white to-sky-50 opacity-50" />
               
@@ -1875,13 +1877,13 @@ export default function App() {
                 {fractions.map((f, i) => (
                   <div 
                     key={f.name} 
-                    className={`flex-1 border-b border-gray-100 flex items-center justify-between px-6 relative z-10 ${f.color}/10`}
+                    className={`flex-1 border-b border-gray-100 flex items-center justify-between px-3 sm:px-6 relative z-10 ${f.color}/10`}
                   >
                     <div className="flex flex-col">
-                      <span className={`text-[10px] font-black uppercase tracking-tight ${f.textColor}`}>{f.name}</span>
-                      <span className="text-[8px] font-bold text-gray-400">{f.use}</span>
+                      <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-tight ${f.textColor}`}>{f.name}</span>
+                      <span className="text-[6px] sm:text-[8px] font-bold text-gray-400 leading-none">{f.use}</span>
                     </div>
-                    <span className="text-[10px] font-black text-gray-300">{f.temp}</span>
+                    <span className="text-[8px] sm:text-[10px] font-black text-gray-300">{f.temp}</span>
                   </div>
                 ))}
               </div>
@@ -1986,17 +1988,17 @@ export default function App() {
             </div>
 
             {/* Right: Chart */}
-            <div className="flex-1 bg-gray-50 rounded-[2rem] p-6 border-2 border-gray-100 min-h-[400px] flex flex-col">
-              <div className="flex-1 w-full">
+            <div className="flex-1 bg-gray-50 rounded-[2rem] p-4 sm:p-6 border-2 border-gray-100 flex flex-col">
+              <div className="w-full h-[300px] sm:h-[400px] lg:h-[450px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 60 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="name" 
                       angle={-45} 
                       textAnchor="end" 
                       interval={0} 
-                      tick={{ fontSize: 10, fontWeight: 700, fill: '#6b7280' }} 
+                      tick={{ fontSize: 9, fontWeight: 700, fill: '#6b7280' }} 
                     />
                     <YAxis hide />
                     <Tooltip 
@@ -3150,7 +3152,7 @@ export default function App() {
   };
 
   const QuickFacts = () => {
-    const [isTiled, setIsTiled] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [hoveredRule, setHoveredRule] = useState<string | null>(null);
     const [hoveredApparatus, setHoveredApparatus] = useState<string | null>(null);
     const [hoveredMoleEq, setHoveredMoleEq] = useState<number | null>(null);
@@ -3332,13 +3334,13 @@ export default function App() {
             </div>
             <div className="flex items-center gap-4">
               <button 
-                onClick={() => setIsTiled(!isTiled)}
+                onClick={() => setIsExpanded(!isExpanded)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all
-                  ${isTiled ? 'bg-emerald-500 text-white shadow-[0_4px_0_0_#059669]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+                  ${isExpanded ? 'bg-emerald-500 text-white shadow-[0_4px_0_0_#059669]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
                 `}
               >
-                {isTiled ? <List size={16} /> : <LayoutGrid size={16} />}
-                {isTiled ? 'List View' : 'Tile Cards'}
+                {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                {isExpanded ? 'Collapse List' : 'Expand Card'}
               </button>
               <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl hidden sm:block">
                 <BookOpen size={28} />
@@ -3347,7 +3349,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className={`mx-auto p-6 transition-all duration-500 ${isTiled ? 'max-w-7xl grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 space-y-0' : 'max-w-2xl space-y-8'}`}>
+        <main className={`mx-auto p-6 transition-all duration-500 ${isExpanded ? 'max-w-7xl' : 'max-w-2xl'} space-y-8`}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
