@@ -23,6 +23,7 @@ import {
   Factory,
   Home,
   RefreshCw,
+  RotateCcw,
   Thermometer,
   Github,
   ExternalLink,
@@ -1393,6 +1394,727 @@ export default function App() {
             {state === 'solid' ? 'Lattice' : state === 'molten' ? 'Molten' : 'Aqueous'}
           </p>
         </div>
+      </div>
+    );
+  };
+
+  const ReactionProfileSimulator = () => {
+    const [energyChange, setEnergyChange] = useState<'exo' | 'endo'>('exo');
+    const [activationEnergy, setActivationEnergy] = useState<'low' | 'high'>('low');
+
+    const isExo = energyChange === 'exo';
+    const isHigh = activationEnergy === 'high';
+
+    // SVG coordinates
+    const width = 300;
+    const height = 200;
+    const padding = 20;
+
+    const rY = isExo ? height * 0.4 : height * 0.7;
+    const pY = isExo ? height * 0.7 : height * 0.4;
+    const peakY = rY - (isHigh ? 60 : 25);
+
+    const path = `M ${padding} ${rY} L ${width * 0.3} ${rY} Q ${width * 0.5} ${peakY} ${width * 0.7} ${pY} L ${width - padding} ${pY}`;
+
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="flex bg-white p-1 rounded-xl shadow-inner border border-gray-100">
+            {(['exo', 'endo'] as const).map(type => (
+              <button
+                key={type}
+                onClick={() => setEnergyChange(type)}
+                className={`flex-1 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
+                  ${energyChange === type 
+                    ? (type === 'exo' ? 'bg-rose-500 text-white shadow-md' : 'bg-blue-500 text-white shadow-md') 
+                    : 'text-gray-400 hover:text-gray-600'}
+                `}
+              >
+                {type === 'exo' ? 'Exothermic' : 'Endothermic'}
+              </button>
+            ))}
+          </div>
+          <div className="flex bg-white p-1 rounded-xl shadow-inner border border-gray-100">
+            {(['low', 'high'] as const).map(ea => (
+              <button
+                key={ea}
+                onClick={() => setActivationEnergy(ea)}
+                className={`flex-1 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
+                  ${activationEnergy === ea 
+                    ? 'bg-amber-500 text-white shadow-md' 
+                    : 'text-gray-400 hover:text-gray-600'}
+                `}
+              >
+                {ea} Ea
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative w-full h-[240px] bg-white rounded-2xl border-2 border-slate-100 flex items-center justify-center p-4">
+          <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+            {/* Axes */}
+            <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+            <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+            
+            {/* Axis Labels */}
+            <text x={padding - 5} y={height / 2} textAnchor="middle" transform={`rotate(-90, ${padding - 10}, ${height / 2})`} className="text-[10px] font-black fill-slate-400 uppercase tracking-widest">Energy</text>
+            <text x={width / 2} y={height - 5} textAnchor="middle" className="text-[10px] font-black fill-slate-400 uppercase tracking-widest">Progress of Reaction</text>
+
+            <AnimatePresence mode="wait">
+              <motion.path
+                key={`${energyChange}-${activationEnergy}`}
+                d={path}
+                fill="none"
+                stroke={isExo ? "#f43f5e" : "#3b82f6"}
+                strokeWidth="4"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.8 }}
+              />
+            </AnimatePresence>
+
+            {/* Labels */}
+            <text x={padding + 10} y={rY - 10} className="text-[10px] font-black fill-slate-600 uppercase">Reactants</text>
+            <text x={width - padding - 60} y={pY + 20} className="text-[10px] font-black fill-slate-600 uppercase">Products</text>
+
+            {/* Arrows */}
+            {/* Activation Energy Arrow */}
+            <line x1={width * 0.3} y1={rY} x2={width * 0.3} y2={peakY} stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 2" />
+            <path d={`M ${width * 0.3 - 3} ${peakY + 5} L ${width * 0.3} ${peakY} L ${width * 0.3 + 3} ${peakY + 5}`} fill="none" stroke="#f59e0b" strokeWidth="2" />
+            <text x={width * 0.3 + 5} y={(rY + peakY) / 2} className="text-[9px] font-black fill-amber-600 uppercase">Ea</text>
+
+            {/* Enthalpy Change Arrow */}
+            <line x1={width * 0.85} y1={rY} x2={width * 0.85} y2={pY} stroke={isExo ? "#e11d48" : "#2563eb"} strokeWidth="2" />
+            <path d={`M ${width * 0.85 - 3} ${pY + (isExo ? -5 : 5)} L ${width * 0.85} ${pY} L ${width * 0.85 + 3} ${pY + (isExo ? -5 : 5)}`} fill="none" stroke={isExo ? "#e11d48" : "#2563eb"} strokeWidth="2" />
+            <text x={width * 0.85 + 5} y={(rY + pY) / 2} className={`text-[9px] font-black ${isExo ? 'fill-rose-600' : 'fill-blue-600'} uppercase`}>ΔH</text>
+          </svg>
+          
+          <div className="absolute top-4 right-4 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl shadow-sm">
+            <p className={`text-[10px] font-black uppercase tracking-widest ${isExo ? 'text-rose-500' : 'text-blue-500'}`}>
+              ΔH is {isExo ? 'Negative (-)' : 'Positive (+)'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const SurroundingsTemperatureSimulator = () => {
+    const [reactionType, setReactionType] = useState<'exo' | 'endo'>('exo');
+    const [isStarted, setIsStarted] = useState(false);
+    
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex justify-center gap-2">
+          {(['exo', 'endo'] as const).map(type => (
+            <button
+              key={type}
+              onClick={() => { setReactionType(type); setIsStarted(false); }}
+              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all
+                ${reactionType === type 
+                  ? (type === 'exo' ? 'bg-rose-500 text-white shadow-md' : 'bg-blue-500 text-white shadow-md') 
+                  : 'bg-white text-gray-400 border border-gray-100'}
+              `}
+            >
+              {type === 'exo' ? 'Exothermic' : 'Endothermic'}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative w-full h-48 bg-white rounded-2xl border-2 border-slate-100 p-4 flex items-center justify-around">
+          {/* Reaction Vessel (Beaker) */}
+          <div className="relative w-24 h-32 border-b-4 border-x-4 border-slate-400 rounded-b-xl z-10 flex items-end">
+            <motion.div 
+              animate={isStarted ? { 
+                height: reactionType === 'exo' ? '80%' : '60%', 
+                backgroundColor: reactionType === 'exo' ? '#fee2e2' : '#e0f2fe' 
+              } : { 
+                height: '40%', 
+                backgroundColor: '#f1f5f9' 
+              }}
+              className="w-full absolute bottom-0 transition-colors duration-1000"
+            />
+            <div className="w-full h-full flex items-center justify-center relative z-20">
+              <FlaskConical size={32} className={isStarted ? (reactionType === 'exo' ? 'text-rose-500' : 'text-blue-500') : 'text-slate-300'} />
+              {isStarted && reactionType === 'exo' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ 
+                        scale: [1, 1.5, 0], 
+                        opacity: [0, 0.8, 0],
+                        y: [-20, -60],
+                        x: [0, (i % 2 === 0 ? 20 : -20)]
+                      }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                      className="absolute w-2 h-2 bg-rose-400/40 rounded-full blur-[1px]"
+                    />
+                  ))}
+                </div>
+              )}
+              {isStarted && reactionType === 'endo' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  {[...Array(4)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ 
+                        scale: [1, 0.8, 1], 
+                        opacity: [0.3, 0.6, 0.3],
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
+                      className="absolute w-12 h-12 bg-blue-100/30 rounded-full border border-blue-200/50"
+                      style={{ top: `${20 + i * 20}%`, left: `${10 + i * 20}%` }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-400 uppercase whitespace-nowrap">Reaction</div>
+          </div>
+
+          <div className="flex flex-col items-center gap-4">
+            <motion.div 
+              animate={isStarted ? { scale: [1, 1.1, 1] } : {}}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="px-3 py-1 bg-slate-100 rounded-full border border-slate-200 text-[10px] font-black uppercase text-slate-500"
+            >
+              Surroundings
+            </motion.div>
+            
+            {/* Thermometer */}
+            <div className="relative w-8 h-32 bg-slate-100 rounded-full border-2 border-slate-200 p-1 flex items-end overflow-hidden">
+               <motion.div 
+                animate={isStarted ? { 
+                  height: reactionType === 'exo' ? '90%' : '15%',
+                  backgroundColor: reactionType === 'exo' ? '#f43f5e' : '#3b82f6'
+                } : { 
+                  height: '50%',
+                  backgroundColor: '#94a3b8'
+                }}
+                className="w-full rounded-full transition-all duration-2000"
+               />
+               <div className="absolute top-2 w-full text-center text-[8px] font-black text-slate-400">°C</div>
+            </div>
+            {isStarted && (
+              <motion.span 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                className={`text-xs font-black uppercase tracking-widest ${reactionType === 'exo' ? 'text-rose-500' : 'text-blue-500'}`}
+              >
+                Temp {reactionType === 'exo' ? 'Rises ↑' : 'Falls ↓'}
+              </motion.span>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={() => setIsStarted(!isStarted)}
+          className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-md
+            ${isStarted 
+              ? 'bg-slate-200 text-slate-500 shadow-none' 
+              : 'bg-emerald-500 text-white shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none'}
+          `}
+        >
+          {isStarted ? 'Reset Simulation' : 'Mix Reactants'}
+        </button>
+      </div>
+    );
+  };
+
+  const BondEnthalpySimulation = () => {
+    const [breakingSize, setBreakingSize] = useState(1); // 1 to 5
+    const [makingSize, setMakingSize] = useState(1); // 1 to 5
+
+    const breakingEnergy = breakingSize * 200;
+    const makingEnergy = makingSize * 200;
+    const deltaH = breakingEnergy - makingEnergy;
+    const isExo = deltaH < 0;
+
+    return (
+      <div className="space-y-6 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-blue-500">
+              <span>Bond Breaking (吸熱)</span>
+              <span>{breakingEnergy} kJ/mol</span>
+            </div>
+            <input 
+              type="range" min="1" max="5" step="1" 
+              value={breakingSize} 
+              onChange={(e) => setBreakingSize(parseInt(e.target.value))}
+              className="w-full accent-blue-500"
+            />
+            <div className="flex justify-center h-20 items-end gap-1">
+              {[...Array(breakingSize)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${20 + i * 5}%` }}
+                  className="w-4 bg-blue-400 rounded-t-lg"
+                />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-rose-500">
+              <span>Bond Making (放熱)</span>
+              <span>{makingEnergy} kJ/mol</span>
+            </div>
+            <input 
+              type="range" min="1" max="5" step="1" 
+              value={makingSize} 
+              onChange={(e) => setMakingSize(parseInt(e.target.value))}
+              className="w-full accent-rose-500"
+            />
+            <div className="flex justify-center h-20 items-end gap-1">
+              {[...Array(makingSize)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${20 + i * 5}%` }}
+                  className="w-4 bg-rose-400 rounded-t-lg"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border-2 border-slate-100 flex flex-col items-center gap-4">
+          <div className="flex items-center gap-4 text-sm sm:text-lg font-black tracking-tight">
+            <span className="text-blue-500">+{breakingEnergy}</span>
+            <span className="text-gray-300">-</span>
+            <span className="text-rose-500">{makingEnergy}</span>
+            <span className="text-gray-300">=</span>
+            <motion.span 
+              key={deltaH}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className={deltaH === 0 ? 'text-gray-400' : (isExo ? 'text-rose-600' : 'text-blue-600')}
+            >
+              ΔH = {deltaH > 0 ? '+' : ''}{deltaH} kJ/mol
+            </motion.span>
+          </div>
+          
+          <div className={`px-4 py-2 rounded-xl text-center font-black uppercase tracking-widest text-xs
+            ${deltaH === 0 ? 'bg-slate-100 text-slate-400' : (isExo ? 'bg-rose-100 text-rose-600' : 'bg-blue-100 text-blue-600')}
+          `}>
+            {deltaH === 0 ? 'Net Zero Energy' : (isExo ? 'Overall Exothermic (Released)' : 'Overall Endothermic (Absorbed)')}
+          </div>
+          
+          <p className="text-[10px] text-gray-400 font-medium text-center italic">
+            {isExo 
+              ? "More energy is released when making bonds than is absorbed when breaking them." 
+              : deltaH > 0 
+                ? "More energy is absorbed to break bonds than is released when making them."
+                : "Energy absorbed and released are equal."}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const RateFactorsAnimation = () => {
+    const [temp, setTemp] = useState(1); // 1 to 3
+    const [conc, setConc] = useState(1); // 1 to 3
+    const [collisions, setCollisions] = useState<{ id: number, x: number, y: number }[]>([]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const particleCount = 10 * conc;
+
+    // Simulate Brownian motion and collisions
+    useEffect(() => {
+      const interval = setInterval(() => {
+        // Randomly trigger a "collision burst" proportional to temp and conc
+        if (Math.random() < 0.1 * temp * conc) {
+          const newId = Date.now();
+          setCollisions(prev => [...prev, { 
+            id: newId, 
+            x: Math.random() * 80 + 10, // % within container
+            y: Math.random() * 80 + 10 
+          }].slice(-5));
+          
+          setTimeout(() => {
+            setCollisions(prev => prev.filter(c => c.id !== newId));
+          }, 600);
+        }
+      }, 200 / temp);
+      return () => clearInterval(interval);
+    }, [temp, conc]);
+
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-center gap-6">
+          <div className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-rose-500">Kinetic Energy (Temp)</span>
+            <div className="flex bg-white p-1 rounded-xl shadow-inner border border-gray-100">
+              {[1, 2, 3].map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTemp(t)}
+                  className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all
+                    ${temp === t ? 'bg-rose-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}
+                  `}
+                >
+                  {t === 1 ? 'Low' : t === 2 ? 'Med' : 'High'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Particle Density (Conc)</span>
+            <div className="flex bg-white p-1 rounded-xl shadow-inner border border-gray-100">
+              {[1, 2, 3].map(c => (
+                <button
+                  key={c}
+                  onClick={() => setConc(c)}
+                  className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all
+                    ${conc === c ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}
+                  `}
+                >
+                  {c === 1 ? 'Low' : c === 2 ? 'Med' : 'High'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div ref={containerRef} className="relative w-full h-48 bg-slate-900 rounded-2xl border-4 border-slate-800 overflow-hidden">
+          {/* Particles with Brownian-like motion */}
+          {[...Array(particleCount)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ x: Math.random() * 200, y: Math.random() * 150 }}
+              animate={{ 
+                x: [...Array(10)].map(() => (Math.random() * 95) + "%"),
+                y: [...Array(10)].map(() => (Math.random() * 85) + "%")
+              }}
+              transition={{ 
+                duration: 20 / temp, 
+                repeat: Infinity, 
+                ease: "linear"
+              }}
+              className={`absolute w-2 h-2 rounded-full blur-[1px] ${i % 2 === 0 ? 'bg-rose-400 shadow-[0_0_8px_#f43f5e]' : 'bg-blue-400 shadow-[0_0_8px_#3b82f6]'}`}
+            />
+          ))}
+
+          {/* Collision Effects */}
+          <AnimatePresence>
+            {collisions.map(collision => (
+              <motion.div
+                key={collision.id}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [1, 2.5, 0], opacity: [1, 0.8, 0] }}
+                exit={{ opacity: 0 }}
+                style={{ left: `${collision.x}%`, top: `${collision.y}%` }}
+                className="absolute w-8 h-8 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+              >
+                <div className="absolute inset-0 bg-amber-400 rounded-full blur-md opacity-40" />
+                <div className="absolute inset-2 bg-white rounded-full blur-sm" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                   {[...Array(6)].map((_, i) => (
+                     <motion.div
+                       key={i}
+                       animate={{ x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40, opacity: 0 }}
+                       className="absolute w-1 h-1 bg-amber-500 rounded-full"
+                     />
+                   ))}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
+          <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md border border-white/10">
+            <p className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">Collision Events</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const CollisionTheoryAnimation = () => {
+    const [speed, setSpeed] = useState(1);
+    const [successCount, setSuccessCount] = useState(0);
+
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Particle Energy</span>
+          <div className="flex bg-white p-1 rounded-xl shadow-inner border border-gray-100">
+            {(['low', 'high'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setSpeed(s === 'low' ? 1 : 3)}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
+                  ${(s === 'low' ? speed === 1 : speed === 3) ? 'bg-amber-500 text-white shadow-md' : 'text-gray-400'}
+                `}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative w-full h-40 bg-white rounded-2xl border-2 border-slate-100 flex items-center justify-center overflow-hidden">
+          {/* Succesful Collision Area */}
+          <div className="absolute inset-0 flex items-center justify-center">
+             <motion.div
+               animate={{
+                 x: speed === 1 ? [-20, 20] : [-80, 80],
+               }}
+               transition={{ duration: 1 / speed, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
+               className="w-8 h-8 bg-blue-500 rounded-full z-10 flex items-center justify-center text-white font-black text-[10px] border-2 border-white"
+             >
+               A
+             </motion.div>
+             <motion.div
+               animate={{
+                 x: speed === 1 ? [20, -20] : [80, -80],
+               }}
+               onUpdate={(latest) => {
+                 const xVal = typeof latest.x === 'number' ? latest.x : 0;
+                 if (speed > 2 && Math.abs(xVal) < 5) {
+                   setSuccessCount(prev => prev + 1);
+                 }
+               }}
+               transition={{ duration: 1 / speed, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
+               className="w-8 h-8 bg-rose-500 rounded-full z-10 flex items-center justify-center text-white font-black text-[10px] border-2 border-white"
+             >
+               B
+             </motion.div>
+             
+             {/* Dynamic Flash on collision if high speed */}
+             <AnimatePresence>
+               {speed > 2 && (
+                 <motion.div
+                    key={successCount}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: [1, 2, 0], opacity: [0, 1, 0] }}
+                    className="absolute w-20 h-20 bg-amber-400/40 rounded-full blur-xl z-0"
+                 />
+               )}
+             </AnimatePresence>
+          </div>
+
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">
+            {speed === 1 ? "Insufficient Energy: Ineffective Collision" : "Energy > Activation Energy: Successful Collision!"}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const LeChatelierSimulator = () => {
+    const [reactants, setReactants] = useState(5);
+    const [products, setProducts] = useState(5);
+    const [isEquilibrating, setIsEquilibrating] = useState(false);
+    const [message, setMessage] = useState('');
+
+    const addReactants = () => {
+      if (isEquilibrating) return;
+      setReactants(prev => prev + 4);
+      setMessage('Increase [Reactants] → Equm shifts Right ⮕');
+      triggerEquilibrium('right');
+    };
+
+    const addProducts = () => {
+      if (isEquilibrating) return;
+      setProducts(prev => prev + 4);
+      setMessage('Increase [Products] ← Equm shifts Left ⬅');
+      triggerEquilibrium('left');
+    };
+
+    const triggerEquilibrium = (dir: 'left' | 'right') => {
+      setIsEquilibrating(true);
+      setTimeout(() => {
+        // Simple logic to bring them closer back to equilibrium state
+        setReactants(prev => dir === 'right' ? prev - 2 : prev + 2);
+        setProducts(prev => dir === 'right' ? prev + 2 : prev - 2);
+        setIsEquilibrating(false);
+      }, 2000);
+    };
+
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={addReactants}
+            className="px-4 py-2 bg-blue-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-[0_4px_0_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all"
+          >
+            Add A + B
+          </button>
+          <button
+            onClick={addProducts}
+            className="px-4 py-2 bg-rose-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-[0_4px_0_0_#be123c] active:translate-y-1 active:shadow-none transition-all"
+          >
+            Add C + D
+          </button>
+        </div>
+
+        <div className="relative w-full h-56 bg-white rounded-2xl border-2 border-slate-100 flex flex-col items-center justify-around p-4">
+          <div className="w-full flex justify-around items-end h-32 gap-4">
+            {/* Reactant Tank */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="relative w-16 h-24 border-2 border-slate-300 rounded-b-lg flex items-end overflow-hidden bg-slate-50">
+                <motion.div 
+                  animate={{ height: `${reactants * 10}%` }}
+                  className="w-full bg-blue-400 transition-all duration-1000"
+                />
+                <div className="absolute inset-0 flex items-center justify-center font-black text-blue-800 text-xs">
+                  {reactants}
+                </div>
+              </div>
+              <span className="text-[10px] font-black text-blue-500 uppercase">Reactants</span>
+            </div>
+
+            <div className="flex flex-col items-center justify-center pb-8">
+              <motion.div 
+                animate={isEquilibrating ? { 
+                  x: message.includes('Right') ? [0, 20, 0] : [0, -20, 0],
+                  scale: [1, 1.2, 1]
+                } : {}}
+                className="text-2xl"
+              >
+                ⇌
+              </motion.div>
+            </div>
+
+            {/* Product Tank */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="relative w-16 h-24 border-2 border-slate-300 rounded-b-lg flex items-end overflow-hidden bg-slate-50">
+                <motion.div 
+                  animate={{ height: `${products * 10}%` }}
+                  className="w-full bg-rose-400 transition-all duration-1000"
+                />
+                <div className="absolute inset-0 flex items-center justify-center font-black text-rose-800 text-xs">
+                  {products}
+                </div>
+              </div>
+              <span className="text-[10px] font-black text-rose-500 uppercase">Products</span>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={message}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-full border 
+                ${isEquilibrating ? 'bg-amber-50 shadow-sm border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-200 text-slate-400'}
+              `}
+            >
+              {isEquilibrating ? message : "Equilibrium Stable"}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <p className="text-[10px] text-center text-slate-400 font-medium italic">
+          Le Chatelier's: When a system at equilibrium is disturbed, the system positions itself to minimize the disturbance.
+        </p>
+      </div>
+    );
+  };
+
+  const RedoxTransferAnimation = () => {
+    const [isReacting, setIsReacting] = useState(false);
+
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="relative w-full h-40 bg-white rounded-2xl border-2 border-slate-100 p-4 flex items-center justify-around">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-16 h-16 bg-blue-100 rounded-full border-2 border-blue-500 flex items-center justify-center text-blue-600 font-black relative">
+              Mg
+              <AnimatePresence>
+                {!isReacting && (
+                  <motion.div 
+                    layoutId="electron"
+                    className="absolute -top-2 w-4 h-4 bg-amber-400 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-[8px] text-amber-900"
+                  >
+                    e⁻
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <span className="text-[10px] font-black uppercase text-blue-500">Reduction Agent</span>
+            {isReacting && <span className="text-[8px] font-bold text-rose-500 uppercase animate-pulse">Oxidation (-e⁻)</span>}
+          </div>
+
+          <div className="flex flex-col items-center justify-center gap-4">
+             <button
+               onClick={() => setIsReacting(!isReacting)}
+               className="p-3 bg-indigo-500 text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all"
+             >
+               {isReacting ? <RotateCcw size={20} /> : <Zap size={20} />}
+             </button>
+             <span className="text-[8px] font-black text-slate-300 uppercase">Electron Transfer</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-16 h-16 bg-rose-100 rounded-full border-2 border-rose-500 flex items-center justify-center text-rose-600 font-black relative">
+              O
+              <AnimatePresence>
+                {isReacting && (
+                  <motion.div 
+                    layoutId="electron"
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    className="absolute -top-2 w-4 h-4 bg-amber-400 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-[8px] text-amber-900"
+                  >
+                    e⁻
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <span className="text-[10px] font-black uppercase text-rose-500">Oxidizing Agent</span>
+            {isReacting && <span className="text-[8px] font-bold text-blue-500 uppercase animate-pulse">Reduction (+e⁻)</span>}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const CatalystPathwayVisualizer = () => {
+    return (
+      <div className="space-y-4 mt-4 bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="relative w-full h-48 bg-white rounded-2xl border-2 border-slate-100 p-4">
+          <svg width="100%" height="100%" viewBox="0 0 300 200" className="overflow-visible">
+            {/* Legend */}
+            <g transform="translate(180, 20)">
+               <line x1="0" y1="0" x2="20" y2="0" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 2" />
+               <text x="25" y="4" className="text-[8px] font-black fill-slate-400 uppercase">No Catalyst</text>
+               <line x1="0" y1="15" x2="20" y2="15" stroke="#f59e0b" strokeWidth="3" />
+               <text x="25" y="19" className="text-[8px] font-black fill-amber-500 uppercase">With Catalyst</text>
+            </g>
+
+            {/* Path without catalyst */}
+            <path 
+              d="M 20 120 L 80 120 Q 150 -40 220 160 L 280 160" 
+              fill="none" 
+              stroke="#cbd5e1" 
+              strokeWidth="2" 
+              strokeDasharray="4 4"
+            />
+            
+            {/* Path with catalyst */}
+            <motion.path 
+              d="M 20 120 L 80 120 Q 150 60 220 160 L 280 160" 
+              fill="none" 
+              stroke="#f59e0b" 
+              strokeWidth="4" 
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+
+            {/* Labels */}
+            <text x="30" y="110" className="text-[9px] font-black fill-slate-500 uppercase">Reactants</text>
+            <text x="230" y="180" className="text-[9px] font-black fill-slate-500 uppercase">Products</text>
+            <text x="110" y="50" className="text-[9px] font-black fill-amber-600 uppercase">Lower Ea</text>
+          </svg>
+        </div>
+        <p className="text-[10px] text-center font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
+          Catalysts increase rate by providing an alternative reaction pathway with a lower activation energy ($E_a$).
+        </p>
       </div>
     );
   };
@@ -6884,6 +7606,16 @@ export default function App() {
 
               {selectedUnit?.id === 4 && i === 0 && <InteractiveElectrolysisAnimation />}
               {selectedUnit?.id === 4 && i === 4 && <ElectroplatingAnimation />}
+
+              {selectedUnit?.id === 5 && i === 0 && <SurroundingsTemperatureSimulator />}
+              {selectedUnit?.id === 5 && i === 6 && <ReactionProfileSimulator />}
+              {selectedUnit?.id === 5 && i === 9 && <BondEnthalpySimulation />}
+
+              {selectedUnit?.id === 6 && i === 0 && <RateFactorsAnimation />}
+              {selectedUnit?.id === 6 && i === 1 && <CollisionTheoryAnimation />}
+              {selectedUnit?.id === 6 && i === 4 && <LeChatelierSimulator />}
+              {selectedUnit?.id === 6 && i === 5 && <RedoxTransferAnimation />}
+              {selectedUnit?.id === 6 && i === 8 && <CatalystPathwayVisualizer />}
             </motion.div>
           ))}
         </div>
